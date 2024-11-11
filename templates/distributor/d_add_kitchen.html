@@ -1,0 +1,65 @@
+{% include 'd_header.html' %}
+
+<div id="layoutSidenav_content">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <main>
+        <!-- Add Doctor Form Content Here -->
+        <div class="sd-container">
+            <h2 class="sd-form">Add Kitchen</h2>
+            <form action="{{ url_for('distributor.add_kitchen') }}" method="post" class="sd-form">
+                <div class="sd-row">
+                    <input name="name" type="text" placeholder="Full Name*" required>
+                    <!-- <input type="text" placeholder="Last name"> -->
+                </div>
+                <div class="sd-row">
+                    <input name="email" type="email" placeholder="Email*" required>
+                    <input name="mobile_number" type="text" placeholder="Mobile*" required>
+                </div>
+                <!-- <div class="sd-row">
+                    <select required>
+                        <option value="" disabled selected>Gender*</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                    <input type="date" placeholder="Date Of Birth*" required>
+                </div> -->
+                <div class="sd-row">
+                    <input name="password" type="password" placeholder="Password*" required>
+                    <input type="password" placeholder="Re-Enter Password*" required>
+                </div>
+                <textarea name="address" class="sd-textarea" placeholder="Address"></textarea>
+                <br>
+                <!-- <div class="sd-row"> -->
+                    <!-- <input type="text" placeholder="Designation"> -->
+                    <!-- <select required>
+                        <option value="" disabled selected>Select Department*</option>
+                        <option value="cardiology">Cardiology</option>
+                        <option value="neurology">Neurology</option>
+                         Add more options as needed -->
+                    <!-- </select> --> 
+                <!-- </div> -->
+                <div class="sd-row">
+                    <input name="city" type="text" placeholder="City*" required>
+                    <input name="district" type="text" placeholder="District*" required>
+                </div>
+                <div class="sd-row">
+                    <input name="state" type="text" placeholder="State*" required>
+                    <input name="country" type="text" placeholder="Country*" required>
+                </div>
+                <div class="sd-buttons">
+                    <button type="submit" class="sd-submit">Submit</button>
+                </div>
+            </form>
+        </div>
+        <!-- End of Add Doctor Form Content -->
+    </main>
+
+{% include 'sd_footer.html' %}  
