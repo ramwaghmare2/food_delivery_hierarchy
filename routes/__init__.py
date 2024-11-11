@@ -5,6 +5,8 @@ from .distributor import distributor_bp
 from .kitchen import kitchen_bp
 from .manager import manager_bp
 from .super_distributor import super_distributor_bp
+from .cuisine import cuisine_bp
+from .food_item import food_item_bp
 
 def create_app_routes(app):
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -13,3 +15,5 @@ def create_app_routes(app):
     app.register_blueprint(kitchen_bp, url_prefix='/kitchen')
     app.register_blueprint(manager_bp, url_prefix='/manager')
     app.register_blueprint(super_distributor_bp, url_prefix='/super_distributor')
+    app.register_blueprint(cuisine_bp, url_prefix='/cuisine')
+    app.register_blueprint(food_item_bp, url_prefix='/food_items')

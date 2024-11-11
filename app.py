@@ -1,13 +1,13 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from models import db
+from models import db  # Import the single instance of db
 from routes import create_app_routes
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
 
+    # Initialize db with app
     db.init_app(app)
 
     # Initialize Flask-Migrate
