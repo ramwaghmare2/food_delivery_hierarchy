@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Profile</title>
+    <!-- Add Bootstrap CSS link -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Additional custom styling */
+        .profile-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            margin-top: 30px;
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            margin-top: 50px;
+        }
+
+        .profile-img-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-img-container img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .profile-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .profile-role {
+            font-size: 1.1em;
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .profile-details {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            text-align: center;
+        }
+
+        .btn-back {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2em;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            background-color: #008aca;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Display flash messages for success or error -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Manager Profile Card -->
+        <div class="profile-card">
+            <!-- Profile Image and Name -->
+            <div class="profile-img-container">
+                {% if manager.image %}
+                    <img src="{{ url_for('static', filename='images/' + manager.image) }}" alt="Manager Image">
+                {% else %}
+                    <img src="https://via.placeholder.com/150" alt="Manager Image">
+                {% endif %}
+                <div class="profile-name">{{ manager.name }}</div>
+                <div class="profile-role">Manager</div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="profile-details">
+                <p><strong>Email:</strong> {{ manager.email }}</p>
+                <p><strong>Contact:</strong> {{ manager.contact }}</p>
+                <p><strong>Created At:</strong> {{ manager.created_at }}</p>
+                <p><strong>Last Updated:</strong> {{ manager.updated_at }}</p>
+            </div>
+
+            <!-- Back Button -->
+            <div class="card-footer">
+                <a href="{{ url_for('manager.get_managers') }}" class="btn-back">Back to Managers List</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

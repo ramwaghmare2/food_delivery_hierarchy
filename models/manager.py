@@ -12,6 +12,15 @@ class Manager(db.Model):
     super_distributor_id = db.Column(db.Integer, db.ForeignKey('super_distributors.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    image = db.Column(db.String(255), nullable=True)  
+
+    # Method to hash password
+    def set_password(self, password):
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+    
+    # Method to check password
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password, password)
 
     def __repr__(self):
         return f'<Manager {self.name}>'

@@ -1,7 +1,7 @@
-from flask import Blueprint
+from flask import Blueprint,render_template
 
 admin_bp = Blueprint('admin', __name__)
 
-@admin_bp.route('/admin', methods=['GET'])
-def admin_home():
-    return "Admin Home"
+@admin_bp.route('/admin', methods=['GET', 'POST'])
+def admin():
+    return render_template('admin.html')
