@@ -20,6 +20,7 @@ class Kitchen(db.Model):
     address = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=True)
 
     def __repr__(self):
         return f'<Kitchen {self.name}>'

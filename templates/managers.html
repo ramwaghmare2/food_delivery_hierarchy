@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managers</title>
+    <!-- Add Bootstrap CSS link -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Card styling and animations */
+        .manager-card {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease forwards;
+            animation-delay: calc(0.1s * var(--delay));
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .manager-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        /* Fade-in up animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .manager-image {
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-right: 20px;
+        }
+        .manager-info {
+            flex: 1;
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .action-buttons {
+            margin-top: 10px;
+        }
+        .action-buttons a {
+            margin-right: 10px;
+        }
+        .manager-card-body {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>Managers List</h2>
+
+        <!-- Display flash messages for success or error -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Manager Cards -->
+        <div class="row">
+            {% for manager in managers %}
+                <div class="col-md-4">
+                    <div class="card manager-card" style="--delay: {{ loop.index }}">
+                        <div class="card-body manager-card-body">
+                            <!-- Manager Image -->
+                            <div>
+                                {% if manager.image %}
+                                    <img src="{{ url_for('static', filename='images/' + manager.image) }}" alt="Manager Image" class="manager-image">
+                                {% else %}
+                                    <div class="manager-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Manager Info -->
+                            <div class="manager-info">
+                                <h5 class="card-title">{{ manager.name }}</h5>
+                                <p class="card-text"><strong>Email:</strong> {{ manager.email }}</p>
+                                <p class="card-text"><strong>Contact:</strong> {{ manager.contact }}</p>
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <a href="{{ url_for('manager.edit_manager', manager_id=manager.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{{ url_for('manager.delete_manager', manager_id=manager.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this manager?')">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
