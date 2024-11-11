@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Basic styling for layout */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+        .box {
+            background-color: #fff;
+            padding: 20px;
+            margin: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .box h3 {
+            margin-top: 0;
+        }
+        .user-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .user-list li {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .add-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .add-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Admin Dashboard</h1>
+
+    <!-- Managers Section -->
+    <div class="box">
+        <h3>Managers</h3>
+        <ul class="user-list">
+            {% for manager in managers %}
+                <li>{{ manager.name }} - {{ manager.email }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('admin_bp.add_user', role='Manager') }}" class="add-button">Add Manager</a>
+    </div>
+
+    <!-- Super Distributors Section -->
+    <div class="box">
+        <h3>Super Distributors</h3>
+        <ul class="user-list">
+            {% for super_distributor in super_distributors %}
+                <li>{{ super_distributor.name }} - {{ super_distributor.email }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('admin_bp.add_user', role='SuperDistributor') }}" class="add-button">Add Super Distributor</a>
+    </div>
+
+    <!-- Distributors Section -->
+    <div class="box">
+        <h3>Distributors</h3>
+        <ul class="user-list">
+            {% for distributor in distributors %}
+                <li>{{ distributor.name }} - {{ distributor.email }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('admin_bp.add_user', role='Distributor') }}" class="add-button">Add Distributor</a>
+    </div>
+
+    <!-- Kitchens Section -->
+    <div class="box">
+        <h3>Kitchens</h3>
+        <ul class="user-list">
+            {% for kitchen in kitchens %}
+                <li>{{ kitchen.name }} - {{ kitchen.email }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('admin_bp.add_user', role='Kitchen') }}" class="add-button">Add Kitchen</a>
+    </div>
+</div>
+
+</body>
+</html>
