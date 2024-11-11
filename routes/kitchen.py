@@ -27,6 +27,7 @@ def create_kitchen():
     return jsonify({'message': 'Kitchen created successfully', 'kitchen_id': new_kitchen.id}), 201
 
 # Get a list of all Kitchens
+#this is kitchen route
 @kitchen_bp.route('/kitchens', methods=['GET'])
 def get_kitchens():
     kitchens = Kitchen.query.all()
