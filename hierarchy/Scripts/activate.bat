@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\Admin\Desktop\food_delivery_hierarchy\hierarchy
+set VIRTUAL_ENV=C:\Users\tiwar\OneDrive\Desktop\Open Future Technologies\food_delivery_hierarchy\hierarchy
 
 if not defined PROMPT set PROMPT=$P$G
 

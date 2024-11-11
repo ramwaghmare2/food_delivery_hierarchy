@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\Admin\Desktop\food_delivery_hierarchy\hierarchy"
+VIRTUAL_ENV="C:\Users\tiwar\OneDrive\Desktop\Open Future Technologies\food_delivery_hierarchy\hierarchy"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
