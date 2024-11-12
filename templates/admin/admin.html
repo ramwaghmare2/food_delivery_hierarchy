@@ -1,107 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        /* Basic styling for layout */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            padding-top: 20px;
-        }
-        .box {
-            background-color: #fff;
-            padding: 20px;
-            margin: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .box h3 {
-            margin-top: 0;
-        }
-        .user-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .user-list li {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-        }
-        .add-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-        .add-button:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Dashboard</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Sidebar Styling */
+    .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      background-color: #2c3e50;
+      color: #ecf0f1;
+      padding-top: 20px;
+      font-family: Arial, sans-serif;
+      overflow-y: auto;
+    }
+
+    .sidebar img {
+      width: 80px;
+      border-radius: 50%;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .sidebar h4, .sidebar p {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .sidebar a {
+      color: #ecf0f1;
+      padding: 10px 15px;
+      display: block;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .sidebar a:hover {
+      background-color: #34495e;
+    }
+
+    .dropdown-content {
+      display: none;
+      padding-left: 20px;
+    }
+
+    .content {
+      margin-left: 270px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .card-custom {
+      background-color: #3498db;
+      color: #fff;
+      border-radius: 8px;
+      text-align: center;
+      padding: 15px;
+      transition: transform 0.3s;
+    }
+
+    .card-custom:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .content-section {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Admin Dashboard</h1>
+<!-- Sidebar -->
+<div class="sidebar">
+  <img src="https://via.placeholder.com/80" alt="Manager Image">
+  <h4>Manager Name</h4>
+  <p>Role: Manager</p>
+  <a href="javascript:void(0)" onclick="showSection('overview')">Overview</a>
+  <a href="javascript:void(0)" onclick="showSection('orders')">Manage Orders</a>
+  <a href="javascript:void(0)" onclick="showSection('inventory')">Inventory</a>
+  <a href="javascript:void(0)" onclick="showSection('settings')">Settings</a>
 
-    <!-- Managers Section -->
-    <div class="box">
-        <h3>Managers</h3>
-        <ul class="user-list">
-            {% for manager in managers %}
-                <li>{{ manager.name }} - {{ manager.email }}</li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('admin_bp.add_user', role='Manager') }}" class="add-button">Add Manager</a>
-    </div>
+  <!-- Dropdown for Manager -->
+  <a href="javascript:void(0)" onclick="toggleDropdown('manager')">Manager
+    <span id="manager-toggle">+</span>
+  </a>
+  <div id="manager" class="dropdown-content">
+    <a href="javascript:void(0)" onclick="showSection('addManager')">Add Manager</a>
+    <a href="javascript:void(0)" onclick="showSection('listManager')">List Managers</a>
+  </div>
 
-    <!-- Super Distributors Section -->
-    <div class="box">
-        <h3>Super Distributors</h3>
-        <ul class="user-list">
-            {% for super_distributor in super_distributors %}
-                <li>{{ super_distributor.name }} - {{ super_distributor.email }}</li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('admin_bp.add_user', role='SuperDistributor') }}" class="add-button">Add Super Distributor</a>
-    </div>
+  <!-- Dropdown for Super Distributors -->
+  <a href="javascript:void(0)" onclick="toggleDropdown('superDistributor')">Super-Distributors
+    <span id="superDistributor-toggle">+</span>
+  </a>
+  <div id="superDistributor" class="dropdown-content">
+    <a href="javascript:void(0)" onclick="showSection('addSuperDistributor')">Add Super-Distributor</a>
+    <a href="javascript:void(0)" onclick="showSection('listSuperDistributor')">List Super-Distributors</a>
+  </div>
 
-    <!-- Distributors Section -->
-    <div class="box">
-        <h3>Distributors</h3>
-        <ul class="user-list">
-            {% for distributor in distributors %}
-                <li>{{ distributor.name }} - {{ distributor.email }}</li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('admin_bp.add_user', role='Distributor') }}" class="add-button">Add Distributor</a>
-    </div>
+  <!-- Dropdown for Distributors -->
+  <a href="javascript:void(0)" onclick="toggleDropdown('distributor')">Distributors
+    <span id="distributor-toggle">+</span>
+  </a>
+  <div id="distributor" class="dropdown-content">
+    <a href="javascript:void(0)" onclick="showSection('addDistributor')">Add Distributor</a>
+    <a href="javascript:void(0)" onclick="showSection('listDistributor')">List Distributors</a>
+  </div>
 
-    <!-- Kitchens Section -->
-    <div class="box">
-        <h3>Kitchens</h3>
-        <ul class="user-list">
-            {% for kitchen in kitchens %}
-                <li>{{ kitchen.name }} - {{ kitchen.email }}</li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('admin_bp.add_user', role='Kitchen') }}" class="add-button">Add Kitchen</a>
-    </div>
+  <!-- Dropdown for Kitchens -->
+  <a href="javascript:void(0)" onclick="toggleDropdown('kitchen')">Kitchens
+    <span id="kitchen-toggle">+</span>
+  </a>
+  <div id="kitchen" class="dropdown-content">
+    <a href="javascript:void(0)" onclick="showSection('addKitchen')">Add Kitchen</a>
+    <a href="javascript:void(0)" onclick="showSection('listKitchen')">List Kitchens</a>
+  </div>
 </div>
+
+<!-- Main Content Area -->
+<div class="content" id="main-content">
+  <div id="overview-section" class="content-section" style="display: block;">
+    <h2>Dashboard Overview</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card-custom">
+          <h5>Total Orders</h5>
+          <p>120</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-custom" style="background-color: #27ae60;">
+          <h5>Pending Deliveries</h5>
+          <p>25</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-custom" style="background-color: #f39c12;">
+          <h5>Low Stock Items</h5>
+          <p>5</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Section -->
+  <div id="orders-section" class="content-section">
+    <h2>Manage Orders</h2>
+    <p>List of orders and their current status...</p>
+  </div>
+
+  <!-- Inventory Section -->
+  <div id="inventory-section" class="content-section">
+    <h2>Inventory Management</h2>
+    <p>Manage and update stock levels...</p>
+  </div>
+
+  <!-- Settings Section -->
+  <div id="settings-section" class="content-section">
+    <h2>Settings</h2>
+    <form>
+      <div class="form-group">
+        <label for="managerEmail">Email</label>
+        <input type="email" class="form-control" id="managerEmail" placeholder="Enter new email">
+      </div>
+      <div class="form-group">
+        <label for="managerPassword">Password</label>
+        <input type="password" class="form-control" id="managerPassword" placeholder="Enter new password">
+      </div>
+      <button type="submit" class="btn btn-primary">Update Settings</button>
+    </form>
+  </div>
+
+  <!-- Additional Sections -->
+  <div id="addManager-section" class="content-section">
+    <h2>Add Manager</h2>
+    <form>
+      <div class="form-group">
+        <label for="managerName">Name</label>
+        <input type="text" class="form-control" id="managerName" placeholder="Enter Manager's Name">
+      </div>
+      <button type="submit" class="btn btn-primary">Add Manager</button>
+    </form>
+  </div>
+
+  <div id="listManager-section" class="content-section">
+    <h2>List Managers</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>John Doe</td><td>johndoe@example.com</td><td><button class="btn btn-danger">Delete</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Other sections as per your requirements... -->
+
+</div>
+
+<script>
+  function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    const toggleSign = document.getElementById(`${id}-toggle`);
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+    toggleSign.textContent = dropdown.style.display === "block" ? "-" : "+";
+  }
+
+  function showSection(id) {
+    const sections = document.getElementsByClassName("content-section");
+    Array.from(sections).forEach(section => section.style.display = "none");
+    document.getElementById(`${id}-section`).style.display = "block";
+  }
+</script>
 
 </body>
 </html>

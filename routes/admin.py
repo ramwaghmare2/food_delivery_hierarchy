@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from sqlalchemy.exc import IntegrityError
 
+
 admin_bp = Blueprint('admin_bp', __name__)
 
 # Helper function to create a user based on role
@@ -51,6 +52,7 @@ def role_required(required_role):
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_dashboard():
+    print("Session Data", session)
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
@@ -95,9 +97,9 @@ def add_user(role):
 @admin_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        data = request.get_json()
+        data = request.form
         role = data.get('role')
-        if data['password'] != data['confirm_password']:
+        if data['password'] != data['confirmPassword']:
             return jsonify({"error": "Passwords do not match"}), 400
         
         user = create_user(data, role)

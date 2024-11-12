@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models.manager import Manager, db
 from datetime import datetime
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
-from app import bcrypt
+from extensions import bcrypt
 from werkzeug.utils import secure_filename
 import os
 
