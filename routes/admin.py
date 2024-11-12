@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen
 from functools import wraps
 from sqlalchemy.exc import IntegrityError
 
@@ -8,17 +7,23 @@ admin_bp = Blueprint('admin_bp', __name__)
 
 # Helper function to create a user based on role
 def create_user(data, role):
+    from models import db  # Import here to avoid circular dependency
     hashed_password = generate_password_hash(data['password'], method='sha256')
     try:
         if role == "Admin":
+            from models import Admin  # Delayed import
             new_user = Admin(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
         elif role == "Manager":
+            from models import Manager
             new_user = Manager(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
         elif role == "SuperDistributor":
+            from models import SuperDistributor
             new_user = SuperDistributor(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
         elif role == "Distributor":
+            from models import Distributor
             new_user = Distributor(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
         elif role == "Kitchen":
+            from models import Kitchen
             new_user = Kitchen(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
         else:
             return None
@@ -46,6 +51,7 @@ def role_required(required_role):
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_dashboard():
+    from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
@@ -110,15 +116,21 @@ def login():
         email = data['email']
         password = data['password']
         
+        # Import only the relevant model
         if role == "Admin":
+            from models import Admin
             user = Admin.query.filter_by(email=email).first()
         elif role == "Manager":
+            from models import Manager
             user = Manager.query.filter_by(email=email).first()
         elif role == "SuperDistributor":
+            from models import SuperDistributor
             user = SuperDistributor.query.filter_by(email=email).first()
         elif role == "Distributor":
+            from models import Distributor
             user = Distributor.query.filter_by(email=email).first()
         elif role == "Kitchen":
+            from models import Kitchen
             user = Kitchen.query.filter_by(email=email).first()
         else:
             return jsonify({"error": "Invalid role"}), 400
@@ -128,7 +140,6 @@ def login():
 
         session['user_id'] = user.id
         session['role'] = role
-        #return jsonify({"message": f"{role} logged in successfully"}), 200
         return redirect(url_for('admin_bp.admin_dashboard'))
 
     return render_template('admin/login.html')

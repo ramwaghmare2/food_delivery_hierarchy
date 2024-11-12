@@ -3,11 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from models import db
 from routes import create_app_routes  # Import create_app_routes from routes
+from extensions import bcrypt
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
     app.secret_key = "asf18fsf8s14fsafsdf48sd"
+    bcrypt.init_app(app)
 
     db.init_app(app)
 

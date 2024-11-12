@@ -9,3 +9,4 @@ from .distributor import Distributor
 from .kitchen import Kitchen
 from .manager import Manager
 from .super_distributor import SuperDistributor
+from .cuisine import Cuisine
