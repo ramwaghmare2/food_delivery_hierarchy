@@ -1,6 +1,6 @@
 from . import db
 from datetime import datetime
-
+from .food_item import FoodItem
 
 # Cuisine model
 class Cuisine(db.Model):
