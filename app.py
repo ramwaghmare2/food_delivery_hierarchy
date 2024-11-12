@@ -7,6 +7,7 @@ from flask_bcrypt import Bcrypt
 import os
 
 from routes import create_app_routes  # Import create_app_routes from routes
+from extensions import bcrypt
 
 
 bcrypt = Bcrypt()
@@ -15,6 +16,7 @@ def create_app():
     bcrypt = Bcrypt(app)
     app.config.from_object('config.Config')
     app.secret_key = "asf18fsf8s14fsafsdf48sd"
+    bcrypt.init_app(app)
 
     db.init_app(app)
 

@@ -1,5 +1,6 @@
 from . import db
 from datetime import datetime
+from extensions import bcrypt
 
 class Manager(db.Model):
     __tablename__ = 'managers'
