@@ -162,3 +162,4 @@ def get_manager_profile(manager_id):
     except Exception as e:
         flash(f"Error retrieving manager profile: {str(e)}", "danger")
         return redirect(url_for('manager.get_managers'))
+
