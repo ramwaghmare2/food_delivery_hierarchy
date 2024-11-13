@@ -1,3 +1,6 @@
+
+from flask import Blueprint,render_template
+
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -5,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
 
 admin_bp = Blueprint('admin_bp', __name__)
+
 
 # Helper function to create a user based on role
 def create_user(data, role):
@@ -148,7 +152,6 @@ def login():
         return redirect(url_for('admin_bp.admin_dashboard'))
 
     return render_template('admin/login.html')
-
 
 @admin_bp.route('/manager', methods=['GET'])
 @role_required('Manager')  
