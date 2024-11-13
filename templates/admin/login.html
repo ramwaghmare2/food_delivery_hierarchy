@@ -1,21 +1,28 @@
 {% extends "base.html" %}
+
 {% block content %}
-<form id="loginForm" method="POST" action="{{ url_for('admin_bp.login') }}">
-    <label for="role">Role:</label>
-    <select id="role" name="role">
-        <option value="Admin">Admin</option>
-        <option value="Manager">Manager</option>
-        <option value="SuperDistributor">Super Distributor</option>
-        <option value="Distributor">Distributor</option>
-        <option value="Kitchen">Kitchen</option>
-    </select>
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
+    
+    <form method="POST" action="{{ url_for('admin_bp.login') }}">
+        <label for="role">Role:</label>
+        <select id="role" name="role">
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="SuperDistributor">Super Distributor</option>
+            <option value="Distributor">Distributor</option>
+            <option value="Kitchen">Kitchen</option>
+        </select>
 
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
 
-    <button type="submit">Login</button>
-</form>
+        <button type="submit">Login</button>
+    </form>
 {% endblock %}

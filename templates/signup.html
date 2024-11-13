@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Signup</h2>
-<form id="signupForm" method="POST" action="{{ url_for('admin_bp.signup') }}">
+<form method="POST" action="{{ url_for('admin_bp.signup') }}">
     <label for="name">Name:</label>
     <input type="text" id="name" name="name" required>
 

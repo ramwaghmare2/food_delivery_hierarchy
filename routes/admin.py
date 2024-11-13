@@ -5,18 +5,18 @@ from flask import Blueprint, request, jsonify, session, render_template, redirec
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from sqlalchemy.exc import IntegrityError
-
+from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
 
 admin_bp = Blueprint('admin_bp', __name__)
 
 
 # Helper function to create a user based on role
 def create_user(data, role):
-    from models import db  # Import here to avoid circular dependency
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    from models import db  
+    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
     try:
         if role == "Admin":
-            from models import Admin  # Delayed import
+            from models import Admin  
             new_user = Admin(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
         elif role == "Manager":
             from models import Manager
@@ -39,24 +39,31 @@ def create_user(data, role):
         db.session.rollback()
         return None
 
-# Role-based access control decorator
-def role_required(required_role):
+def role_required(required_roles):
+    """
+    Decorator to enforce access control based on the user role.
+    `required_roles` can be a single role or a list of roles.
+    """
+    if isinstance(required_roles, str):
+        required_roles = [required_roles]  # Convert to list if it's a single role
+
     def wrapper(fn):
         @wraps(fn)
         def decorated_view(*args, **kwargs):
             if 'role' not in session:
                 return jsonify({"error": "Unauthorized access"}), 401
-            if session['role'] != required_role:
+            if session['role'] not in required_roles:
                 return jsonify({"error": "Insufficient permissions"}), 403
             return fn(*args, **kwargs)
+
         return decorated_view
+
     return wrapper
 
 # Route for displaying admin dashboard
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_dashboard():
-    print("Session Data", session)
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
@@ -69,7 +76,6 @@ def admin_dashboard():
                            distributors=distributors, 
                            kitchens=kitchens)
 
-# Route for adding new users (Manager, SuperDistributor, Distributor, Kitchen)
 VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 
 @admin_bp.route('/add_user/<role>', methods=['GET', 'POST'])
@@ -83,21 +89,17 @@ def add_user(role):
         password = data.get('password')
         confirm_password = data.get('confirm_password')
         
-        # Password match validation
         if password != confirm_password:
             return jsonify({"error": "Passwords do not match"}), 400
 
-        # Create user based on the role
         user = create_user(data, role)
         if user:
             return redirect(url_for('admin_bp.admin_dashboard'))
         else:
             return jsonify({"error": "User already exists or invalid role"}), 400
 
-    # If GET request, render the form
     return render_template('admin/add_user.html', role=role)
 
-# Route for displaying the signup form and handling signup
 @admin_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -105,38 +107,38 @@ def signup():
         role = data.get('role')
         if data['password'] != data['confirmPassword']:
             return jsonify({"error": "Passwords do not match"}), 400
-        
+         
         user = create_user(data, role)
         if user:
             return jsonify({"message": f"{role} created successfully"}), 201
         else:
             return jsonify({"error": "User already exists or invalid role"}), 400
-    # Render signup form for GET requests
-    return render_template("signup.html")
+
+    return render_template("admin/admin.html")
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        data = request.get_json()
-        role = data.get('role')
-        email = data['email']
-        password = data['password']
+
+        data = request.form
+        print("Form Data:", data)  
         
-        # Import only the relevant model
+        role = data.get('role')
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
         if role == "Admin":
-            from models import Admin
             user = Admin.query.filter_by(email=email).first()
         elif role == "Manager":
-            from models import Manager
             user = Manager.query.filter_by(email=email).first()
         elif role == "SuperDistributor":
-            from models import SuperDistributor
             user = SuperDistributor.query.filter_by(email=email).first()
         elif role == "Distributor":
-            from models import Distributor
             user = Distributor.query.filter_by(email=email).first()
         elif role == "Kitchen":
-            from models import Kitchen
             user = Kitchen.query.filter_by(email=email).first()
         else:
             return jsonify({"error": "Invalid role"}), 400
@@ -144,10 +146,53 @@ def login():
         if not user or not check_password_hash(user.password, password):
             return jsonify({"error": "Invalid email or password"}), 401
 
-        session['user_id'] = user.id
+        session['user_id'] = user.admin_id
         session['role'] = role
+
         return redirect(url_for('admin_bp.admin_dashboard'))
 
     return render_template('admin/login.html')
-  
-  
+
+@admin_bp.route('/manager', methods=['GET'])
+@role_required('Manager')  
+def manager_dashboard():
+    from models import SuperDistributor, Distributor, Kitchen
+    super_distributors = SuperDistributor.query.all()
+    distributors = Distributor.query.all()
+    kitchens = Kitchen.query.all()
+
+    return render_template('admin/manager_dashboard.html', 
+                           super_distributors=super_distributors, 
+                           distributors=distributors, 
+                           kitchens=kitchens)
+
+
+@admin_bp.route('/super_distributor', methods=['GET'])
+@role_required('SuperDistributor')  
+def super_distributor_dashboard():
+    from models import Distributor, Kitchen
+    distributors = Distributor.query.all()
+    kitchens = Kitchen.query.all()
+
+    return render_template('admin/super_distributor_dashboard.html', 
+                           distributors=distributors, 
+                           kitchens=kitchens)
+
+
+@admin_bp.route('/distributor', methods=['GET'])
+@role_required('Distributor')  
+def distributor_dashboard():
+    from models import Kitchen
+    kitchens = Kitchen.query.all()
+
+    return render_template('admin/distributor_dashboard.html', 
+                           kitchens=kitchens)
+
+
+@admin_bp.route('/kitchen', methods=['GET'])
+@role_required('Kitchen')  
+def kitchen_dashboard():
+    from models import Kitchen
+    kitchens = Kitchen.query.filter_by(id=session['user_id']).all()  
+
+    return render_template('admin/kitchen_dashboard.html', kitchens=kitchens)
