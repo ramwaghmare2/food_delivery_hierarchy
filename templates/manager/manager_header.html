@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Dashboard - Admin</title>
+        <title>Dashboard - Manager</title>
         <!-- Add Bootstrap CSS link -->
         
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -17,7 +17,7 @@
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3" href="{{ url_for('admin_bp.admin_dashboard') }}">FDA</a>
+            <a class="navbar-brand ps-3" href="{{ url_for('manager.manager_dashboard') }}">FDA</a>
             <!-- Sidebar Toggle-->
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
             <!-- Navbar Search-->
@@ -46,24 +46,10 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
-                                <a class="nav-link" href="{{ url_for('admin_bp.admin_dashboard')}}">
+                                <a class="nav-link" href="{{ url_for('manager.manager_dashboard')}}">
                                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                     Dashboard
                                 </a>
-
-                                <!-- Manager Section -->
-                                <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseManager" aria-expanded="false" aria-controls="collapseManager">
-                                    <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                                    Manager
-                                    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                                </a>
-                                <div class="collapse" id="collapseManager" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                    <nav class="sb-sidenav-menu-nested nav">
-                                        <a class="nav-link" href="{{ url_for('manager.get_managers') }}">List</a>
-                                        <a class="nav-link" href="{{ url_for('manager.add_manager') }}">Add</a>
-                                    </nav>
-                                </div>
-
                                 <!-- Super Distributor Section -->
                                 <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseSuperDistributor" aria-expanded="false" aria-controls="collapseSuperDistributor">
                                     <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>

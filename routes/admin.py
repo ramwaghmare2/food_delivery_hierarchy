@@ -146,11 +146,21 @@ def login():
         if not user or not check_password_hash(user.password, password):
             return jsonify({"error": "Invalid email or password"}), 401
 
-        session['user_id'] = user.admin_id
+        session['user_id'] = user.id
         session['role'] = role
 
-        return redirect(url_for('admin_bp.admin_dashboard'))
-
+        # Redirect based on role
+        if role == "Admin":
+            return redirect(url_for('admin_bp.admin_dashboard'))
+        elif role == "Manager":
+            return redirect(url_for('manager.manager_dashboard'))
+        elif role == "SuperDistributor":
+            return redirect(url_for('super_distributor_bp.super_distributor_dashboard'))
+        elif role == "Distributor":
+            return redirect(url_for('distributor_bp.distributor_dashboard'))
+        elif role == "Kitchen":
+            return redirect(url_for('kitchen.kitchen_dashboard'))
+        
     return render_template('admin/login.html')
 
 @admin_bp.route('/manager', methods=['GET'])
@@ -196,3 +206,11 @@ def kitchen_dashboard():
     kitchens = Kitchen.query.filter_by(id=session['user_id']).all()  
 
     return render_template('admin/kitchen_dashboard.html', kitchens=kitchens)
+
+
+@admin_bp.route('/logout')
+# @role_required('Admin')
+def logout():
+    session.pop('user_id', None)
+    session.pop('role', None) 
+    return render_template('admin/login.html')
