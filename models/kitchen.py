@@ -10,20 +10,14 @@ class Kitchen(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
-    _password = db.Column("password", db.String(255), nullable=False)  # Private attribute for hashed password
+    password = db.Column("password", db.String(255), nullable=False)  # Private attribute for hashed password
     contact = db.Column(db.String(15), nullable=True)
     location = db.Column(db.String(255), nullable=True)
-    new_field_2 = db.Column(db.String(100), nullable=True)
     city = db.Column(db.String(100), nullable=True)
-    status = db.Column(db.String(50), nullable=True)
     order_id = db.Column(db.Integer, nullable=True)
-    country = db.Column(db.String(50), nullable=True)
     state = db.Column(db.String(50), nullable=True)
     district = db.Column(db.String(50), nullable=True)
     address = db.Column(db.String(255), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=True)
 
     def __init__(self, password, **kwargs):
         super().__init__(**kwargs)

@@ -19,7 +19,8 @@ def super_distributor():
 @super_distributor_bp.route('/all-kitchens', methods=['GET'])
 def all_kitchen():
     all_kitchens = Kitchen.query.all()
-    return render_template('sd_all_kitchens.html', all_kitchens=all_kitchens)
+    role = session.get('role')
+    return render_template('sd_all_kitchens.html', all_kitchens=all_kitchens, role=role)
 
 @super_distributor_bp.route('/add-kitchen', methods=['GET', 'POST'])
 def add_kitchen():

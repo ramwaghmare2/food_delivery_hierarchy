@@ -12,8 +12,8 @@ manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager
 
 
 @manager_bp.route('/', methods=['GET', 'POST'])
-def dadmin_dashboard():
-    return render_template('manager.html')
+def manager_dashboard():
+    return render_template('manager_index.html')
 
 # Display the form to add manager
 @manager_bp.route('/form', methods=['GET', 'POST'])
@@ -29,10 +29,10 @@ def add_manager():
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
-        password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8')  # Hash password
+        password = generate_password_hash(request.form['password'], method='pbkdf2:sha256')  # Hash password
         contact = request.form.get('contact')
         image = request.files.get('image')  # Get the image from the form
-        print(image)
+        print(image) 
 
         # Check if the image is valid
         image_filename = None
@@ -60,11 +60,11 @@ def add_manager():
             db.session.add(new_manager)
             db.session.commit()
             flash("Manager added successfully!", "success")
-            return render_template('add_manager.html')  # Stay on the same page or redirect
+            return render_template('add_manager.html', role=role)  # Stay on the same page or redirect
         except Exception as e:
             db.session.rollback()
             flash(f"Error adding manager: {str(e)}", "danger")
-    print(role)
+    
     return render_template('add_manager.html', role=role)
 
 # Function for image storage

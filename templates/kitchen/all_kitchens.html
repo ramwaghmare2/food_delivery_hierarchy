@@ -1,5 +1,7 @@
 {% if role == 'Admin' %}
     {% include 'admin/admin_header.html' %}
+{% elif role == 'Manager' %}
+    {% include 'manager_header.html' %}
 {% endif %}
 
 <div id="layoutSidenav_content">
