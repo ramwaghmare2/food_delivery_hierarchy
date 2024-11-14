@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash,current_app
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash,current_app, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.manager import Manager, db
 from datetime import datetime
@@ -8,7 +8,7 @@ from extensions import bcrypt
 from werkzeug.utils import secure_filename
 import os
 
-manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager')
+manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')
 
 
 @manager_bp.route('/', methods=['GET', 'POST'])
@@ -23,6 +23,9 @@ def manager():
 # Add a new manager
 @manager_bp.route('/add', methods=['GET', 'POST'])
 def add_manager():
+
+    role = session.get('role')
+
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -61,8 +64,8 @@ def add_manager():
         except Exception as e:
             db.session.rollback()
             flash(f"Error adding manager: {str(e)}", "danger")
-
-    return render_template('add_manager.html')
+    print(role)
+    return render_template('add_manager.html', role=role)
 
 # Function for image storage
 def allowed_file(filename):
@@ -72,16 +75,19 @@ def allowed_file(filename):
 @manager_bp.route('/managers', methods=['GET'])
 def get_managers():
     try:
+        role = session.get('role')
         managers = Manager.query.all()
-        return render_template('managers.html', managers=managers)
+        return render_template('managers.html', managers=managers, role=role)
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
-        return render_template('managers.html', managers=[])
+        return render_template('managers.html', managers=[], role=role)
 
 # Function for edit the managers
 @manager_bp.route('/edit/<int:manager_id>', methods=['GET', 'POST'])
 def edit_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
+
+    role = session.get('role')
 
     if request.method == 'POST':
         name = request.form['name']
@@ -94,13 +100,13 @@ def edit_manager(manager_id):
         existing_manager_email = Manager.query.filter(Manager.email == email, Manager.id != manager.id).first()
         if existing_manager_email:
             flash("The email is already in use by another manager.", "danger")
-            return render_template('edit_manager.html', manager=manager)
+            return render_template('edit_manager.html', manager=manager, role=role)
 
         # Validate if contact already exists (excluding the current manager)
         existing_manager_contact = Manager.query.filter(Manager.contact == contact, Manager.id != manager.id).first()
         if existing_manager_contact:
             flash("The contact number is already in use by another manager.", "danger")
-            return render_template('edit_manager.html', manager=manager)
+            return render_template('edit_manager.html', manager=manager, role=role)
 
         # Update manager details
         manager.name = name
@@ -132,9 +138,9 @@ def edit_manager(manager_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating manager: {str(e)}", "danger")
-            return render_template('edit_manager.html', manager=manager)
+            return render_template('edit_manager.html', manager=manager, role=role)
 
-    return render_template('edit_manager.html', manager=manager)
+    return render_template('edit_manager.html', manager=manager, role=role)
 
 # Function for delete the manager
 @manager_bp.route('/delete/<int:manager_id>', methods=['GET', 'POST'])

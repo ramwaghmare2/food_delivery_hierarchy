@@ -6,7 +6,6 @@ from models import db
 from flask_bcrypt import Bcrypt
 import os
 
-from routes import create_app_routes  # Import create_app_routes from routes
 from extensions import bcrypt
 
 
@@ -29,8 +28,6 @@ def create_app():
     app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
     from routes import create_app_routes
-    # Register routes
-    create_app_routes(app)
 
     # Register all blueprints through create_app_routes
     create_app_routes(app)  # This will register admin_bp and other blueprints

@@ -1,4 +1,8 @@
-{% include 'sd_header.html' %}
+{% if role == 'Admin' %}
+    {% include 'admin/admin_header.html' %}
+{% else %}
+    {% include 'sd_header.html' %}
+{% endif %}
 
 <div id="layoutSidenav_content">
     {% with messages = get_flashed_messages() %}
