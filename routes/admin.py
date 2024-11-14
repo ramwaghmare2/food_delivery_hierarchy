@@ -7,7 +7,7 @@ from functools import wraps
 from sqlalchemy.exc import IntegrityError
 from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
 
-admin_bp = Blueprint('admin_bp', __name__)
+admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 
 
 # Helper function to create a user based on role
@@ -70,7 +70,7 @@ def admin_dashboard():
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
 
-    return render_template('admin/admin.html', 
+    return render_template('admin/admin_index.html', 
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
@@ -110,11 +110,11 @@ def signup():
          
         user = create_user(data, role)
         if user:
-            return jsonify({"message": f"{role} created successfully"}), 201
+            return render_template('admin/login.html')
         else:
             return jsonify({"error": "User already exists or invalid role"}), 400
 
-    return render_template("admin/admin.html")
+    return render_template("admin/signup.html")
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():

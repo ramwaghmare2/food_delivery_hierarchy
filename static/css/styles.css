@@ -11332,3 +11332,85 @@ body {
   cursor: pointer;
   font-size: 16px;
 }
+
+
+.form-container {
+  max-width: 500px;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Animation */
+  animation: fadeIn 0.8s ease;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Centered button */
+.center-button {
+  display: flex;
+  justify-content: center;
+}
+
+/* Card styling and animations */
+.manager-card {
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.6s ease forwards;
+  animation-delay: calc(0.1s * var(--delay));
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.manager-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+/* Fade-in up animation */
+@keyframes fadeInUp {
+  from {
+      opacity: 0;
+      transform: translateY(30px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+.manager-image {
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  margin-right: 20px;
+}
+.manager-info {
+  flex: 1;
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.action-buttons {
+  margin-top: 10px;
+}
+.action-buttons a {
+  margin-right: 10px;
+}
+.manager-card-body {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
