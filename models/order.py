@@ -6,7 +6,9 @@ class Order(db.Model):
 
     order_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
+
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
+
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     order_status = db.Column(db.Enum('Pending', 'Processing', 'Completed', 'Cancelled'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -14,7 +16,7 @@ class Order(db.Model):
 
     def __repr__(self):
         return f'<orders {self.name}>'
-    
+
 
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
@@ -24,5 +26,7 @@ class OrderItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
 
+
     def __repr__(self):  
         return f'<OrderItem {self.order_item_id}>'
+
