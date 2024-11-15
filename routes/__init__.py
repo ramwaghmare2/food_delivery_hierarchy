@@ -17,4 +17,3 @@ def create_app_routes(app):
     app.register_blueprint(super_distributor_bp, url_prefix='/super_distributor')
     app.register_blueprint(cuisine_bp, url_prefix='/cuisine')
     app.register_blueprint(order_bp, url_prefix='/order')
-    

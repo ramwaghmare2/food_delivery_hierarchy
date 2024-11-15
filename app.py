@@ -2,12 +2,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from models import db
-
 from flask_bcrypt import Bcrypt
 import os
-
 from extensions import bcrypt
-
 
 bcrypt = Bcrypt()
 def create_app():
@@ -23,7 +20,6 @@ def create_app():
     migrate = Migrate(app, db)
     bcrypt.init_app(app)
 
-
     app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'static/images')
     app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -32,10 +28,7 @@ def create_app():
     # Register all blueprints through create_app_routes
     create_app_routes(app)  # This will register admin_bp and other blueprints
 
-
     return app
-
-
 
 if __name__ == "__main__":
     app = create_app()
