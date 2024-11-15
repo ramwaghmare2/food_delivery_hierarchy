@@ -155,9 +155,9 @@ def login():
         elif role == "Manager":
             return redirect(url_for('manager.manager_dashboard'))
         elif role == "SuperDistributor":
-            return redirect(url_for('super_distributor_bp.super_distributor_dashboard'))
+            return redirect(url_for('super_distributor.super_distributor'))
         elif role == "Distributor":
-            return redirect(url_for('distributor_bp.distributor_dashboard'))
+            return redirect(url_for('distributor.distributor_home'))
         elif role == "Kitchen":
             return redirect(url_for('kitchen.kitchen_dashboard'))
         

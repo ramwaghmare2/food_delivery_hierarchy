@@ -1,5 +1,11 @@
 {% if role == 'Admin' %}
     {% include 'admin/admin_header.html' %}
+{% elif role == 'Manager' %}
+    {% include 'manager_header.html' %}
+{% elif role == "SuperDistributor" %}
+    {% include 'distributor/d_header.html'%}
+{% elif role == "Distributor" %}
+    {% include 'distributor/d_header.html'%}
 {% endif %}
 <body>
 <div id="layoutSidenav_content">

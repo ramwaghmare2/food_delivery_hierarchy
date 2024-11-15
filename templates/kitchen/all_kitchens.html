@@ -2,6 +2,10 @@
     {% include 'admin/admin_header.html' %}
 {% elif role == 'Manager' %}
     {% include 'manager_header.html' %}
+{% elif role == "SuperDistributor" %}
+    {% include 'super_distributor/sd_header.html'%}
+{% elif role == "Distributor" %}
+    {% include 'distributor/d_header.html'%}
 {% endif %}
 
 <div id="layoutSidenav_content">
@@ -47,7 +51,7 @@
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('kitchen.edit_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                    <a href="{{ url_for('kitchen.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this manager?')">Delete</a>
+                                    <a href="{{ url_for('distributor.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this kitchen?')">Delete</a>
                                 </div>
                             </div>
                         </div>

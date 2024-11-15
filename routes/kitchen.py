@@ -38,7 +38,7 @@ def create_kitchen():
 def get_kitchens():
     role = session.get('role')
     kitchens = Kitchen.query.all()
-    return render_template('kitchen/all_kitchens.html', all_kitchens=kitchens, role=role)
+    return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role)
 
 
 # Get a specific Kitchen by ID
@@ -114,7 +114,7 @@ def edit_kitchen(kitchen_id):
         try:
             db.session.commit()
             flash("Kitchen updated successfully!", "success")
-            return redirect(url_for('kitchen.get_kitchens'))
+            return redirect(url_for('distributor.distrubutor_all_kitchens'))
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Kitchen: {str(e)}", "danger")
@@ -139,4 +139,4 @@ def delete_kitchen(kitchen_id):
 
 @kitchen_bp.route("/kitchen_dahsbord", methods=['GET', 'POST'])
 def kitchen_dashboard():
-    return render_template('kitchen/all_kitchens.html')
+    return render_template('kitchen/kitchen_index.html')

@@ -2,6 +2,10 @@
     {% include 'admin/admin_header.html' %}
 {% elif role == 'Manager' %}
     {% include 'manager_header.html' %}
+{% elif role == "SuperDistributor" %}
+    {% include 'super_distributor/sd_header.html'%}
+{% elif role == "Distributor" %}
+    {% include 'distributor/d_header.html'%}
 {% endif %}
 <div id="layoutSidenav_content">
     {% with messages = get_flashed_messages() %}
