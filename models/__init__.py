@@ -11,3 +11,7 @@ from .manager import Manager
 from .super_distributor import SuperDistributor
 from .cuisine import Cuisine
 from .sales import Sales
+from .order import Order
+from .food_item import FoodItem
+from .order import OrderItem
+
