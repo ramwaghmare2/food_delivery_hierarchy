@@ -20,7 +20,7 @@ def create_kitchen():
             password=hashed_password,  # Ensure to hash passwords in production
             contact=data.get('contact'),
             city=data.get('city'),
-            country=data.get('country'),
+            pin_code=data.get('pin_code'),
             state=data.get('state'),
             district=data.get('district'),
             address=data.get('address')
@@ -137,3 +137,6 @@ def delete_kitchen(kitchen_id):
 
     return redirect(url_for('kitchen.get_kitchens'))
 
+@kitchen_bp.route("/kitchen_dahsbord", methods=['GET', 'POST'])
+def kitchen_dashboard():
+    return render_template('kitchen/all_kitchens.html')

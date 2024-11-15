@@ -1,14 +1,13 @@
 from . import db
 from datetime import datetime
+from extensions import bcrypt
 
 class Order(db.Model):
     __tablename__ = 'orders'
 
     order_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
-
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
-
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     order_status = db.Column(db.Enum('Pending', 'Processing', 'Completed', 'Cancelled'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -40,7 +40,7 @@ def add_kitchen():
                 password = hashed_password,
                 contact = request.form.get('mobile_number'),
                 city = request.form.get('city'),
-                country = request.form.get('country'),
+                pin_code = request.form.get('pin_code'),
                 state = request.form.get('state'),
                 district = request.form.get('district'),
                 address = request.form.get('address')
