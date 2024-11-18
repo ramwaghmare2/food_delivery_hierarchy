@@ -45,6 +45,7 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
+                            <h6>Welcome, {{ user_name }}!</h6>
                             <div class="sb-sidenav-menu-heading">Core</div>
                                 <a class="nav-link" href="{{ url_for('manager.manager_dashboard')}}">
                                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
@@ -92,6 +93,23 @@
                                         </a>
                                     </nav>
                                 </div>
+
+                                <!-- Cuisine Section -->
+                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseCuisine" aria-expanded="false" aria-controls="collapseKitchens">
+                            <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                            Food & Dining
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="collapseCuisine" aria-labelledby="headingFour" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link collapsed" href="{{ url_for('cuisine.add_cuisine') }}">
+                                    Add Cuisine
+                                </a>
+                                <a class="nav-link collapsed" href="#">
+                                    List Cuisine
+                                </a>
+                            </nav>
+                        </div>
 
                         <div class="sb-sidenav-footer">
                         <div class="small">Logged in as:</div>

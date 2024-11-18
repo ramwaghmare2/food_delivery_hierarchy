@@ -139,4 +139,7 @@ def delete_kitchen(kitchen_id):
 
 @kitchen_bp.route("/kitchen_dahsbord", methods=['GET', 'POST'])
 def kitchen_dashboard():
-    return render_template('kitchen/kitchen_index.html')
+    user_name = session.get('user_name', 'User')
+    user_id = session.get('user_id')
+    print(f"User Name: {user_name}, User ID: {user_id}")
+    return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id)

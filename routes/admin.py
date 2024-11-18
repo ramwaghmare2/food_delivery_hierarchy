@@ -65,6 +65,7 @@ def role_required(required_roles):
 @role_required('Admin')
 def admin_dashboard():
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
+    user_name = session.get('user_name', 'User')
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
@@ -74,7 +75,8 @@ def admin_dashboard():
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
-                           kitchens=kitchens)
+                           kitchens=kitchens,
+                           user_name=user_name)
 
 VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 
@@ -130,6 +132,65 @@ def login():
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
         
+        # Map roles to their respective models
+        role_model_map = {
+            "Admin": Admin,
+            "Manager": Manager,
+            "SuperDistributor": SuperDistributor,
+            "Distributor": Distributor,
+            "Kitchen": Kitchen
+        }
+        
+        # Get the appropriate model for the role
+        model = role_model_map.get(role)
+        if not model:
+            return jsonify({"error": "Invalid role"}), 400
+        
+        # Query the database for the user
+        user = model.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        # Store user data in the session
+        session['user_id'] = user.id
+        session['role'] = role
+        session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
+        print(user.name)
+
+        # Redirect based on role with URLs
+        dashboard_routes = {
+            "Admin": "admin.admin_dashboard",
+            "Manager": "manager.manager_dashboard",
+            "SuperDistributor": "super_distributor.super_distributor",
+            "Distributor": "distributor.distributor_home",
+            "Kitchen": "kitchen.kitchen_dashboard"
+        }
+        route_name = dashboard_routes.get(role)
+        
+        if not route_name:
+            return jsonify({"error": "Dashboard route not defined for this role"}), 500
+        
+        # Redirect to the dashboard using `url_for`
+        return redirect(url_for(route_name))
+
+    return render_template('admin/login.html')
+
+
+"""
+@admin_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+
+        data = request.form
+        print("Form Data:", data)  
+        
+        role = data.get('role')
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
         if role == "Admin":
             user = Admin.query.filter_by(email=email).first()
         elif role == "Manager":
@@ -161,7 +222,7 @@ def login():
         elif role == "Kitchen":
             return redirect(url_for('kitchen.kitchen_dashboard'))
         
-    return render_template('admin/login.html')
+    return render_template('admin/login.html') """
 
 @admin_bp.route('/manager', methods=['GET'])
 @role_required('Manager')  

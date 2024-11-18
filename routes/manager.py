@@ -13,7 +13,8 @@ manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager
 
 @manager_bp.route('/', methods=['GET', 'POST'])
 def manager_dashboard():
-    return render_template('manager_index.html')
+    user_name = session.get('user_name', 'User')
+    return render_template('manager_index.html', user_name=user_name)
 
 # Display the form to add manager
 @manager_bp.route('/form', methods=['GET', 'POST'])

@@ -12,7 +12,8 @@ distributor_bp = Blueprint('distributor', __name__, template_folder='../template
 
 @distributor_bp.route('/')
 def distributor_home():
-    return render_template('d_index.html')
+    user_name = session.get('user_name', 'User')
+    return render_template('d_index.html',user_name=user_name)
 
 
 @distributor_bp.route('/all-distributor', methods=['GET'])

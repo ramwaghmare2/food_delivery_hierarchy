@@ -1,0 +1,51 @@
+
+{% include 'kitchen/kitchen_header.html' %}
+
+<body>
+<div id="layoutSidenav_content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <main>
+        <!-- Add Doctor Form Content Here -->
+        <div class="sd-container">
+            <h2 class="sd-form">Edit Kitchen</h2>
+            <form method="post" class="sd-form" enctype="multipart/form-data">
+                <div class="sd-row">
+                    <input name="name" type="text" value="{{ food_items.name }}" required>
+                </div>
+                <div class="sd-row">
+                    <input name="email" type="email" value="{{ food_items.description }}" required>
+                </div>
+                <div class="sd-row">
+                    <input name="contact" type="text" value="{{ food_items.price }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="cuisine_id">Cuisine</label>
+                    <select class="form-control" id="cuisine_id" name="cuisine_id" required>
+                        {% for cuisine in cuisines %}
+                            <option value="{{ cuisine.id }}" {% if cuisine.id == food_items.cuisine_id %} selected{% endif %}>{{ cuisine.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <br>
+                <div class="sd-buttons">
+                    <button type="submit" class="sd-submit">Update food item</button>
+                </div>
+            </form>
+        </div>
+        <!-- End of Add Doctor Form Content -->
+    </main>
+</body>
+
+{% include 'sd_footer.html' %}
