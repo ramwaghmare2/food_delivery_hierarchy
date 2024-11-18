@@ -159,7 +159,7 @@ def login():
 
         # Redirect based on role with URLs
         dashboard_routes = {
-            "Admin": "admin.admin_dashboard",
+            "Admin": "admin_bp.admin_dashboard",
             "Manager": "manager.manager_dashboard",
             "SuperDistributor": "super_distributor.super_distributor",
             "Distributor": "distributor.distributor_home",
