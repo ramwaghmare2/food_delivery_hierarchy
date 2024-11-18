@@ -12,21 +12,23 @@ distributor_bp = Blueprint('distributor', __name__, template_folder='../template
 
 @distributor_bp.route('/')
 def distributor_home():
-    return render_template('d_index.html')
+    user_name = session.get('user_name', 'User')
+    return render_template('d_index.html',user_name=user_name)
 
 
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
     all_distributors = Distributor.query.all()
-    return render_template('d_all_distributor.html', all_distributors=all_distributors, role=role)
+    return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role)
 
 
 
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
+    role = session.get('role')
     all_kitchens = Kitchen.query.all()
-    return render_template('d_all_kitchens.html', all_kitchens=all_kitchens)
+    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role)
 
 
 @distributor_bp.route('/kitchen/<int:kitchen_id>')
@@ -35,7 +37,7 @@ def view_kitchen(kitchen_id):
     return render_template('d_kitchen_detail.html', kitchen=kitchen)
 
 
-@distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['POST'])
+@distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['GET','POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
     db.session.delete(kitchen)
@@ -84,6 +86,7 @@ def add_kitchen():
 # Function for delete the distributor
 @distributor_bp.route('/delete/<int:distributor_id>', methods=['GET', 'POST'])
 def delete_distributor(distributor_id):
+    
     distributor = Distributor.query.get_or_404(distributor_id)
 
     try:

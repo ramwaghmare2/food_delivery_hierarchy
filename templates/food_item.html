@@ -1,0 +1,28 @@
+{% include 'kitchen/kitchen_header.html' %}
+<div id="layoutSidenav_content">
+    <main>
+<h1>Food Items from Kitchen {{ user_name }}</h1>
+
+    {% if food_items %}
+        <ul>
+            {% for item in food_items %}
+                <li>
+                    <strong>{{ item.item_name }}</strong><br>
+                    Description: {{ item.description }}<br>
+                    Price: ${{ item.price }}<br>
+                    <hr>
+                    <!-- Edit and Delete Buttons 
+                    <a href="" class="btn btn-warning">Edit</a> -->
+                    <a href="{{ url_for('food_item.delete_food_item', item_id=item.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
+
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No food items available for this kitchen.</p>
+    {% endif %}
+</main>
+{% include 'sd_footer.html' %}
+</div>
+
+   

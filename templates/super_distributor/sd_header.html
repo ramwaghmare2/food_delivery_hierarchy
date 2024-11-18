@@ -32,7 +32,8 @@
                         <li><a class="dropdown-item" href="#!">Settings</a></li>
                         <li><a class="dropdown-item" href="#!">Activity Log</a></li>
                         <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item" href="{{ url_for('super_distributor.sd_logout') }}">Logout</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_bp.logout') }}
+                            ">Logout</a></li>
                     </ul>
                 </li>
             </ul>
@@ -41,6 +42,7 @@
             <div id="layoutSidenav_nav">
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
+                        <h6>Welcome, {{ user_name }}!</h6>
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('super_distributor.super_distributor')}}">
@@ -54,8 +56,8 @@
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="{{ url_for('super_distributor.all_distributor') }}">All Distributor</a>
-                                    <a class="nav-link" href="{{ url_for('super_distributor.add_distributor') }}">Add Distributor</a>
+                                    <a class="nav-link" href="{{ url_for('distributor.all_distributor') }}">List</a>
+                                        <a class="nav-link" href="{{ url_for('super_distributor.add_distributor') }}">Add</a>
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
@@ -65,7 +67,7 @@
                             </a>
                             <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
-                                    <a class="nav-link collapsed" href="{{ url_for('super_distributor.all_kitchen') }}">
+                                    <a class="nav-link collapsed" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
                                         All Kitchens
                                     </a>
                                     <!-- <div class="collapse" id="pagesCollapseAuth" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordionPages">
@@ -75,7 +77,7 @@
                                             <a class="nav-link" href="password.html">Forgot Password</a>
                                         </nav>
                                     </div> -->
-                                    <a class="nav-link collapsed" href="{{ url_for('super_distributor.add_kitchen') }}">
+                                    <a class="nav-link collapsed" href="{{ url_for('kitchen.create_kitchen') }}">
                                         Add Kitchen
                                         <!-- <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div> -->
                                     </a>

@@ -14,7 +14,8 @@ super_distributor_bp = Blueprint('super_distributor', __name__, template_folder=
 
 @super_distributor_bp.route('/super-distributor', methods=['GET'])
 def super_distributor():
-    return render_template('sd_index.html')
+    user_name = session.get('user_name', 'User')
+    return render_template('sd_index.html',user_name=user_name)
 
 @super_distributor_bp.route('/all-kitchens', methods=['GET'])
 def all_kitchen():

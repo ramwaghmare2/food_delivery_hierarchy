@@ -8,7 +8,7 @@
         <meta name="author" content="" />
         <title>Dashboard - Distributor</title>
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-        <link href="static/css/styles.css" rel="stylesheet" />
+        <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     </head>
     <body class="sb-nav-fixed">
@@ -32,7 +32,7 @@
                         <li><a class="dropdown-item" href="#!">Settings</a></li>
                         <li><a class="dropdown-item" href="#!">Activity Log</a></li>
                         <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item" href="{{ url_for('distributor.distributor_logout') }}">Logout</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_bp.logout') }}">Logout</a></li>
                     </ul>
                 </li>
             </ul>
@@ -42,6 +42,7 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
+                            <h6>Welcome, {{ user_name }}!</h6>
                             <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('distributor.distributor_home')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
@@ -64,7 +65,7 @@
                                             <a class="nav-link" href="password.html">Forgot Password</a>
                                         </nav>
                                     </div> -->
-                                    <a class="nav-link collapsed" href="{{ url_for('distributor.add_kitchen') }}">
+                                    <a class="nav-link collapsed" href="{{ url_for('kitchen.create_kitchen') }}">
                                         Add Kitchen
                                         <!-- <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div> -->
                                     </a>
