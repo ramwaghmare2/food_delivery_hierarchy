@@ -20,6 +20,7 @@ def distributor_home():
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
+    user_name = session.get('user_name')
     user_id = session.get('user_id')
     if role == 'Admin':
         # Admin sees all distributors
@@ -29,13 +30,14 @@ def all_distributor():
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
         super_distributor_ids = [sd.id for sd in super_distributors]
         all_distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
-    return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role)
+    return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role,user_name=user_name)
 
 
 
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
     role = session.get('role')
+    user_name = session.get('user_name')
     user_id = session.get('user_id')  # Assuming 'user_id' is stored in the session
     if role == 'Admin':
             # Admin sees all kitchens
@@ -47,7 +49,7 @@ def distrubutor_all_kitchens():
             distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
             distributor_ids = [dist.id for dist in distributors]
             all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
-    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role)
+    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name)
 
 
 @distributor_bp.route('/kitchen/<int:kitchen_id>')

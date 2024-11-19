@@ -23,10 +23,13 @@ def super_distributor():
 def all_kitchen():
     all_kitchens = Kitchen.query.all()
     role = session.get('role')
-    return render_template('sd_all_kitchens.html', all_kitchens=all_kitchens, role=role)
+    user_name = session.get('user_name')
+    return render_template('sd_all_kitchens.html', all_kitchens=all_kitchens, role=role, user_name=user_name)
 
 @super_distributor_bp.route('/add-kitchen', methods=['GET', 'POST'])
 def add_kitchen():
+    role = session.get('role')
+    user_name = session.get('user_name')
     try:
 
         if request.method == 'POST':
@@ -52,19 +55,20 @@ def add_kitchen():
             db.session.add(new_kitchen)
             db.session.commit()
 
-            return redirect(url_for('super_distributor.super_distributor'))
+            return redirect(url_for('super_distributor.super_distributor'), role=role, user_name=user_name)
 
         return render_template('sd_add_kitchen.html')
     
     
     except Exception as e:
         flash(f'Error: {e}')
-        return redirect(url_for('super_distributor.add_kitchen'))
+        return redirect(url_for('super_distributor.add_kitchen'), role=role , user_name=user_name)
     
 
 @super_distributor_bp.route('/all-super-distributor', methods=['GET'])
 def all_super_distributor():
     role = session.get('role')
+    user_name = session.get('user_name')
     user_id = session.get('user_id') 
     if role == 'Admin':
         # Admin sees all super distributors
@@ -72,19 +76,23 @@ def all_super_distributor():
     else:
         # Non-admin sees only their related super distributors
         all_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
-    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role)
+    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name)
 
 
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
 def add_distributor():
+    role = session.get('role')
+    user_name = session.get('user_name')
     try:
-
-        role = session.get('role')
 
         super_distributors = SuperDistributor.query.all() 
 
 
         if request.method == 'POST':
+            if role== "SuperDistributor":
+                super_distributor = request.form.get('super_distributor')
+            else:
+                super_distributor = session.get('user_id')
 
             if Distributor.query.filter_by(email=request.form.get('email')).first() or Distributor.query.filter_by(contact=request.form.get('mobile_number')).first():
                 flash('Distributor with this email or mobile number already exists.')
@@ -97,15 +105,15 @@ def add_distributor():
                 email=request.form.get('email'),
                 password=hashed_password,
                 contact=request.form.get('mobile_number'),
-                super_distributor=request.form.get('super_distributor')
+                super_distributor=super_distributor
             )
 
             db.session.add(new_distributor)
             db.session.commit()
             flash('Distributor Added Successfully.')
-            return redirect(url_for('super_distributor.add_distributor'))
+            return redirect(url_for('super_distributor.add_distributor'), role=role, user_name=user_name)
 
-        return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors)
+        return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors, user_name=user_name)
 
     except Exception as e:
         flash(f'Error: {e}')
@@ -114,12 +122,18 @@ def add_distributor():
 @super_distributor_bp.route('/add-super-distributor', methods=['GET', 'POST'])
 def add_super_distributor():
     try:
-
+        
         role = session.get('role')
+        user_name = session.get('user_name')
+        
 
         managers = Manager.query.all()
 
         if request.method == 'POST':
+            if role== "Admin":
+                manager_id = request.form.get('manager')
+            else:
+                manager_id = session.get('user_id')
 
             if SuperDistributor.query.filter_by(email=request.form.get('email')).first() or SuperDistributor.query.filter_by(contact=request.form.get('mobile_number')).first():
                 flash('Super Distributor with this email or mobile number already exists.')
@@ -132,7 +146,7 @@ def add_super_distributor():
                 email=request.form.get('email'),
                 password=hashed_password,
                 contact=request.form.get('mobile_number'),
-                manager_id=request.form.get('manager')
+                manager_id=manager_id
             )
 
             db.session.add(new_distributor)
@@ -140,7 +154,7 @@ def add_super_distributor():
             flash('Super Distributor Added Successfully.')
             return redirect(url_for('super_distributor.add_super_distributor'))
 
-        return render_template('add_super_distributor.html', role=role,managers=managers)
+        return render_template('add_super_distributor.html', role=role,managers=managers, user_name=user_name)
 
     except Exception as e:
         flash(f'Error: {e}')
@@ -157,6 +171,7 @@ def edit_super_distributor(sd_id):
     sd = SuperDistributor.query.get_or_404(sd_id)
 
     role = session.get('role')
+    user_name = session.get('user_name')
 
     if request.method == 'POST':
         name = request.form['name']
@@ -169,13 +184,13 @@ def edit_super_distributor(sd_id):
         existing_manager_email = SuperDistributor.query.filter(SuperDistributor.email == email, SuperDistributor.id != SuperDistributor.id).first()
         if existing_manager_email:
             flash("The email is already in use by another Super Distributor.", "danger")
-            return render_template('edit_super_distributor.html', super_distributor=sd, role=role)
+            return render_template('edit_super_distributor.html', super_distributor=sd, role=role , user_name=user_name)
 
         # Validate if contact already exists (excluding the current manager)
         existing_manager_contact = SuperDistributor.query.filter(SuperDistributor.contact == contact, SuperDistributor.id != SuperDistributor.id).first()
         if existing_manager_contact:
             flash("The contact number is already in use by another Super Distributor.", "danger")
-            return render_template('edit_super_distributor.html', super_distributor=sd, role=role)
+            return render_template('edit_super_distributor.html', super_distributor=sd, role=role, user_name=user_name)
 
         # Update manager details
         sd.name = name
@@ -203,13 +218,13 @@ def edit_super_distributor(sd_id):
         try:
             db.session.commit()
             flash("Super Distributor updated successfully!", "success")
-            return redirect(url_for('super_distributor.all_super_distributor'))
+            return redirect(url_for('super_distributor.all_super_distributor'),role=role, user_name=user_name)
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Super Distributor: {str(e)}", "danger")
-            return render_template('edit_super_distributor.html', super_distributor=sd, role=role)
+            return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name)
 
-    return render_template('edit_super_distributor.html', super_distributor=sd, role=role)
+    return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name)
 
 
 @super_distributor_bp.route('/login', methods=['GET', 'POST'])

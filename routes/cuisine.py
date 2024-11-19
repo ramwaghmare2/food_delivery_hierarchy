@@ -7,6 +7,7 @@ cuisine_bp = Blueprint('cuisine', __name__ , static_folder='../static')
 @cuisine_bp.route('/cuisine', methods=['GET', 'POST'])
 def add_cuisine():
     role = session.get('role')
+    user_name = session.get('user_name')
     if request.method == 'POST':
         
         # Get the form data
@@ -17,7 +18,7 @@ def add_cuisine():
         existing_cuisine = Cuisine.query.filter_by(name=name).first()
         if existing_cuisine:
             flash('Cuisine already exists!','info')
-            return redirect(url_for('cuisine.add_cuisine'),role=role)
+            return redirect(url_for('cuisine.add_cuisine'),role=role, user_name=user_name)
         
         # Create a new Cuisine object
         new_cuisine = Cuisine(name=name,description=description)
@@ -34,7 +35,7 @@ def add_cuisine():
         return redirect(url_for('cuisine.add_cuisine'))
     cuisines = Cuisine.query.order_by(Cuisine.id).all()
     # Render the template for GET requests
-    return render_template('add_cuisine.html',cuisines=cuisines,role=role)
+    return render_template('add_cuisine.html',cuisines=cuisines,role=role, user_name=user_name)
 
 @cuisine_bp.route('/cuisine/delete/<int:id>', methods=['POST','GET'])
 def delete_cuisine(id):

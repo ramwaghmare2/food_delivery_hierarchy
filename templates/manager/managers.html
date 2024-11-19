@@ -23,6 +23,7 @@
         {% endif %}
         {% endwith %}
 
+        <p><b>Total Managers - {{manager_count}}</b></p>
         <!-- Manager Cards -->
         <div class="row">
             {% for manager in managers %}
@@ -31,11 +32,7 @@
                         <div class="card-body manager-card-body">
                             <!-- Manager Image -->
                             <div>
-                                {% if manager.image %}
-                                    <img src="{{ url_for('static', filename='images/' + manager.image) }}" alt="Manager Image" class="manager-image">
-                                {% else %}
-                                    <div class="manager-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
-                                {% endif %}
+                                
                             </div>
 
                             <!-- Manager Info -->
