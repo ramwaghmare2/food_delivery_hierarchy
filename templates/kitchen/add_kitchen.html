@@ -61,6 +61,15 @@
                     <input name="state" type="text" placeholder="State*" required>
                     <input name="pin_code" type="text" placeholder="pin-code*" required>
                 </div>
+                <div class="sd-row">
+                    <label for="distributor">Select Distributor:</label>
+                    <select name="distributor" id="distributor" required>
+                        <option value="" disabled selected>-- Select Distributor --</option>
+                        {% for distributor in distributors %}
+                            <option value="{{ distributor.id }}">{{ distributor.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="sd-buttons">
                     <button type="submit" class="sd-submit">Submit</button>
                 </div>

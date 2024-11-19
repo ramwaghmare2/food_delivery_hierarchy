@@ -14,7 +14,8 @@ manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager
 @manager_bp.route('/', methods=['GET', 'POST'])
 def manager_dashboard():
     user_name = session.get('user_name', 'User')
-    return render_template('manager_index.html', user_name=user_name)
+    role = session.get('role')
+    return render_template('manager_index.html', user_name=user_name,role=role)
 
 # Display the form to add manager
 @manager_bp.route('/form', methods=['GET', 'POST'])
@@ -75,13 +76,15 @@ def allowed_file(filename):
 # Function for get all Managers
 @manager_bp.route('/managers', methods=['GET'])
 def get_managers():
+    role = session.get('role')
+    user_name = session.get('user_name')
     try:
-        role = session.get('role')
+        
         managers = Manager.query.all()
-        return render_template('managers.html', managers=managers, role=role)
+        return render_template('managers.html', managers=managers, role=role, user_name=user_name)
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
-        return render_template('managers.html', managers=[], role=role)
+        return render_template('managers.html', managers=[], role=role , user_name=user_name)
 
 # Function for edit the managers
 @manager_bp.route('/edit/<int:manager_id>', methods=['GET', 'POST'])

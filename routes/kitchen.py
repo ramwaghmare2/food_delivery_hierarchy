@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session, redirect, render_template, flash, current_app, url_for
-from models import db, Kitchen
+from models import db, Kitchen, Distributor
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import bcrypt
@@ -10,6 +10,7 @@ kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 # Create a new Kitchen
 @kitchen_bp.route('/kitchens', methods=['GET','POST'])
 def create_kitchen():
+    distributors = Distributor.query.all()
     data = request.form
     role = session.get('role')
     if request.method == 'POST':
@@ -23,14 +24,15 @@ def create_kitchen():
             pin_code=data.get('pin_code'),
             state=data.get('state'),
             district=data.get('district'),
-            address=data.get('address')
+            address=data.get('address'),
+            distributor_id=request.form.get('distributor')
         )
         db.session.add(new_kitchen)
         db.session.commit()
         flash('Kitchen Added Successfully.')
-        return render_template('kitchen/add_kitchen.html', role=role)
+        return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors)
         # return jsonify({'message': 'Kitchen created successfully', 'kitchen_id': new_kitchen.id}), 201
-    return render_template('kitchen/add_kitchen.html', role=role)
+    return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors)
 
 # Get a list of all Kitchens
 #this is kitchen route
@@ -140,6 +142,7 @@ def delete_kitchen(kitchen_id):
 @kitchen_bp.route("/kitchen_dahsbord", methods=['GET', 'POST'])
 def kitchen_dashboard():
     user_name = session.get('user_name', 'User')
+    role = session.get('role')
     user_id = session.get('user_id')
     print(f"User Name: {user_name}, User ID: {user_id}")
-    return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id)
+    return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id,role=role)

@@ -1,5 +1,6 @@
 from . import db
 from datetime import datetime
+from sqlalchemy.dialects.mysql import LONGBLOB
 
 
 # FoodItem model
@@ -15,6 +16,7 @@ class FoodItem(db.Model):
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    image = db.Column(LONGBLOB,nullable=True)
 
     def __repr__(self):
         return f'<FoodItem {self.item_name}>'

@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for, request, flash,
 from models.kitchen import Kitchen
 from models.distributor import Distributor
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import db
+from models import db ,SuperDistributor 
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
@@ -13,13 +13,22 @@ distributor_bp = Blueprint('distributor', __name__, template_folder='../template
 @distributor_bp.route('/')
 def distributor_home():
     user_name = session.get('user_name', 'User')
-    return render_template('d_index.html',user_name=user_name)
+    role = session.get('role')
+    return render_template('d_index.html',user_name=user_name,role=role)
 
 
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
-    all_distributors = Distributor.query.all()
+    user_id = session.get('user_id')
+    if role == 'Admin':
+        # Admin sees all distributors
+        all_distributors = Distributor.query.all()
+    else:
+        # Non-admin sees distributors linked to their super distributors
+        super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
+        super_distributor_ids = [sd.id for sd in super_distributors]
+        all_distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
     return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role)
 
 
@@ -27,7 +36,17 @@ def all_distributor():
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
     role = session.get('role')
-    all_kitchens = Kitchen.query.all()
+    user_id = session.get('user_id')  # Assuming 'user_id' is stored in the session
+    if role == 'Admin':
+            # Admin sees all kitchens
+            all_kitchens = Kitchen.query.all()
+    else:
+            # Non-admin sees kitchens linked to their distributors
+            super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
+            super_distributor_ids = [sd.id for sd in super_distributors]
+            distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+            distributor_ids = [dist.id for dist in distributors]
+            all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
     return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role)
 
 
@@ -51,6 +70,8 @@ def delete_kitchen(kitchen_id):
 def add_kitchen():
     try:
 
+        distributors = Distributor.query.all()
+
         if request.method == 'POST':
 
             if Kitchen.query.filter_by(email=request.form.get('email')).first() or Kitchen.query.filter_by(contact=request.form.get('mobile_number')).first():
@@ -68,7 +89,8 @@ def add_kitchen():
                 country = request.form.get('country'),
                 state = request.form.get('state'),
                 district = request.form.get('district'),
-                address = request.form.get('address')
+                address = request.form.get('address'),
+                distributor_id=request.form.get('distributor')
             )
 
             db.session.add(new_kitchen)
@@ -76,7 +98,7 @@ def add_kitchen():
 
             return redirect(url_for('distributor.distributor_home'))
 
-        return render_template('d_add_kitchen.html')
+        return render_template('d_add_kitchen.html',distributors=distributors)
     
     except Exception as e:
         flash(f'Error: {e}')

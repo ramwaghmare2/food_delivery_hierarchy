@@ -1,16 +1,16 @@
-from flask import Blueprint, jsonify, request, render_template, redirect
+from flask import Blueprint, jsonify, request, render_template, redirect ,flash ,url_for
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from models import Customer, db
 from utils.helpers import format_response, handle_error
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 
-customer_bp = Blueprint('customer', __name__)
+customer_bp = Blueprint('customer', __name__,template_folder='../templates/customer')
 
 @customer_bp.route('/register', methods=['GET', 'POST'])
 def register_user():
     if request.method == 'GET':
-        return render_template('customer/register.html')
+        return render_template('register.html')
 
     try:
         data = request.form  # Use form data from the HTML form
@@ -22,19 +22,23 @@ def register_user():
 
         # Check if email already exists
         if Customer.query.filter_by(email=email).first():
-            return render_template('customer/register.html', error="Email already exists.")
+            flash("Email already exists. Please use a different email.", "danger")
+            return render_template('register.html')
 
         new_user = Customer(name=name, email=email, contact=contact, password=password, address=address)
         db.session.add(new_user)
         db.session.commit()
-        return redirect('/customer/login')
+        flash("Registration successful! Please log in.", "success")
+        return render_template('login.html')
     except Exception as e:
-        return handle_error(e)
+        flash(f"An error occurred: {str(e)}", "danger")
+        return render_template('register.html')
+
 
 @customer_bp.route('/login', methods=['GET', 'POST'])
 def login_user():
     if request.method == 'GET':
-        return render_template('customer/login.html')
+        return render_template('login.html')
 
     try:
         data = request.form
@@ -46,24 +50,26 @@ def login_user():
         ).first()
 
         if not user or not check_password_hash(user.password, password):
-            return render_template('customer/login.html', error="Invalid credentials.")
+            flash("Invalid email or password.", "danger")
+            return render_template('login.html')
 
-        access_token = create_access_token(identity=user.id)
-        return redirect(f'/customer/profile?token={access_token}')
+        #access_token = create_access_token(identity=user.id)
+        flash("You have logged in successfully.", "success")
+        return render_template('profile.html',user=user)
     except Exception as e:
         return handle_error(e)
 
 @customer_bp.route('/profile', methods=['GET'])
-@jwt_required()
+#@jwt_required()
 def profile():
     try:
-        user_id = get_jwt_identity()
-        user = Customer.query.get(user_id)
+        #user_id = get_jwt_identity()
+        #user = Customer.query.get(user_id)
 
-        if not user:
-            return jsonify({'message': 'User not found'}), 404
+        #if not user:
+            #return jsonify({'message': 'User not found'}), 404
 
-        return render_template('customer/profile.html', user=user)
+        return render_template('customer/profile.html') #user=user
     except Exception as e:
         return handle_error(e)
 

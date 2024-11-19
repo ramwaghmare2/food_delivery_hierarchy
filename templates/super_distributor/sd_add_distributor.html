@@ -34,27 +34,21 @@
                     <input name="password" type="password" placeholder="Password*" required>
                     <input type="password" placeholder="Re-Enter Password*" required>
                 </div>
-                <!-- <div class="sd-row">
-                    <input type="text" placeholder="Designation">
-                    <select required>
-                        <option value="" disabled selected>Select Department*</option>
-                        <option value="cardiology">Cardiology</option>
-                        <option value="neurology">Neurology</option> -->
-                        <!-- Add more options as needed -->
-                    <!-- </select>
-                </div> -->
-                <!-- <textarea class="sd-textarea" placeholder="Address"></textarea> -->
-                <!-- <div class="sd-upload">
-                    <label>Upload</label>
-                    <input type="file">
-                </div> -->
+                <div class="sd-row">
+                    <label for="super_distributor">Select Super Distributor:</label>
+                    <select name="super_distributor" id="super_distributor" required>
+                        <option value="" disabled selected>-- Select Super Distributor --</option>
+                        {% for sd in super_distributors %}
+                            <option value="{{ sd.id }}">{{ sd.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <br>
                 <div class="sd-buttons">
                     <button type="submit" class="sd-submit">Submit</button>
                 </div>
             </form>
         </div>
-        <!-- End of Add Doctor Form Content -->
     </main>
 
     
