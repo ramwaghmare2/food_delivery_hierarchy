@@ -66,6 +66,7 @@ def role_required(required_roles):
 def admin_dashboard():
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     user_name = session.get('user_name', 'User')
+    role = session.get('role')
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
@@ -76,7 +77,8 @@ def admin_dashboard():
                            super_distributors=super_distributors, 
                            distributors=distributors, 
                            kitchens=kitchens,
-                           user_name=user_name)
+                           user_name=user_name,
+                           role=role)
 
 VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 

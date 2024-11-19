@@ -1,6 +1,7 @@
 from . import db
 from datetime import datetime
 from .food_item import FoodItem
+from sqlalchemy.dialects.mysql import LONGBLOB
 
 # Cuisine model
 class Cuisine(db.Model):
@@ -11,6 +12,7 @@ class Cuisine(db.Model):
     description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    image = db.Column(LONGBLOB,nullable=True)
 
     # Relationship to FoodItem
     food_items = db.relationship('FoodItem', backref='cuisine', lazy=True)

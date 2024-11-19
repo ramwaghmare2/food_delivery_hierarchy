@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, url_for, redirect, flash,
 from models.distributor import Distributor
 from models.kitchen import Kitchen
 from models.super_distributor import SuperDistributor
+from models.manager import Manager
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import db
 from werkzeug.utils import secure_filename
@@ -15,7 +16,8 @@ super_distributor_bp = Blueprint('super_distributor', __name__, template_folder=
 @super_distributor_bp.route('/super-distributor', methods=['GET'])
 def super_distributor():
     user_name = session.get('user_name', 'User')
-    return render_template('sd_index.html',user_name=user_name)
+    role = session.get('role')
+    return render_template('sd_index.html',user_name=user_name,role=role)
 
 @super_distributor_bp.route('/all-kitchens', methods=['GET'])
 def all_kitchen():
@@ -63,7 +65,13 @@ def add_kitchen():
 @super_distributor_bp.route('/all-super-distributor', methods=['GET'])
 def all_super_distributor():
     role = session.get('role')
-    all_distributors = SuperDistributor.query.all()
+    user_id = session.get('user_id') 
+    if role == 'Admin':
+        # Admin sees all super distributors
+        all_distributors = SuperDistributor.query.all()
+    else:
+        # Non-admin sees only their related super distributors
+        all_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
     return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role)
 
 
@@ -72,6 +80,9 @@ def add_distributor():
     try:
 
         role = session.get('role')
+
+        super_distributors = SuperDistributor.query.all() 
+
 
         if request.method == 'POST':
 
@@ -85,7 +96,8 @@ def add_distributor():
                 name=request.form.get('name'),
                 email=request.form.get('email'),
                 password=hashed_password,
-                contact=request.form.get('mobile_number')
+                contact=request.form.get('mobile_number'),
+                super_distributor=request.form.get('super_distributor')
             )
 
             db.session.add(new_distributor)
@@ -93,7 +105,7 @@ def add_distributor():
             flash('Distributor Added Successfully.')
             return redirect(url_for('super_distributor.add_distributor'))
 
-        return render_template('sd_add_distributor.html', role=role)
+        return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors)
 
     except Exception as e:
         flash(f'Error: {e}')
@@ -104,6 +116,8 @@ def add_super_distributor():
     try:
 
         role = session.get('role')
+
+        managers = Manager.query.all()
 
         if request.method == 'POST':
 
@@ -117,7 +131,8 @@ def add_super_distributor():
                 name=request.form.get('name'),
                 email=request.form.get('email'),
                 password=hashed_password,
-                contact=request.form.get('mobile_number')
+                contact=request.form.get('mobile_number'),
+                manager_id=request.form.get('manager')
             )
 
             db.session.add(new_distributor)
@@ -125,7 +140,7 @@ def add_super_distributor():
             flash('Super Distributor Added Successfully.')
             return redirect(url_for('super_distributor.add_super_distributor'))
 
-        return render_template('add_super_distributor.html', role=role)
+        return render_template('add_super_distributor.html', role=role,managers=managers)
 
     except Exception as e:
         flash(f'Error: {e}')

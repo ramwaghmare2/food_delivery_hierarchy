@@ -1,6 +1,7 @@
 from . import db
 from datetime import datetime
 from extensions import bcrypt
+from sqlalchemy.dialects.mysql import LONGBLOB
 
 
 class Kitchen(db.Model):
@@ -11,6 +12,7 @@ class Kitchen(db.Model):
     email = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     contact = db.Column(db.String(15), nullable=True)
+    distributor_id = db.Column(db.Integer, db.ForeignKey('distributors.id'), nullable=True)
     location = db.Column(db.String(255), nullable=True)
     city = db.Column(db.String(100), nullable=True)
     order_id = db.Column(db.Integer, nullable=True)
@@ -18,6 +20,7 @@ class Kitchen(db.Model):
     pin_code = db.Column(db.String(6), nullable=True)
     district = db.Column(db.String(50), nullable=True)
     address = db.Column(db.String(255), nullable=True)
+    image = db.Column(LONGBLOB,nullable=True)
 
     # Method to hash password
     def set_password(self, password):
