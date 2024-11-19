@@ -27,6 +27,7 @@ def manager():
 def add_manager():
 
     role = session.get('role')
+    user_name = session.get('user_name')
 
     if request.method == 'POST':
         name = request.form['name']
@@ -48,13 +49,13 @@ def add_manager():
         existing_email = Manager.query.filter_by(email=email).first()
         if existing_email:
             flash("Error: Email is already in use.", "danger")
-            return render_template('add_manager.html')
+            return render_template('add_manager.html',role=role, user_name=user_name)
 
         # Check if the contact number is already in use
         existing_contact = Manager.query.filter_by(contact=contact).first()
         if existing_contact:
             flash("Error: Contact number is already in use.", "danger")
-            return render_template('add_manager.html')
+            return render_template('add_manager.html',role=role, user_name=user_name)
 
         # Create manager instance and add to db
         new_manager = Manager(name=name, email=email, password=password, contact=contact,image=image_filename)
@@ -67,7 +68,7 @@ def add_manager():
             db.session.rollback()
             flash(f"Error adding manager: {str(e)}", "danger")
     
-    return render_template('add_manager.html', role=role)
+    return render_template('add_manager.html', role=role,user_name=user_name)
 
 # Function for image storage
 def allowed_file(filename):
@@ -78,13 +79,16 @@ def allowed_file(filename):
 def get_managers():
     role = session.get('role')
     user_name = session.get('user_name')
+    manager_count = Manager.query.count()
     try:
-        
+        role = role.decode('utf-8') if isinstance(role, bytes) else role
+        user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
+
         managers = Manager.query.all()
-        return render_template('managers.html', managers=managers, role=role, user_name=user_name)
+        return render_template('managers.html', managers=managers, role=role, user_name=user_name,manager_count=manager_count)
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
-        return render_template('managers.html', managers=[], role=role , user_name=user_name)
+        return render_template('managers.html', managers=[], role=role, user_name=user_name)
 
 # Function for edit the managers
 @manager_bp.route('/edit/<int:manager_id>', methods=['GET', 'POST'])
@@ -92,6 +96,7 @@ def edit_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
 
     role = session.get('role')
+    user_name = session.get('user_name')
 
     if request.method == 'POST':
         name = request.form['name']
@@ -104,13 +109,13 @@ def edit_manager(manager_id):
         existing_manager_email = Manager.query.filter(Manager.email == email, Manager.id != manager.id).first()
         if existing_manager_email:
             flash("The email is already in use by another manager.", "danger")
-            return render_template('edit_manager.html', manager=manager, role=role)
+            return render_template('edit_manager.html', manager=manager, role=role,user_name=user_name)
 
         # Validate if contact already exists (excluding the current manager)
         existing_manager_contact = Manager.query.filter(Manager.contact == contact, Manager.id != manager.id).first()
         if existing_manager_contact:
             flash("The contact number is already in use by another manager.", "danger")
-            return render_template('edit_manager.html', manager=manager, role=role)
+            return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name)
 
         # Update manager details
         manager.name = name
@@ -144,7 +149,7 @@ def edit_manager(manager_id):
             flash(f"Error updating manager: {str(e)}", "danger")
             return render_template('edit_manager.html', manager=manager, role=role)
 
-    return render_template('edit_manager.html', manager=manager, role=role)
+    return render_template('edit_manager.html', manager=manager, role=role , user_name=user_name)
 
 # Function for delete the manager
 @manager_bp.route('/delete/<int:manager_id>', methods=['GET', 'POST'])

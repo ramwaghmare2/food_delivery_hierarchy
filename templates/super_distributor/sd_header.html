@@ -42,7 +42,7 @@
             <div id="layoutSidenav_nav">
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
-                        <h6>Welcome, {{ user_name }}!</h6>
+                        <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('super_distributor.super_distributor')}}">
@@ -103,7 +103,7 @@
                     </div>
                     <div class="sb-sidenav-footer">
                         <div class="small">Logged in as:</div>
-                        Super Distributor
+                        {{ role }}
                     </div>
                 </nav>
             </div>

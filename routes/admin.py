@@ -72,7 +72,16 @@ def admin_dashboard():
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
 
-    return render_template('admin/admin_index.html', 
+    manager_count = Manager.query.count()
+    super_distributor_count = SuperDistributor.query.count()
+    distributor_count = Distributor.query.count()
+    kitchen_count = Kitchen.query.count()
+
+    return render_template('admin/admin_index.html',
+                            manager_count = manager_count,
+                            super_distributor_count = super_distributor_count,
+                            distributor_count = distributor_count,
+                            kitchen_count = kitchen_count,
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 

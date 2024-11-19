@@ -34,6 +34,13 @@
                     <input name="password" type="password" placeholder="Password*" required>
                     <input type="password" placeholder="Re-Enter Password*" required>
                 </div>
+                {% if role=='SuperDistributor' %}
+                <div class="sd-row">
+                    
+                    <input type="text"  placeholder="{{user_name}}" name="username" hidden>
+                    
+                </div>
+                {% else %}
                 <div class="sd-row">
                     <label for="super_distributor">Select Super Distributor:</label>
                     <select name="super_distributor" id="super_distributor" required>
@@ -43,6 +50,7 @@
                         {% endfor %}
                     </select>
                 </div>
+                {% endif %}
                 <br>
                 <div class="sd-buttons">
                     <button type="submit" class="sd-submit">Submit</button>

@@ -61,6 +61,13 @@
                     <input name="state" type="text" placeholder="State*" required>
                     <input name="pin_code" type="text" placeholder="pin-code*" required>
                 </div>
+                {% if role=='Distributor' %}
+                <div class="sd-row">
+                    
+                    <input type="text"  placeholder="{{user_name}}" name="username" hidden>
+                    
+                </div>
+                {% else %}
                 <div class="sd-row">
                     <label for="distributor">Select Distributor:</label>
                     <select name="distributor" id="distributor" required>
@@ -70,6 +77,7 @@
                         {% endfor %}
                     </select>
                 </div>
+                {% endif %}
                 <div class="sd-buttons">
                     <button type="submit" class="sd-submit">Submit</button>
                 </div>

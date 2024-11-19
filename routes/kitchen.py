@@ -10,10 +10,16 @@ kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 # Create a new Kitchen
 @kitchen_bp.route('/kitchens', methods=['GET','POST'])
 def create_kitchen():
+    user_name = session.get('user_name')
     distributors = Distributor.query.all()
     data = request.form
     role = session.get('role')
     if request.method == 'POST':
+        if role=='Distributor':
+            distributor_id = session.get('user_id')
+        else:
+            distributor_id = request.form.get('distributor')
+            
         hashed_password = generate_password_hash(data.get('password'))
         new_kitchen = Kitchen(
             name=data.get('name'),
@@ -25,22 +31,23 @@ def create_kitchen():
             state=data.get('state'),
             district=data.get('district'),
             address=data.get('address'),
-            distributor_id=request.form.get('distributor')
+            distributor_id=distributor_id
         )
         db.session.add(new_kitchen)
         db.session.commit()
         flash('Kitchen Added Successfully.')
-        return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors)
+        return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name)
         # return jsonify({'message': 'Kitchen created successfully', 'kitchen_id': new_kitchen.id}), 201
-    return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors)
+    return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name)
 
 # Get a list of all Kitchens
 #this is kitchen route
 @kitchen_bp.route('/all-kitchens', methods=['GET'])
 def get_kitchens():
     role = session.get('role')
+    user_name = session.get('user_name')
     kitchens = Kitchen.query.all()
-    return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role)
+    return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role ,user_name=user_name)
 
 
 # Get a specific Kitchen by ID
@@ -70,6 +77,7 @@ def edit_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
 
     role = session.get('role')
+    user_name = session.get('user_name')
 
     if request.method == 'POST':
         name = request.form['name']
@@ -82,13 +90,13 @@ def edit_kitchen(kitchen_id):
         existing_kitchen_email = Kitchen.query.filter(Kitchen.email == email, Kitchen.id != Kitchen.id).first()
         if existing_kitchen_email:
             flash("The email is already in use by another Kitchen.", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role)
+            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user_name)
 
         # Validate if contact already exists (excluding the current kitchen)
         existing_kitchen_contact = Kitchen.query.filter(Kitchen.contact == contact, Kitchen.id != Kitchen.id).first()
         if existing_kitchen_contact:
             flash("The contact number is already in use by another Kitchen.", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role)
+            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name)
 
         # Update kitchen details
         kitchen.name = name
@@ -120,9 +128,9 @@ def edit_kitchen(kitchen_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Kitchen: {str(e)}", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role)
+            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user_name)
 
-    return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role)
+    return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name)
 
 # Function for delete the kitchen
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])

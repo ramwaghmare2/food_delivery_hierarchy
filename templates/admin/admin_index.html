@@ -1,72 +1,130 @@
 {% include 'admin/admin_header.html' %}
 
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">Admin</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
 
-            <div id="layoutSidenav_content">
-                <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Admin</h1>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">Dashboard</li>
-                        </ol>
-                        <div class="row">
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-primary text-white mb-4">
-                                    <div class="card-body">Today's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-secondary text-white mb-4">
-                                    <div class="card-body">Yesterday's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-success text-white mb-4">
-                                    <div class="card-body">Current Month's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-info text-white mb-4">
-                                    <div class="card-body">Current Year's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-area me-1"></i>
-                                        Area Chart Example
-                                    </div>
-                                    <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
-                                </div>
-                            </div>
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        Bar Chart Example
-                                    </div>
-                                    <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
-                                </div>
-                            </div>
+            <!-- Cards for counts in a single row -->
+            <div class="row mb-4">
+                <!-- Manager Count -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card bg-warning text-white fixed-card mb-4">
+                        <div class="card-body"><b>Managers</b></div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <h4 class="mb-0">{{ manager_count }}</h4>
+                            <div class="small text-white"><i class="fas fa-users"></i></div>
+                            <a class="small text-white stretched-link" href="{{ url_for('manager.get_managers') }}">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                         </div>
                     </div>
-                </main>
+                </div>
 
-{% include 'admin/admin_footer.html' %}
+                <!-- Super Distributor Count -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card bg-secondary text-white fixed-card mb-4">
+                        <div class="card-body"><b>Super Distributors</b></div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <h4 class="mb-0">{{ super_distributor_count }}</h4>
+                            <div class="small text-white"><i class="fas fa-user-tie"></i></div>
+                            <a class="small text-white stretched-link" href="{{ url_for('super_distributor.all_super_distributor') }}">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Distributor Count -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card bg-success text-white fixed-card mb-4">
+                        <div class="card-body"><b>Distributors</b></div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <h4 class="mb-0">{{ distributor_count }}</h4>
+                            <div class="small text-white"><i class="fas fa-truck"></i></div>
+                            <a class="small text-white stretched-link" href="{{ url_for('distributor.all_distributor') }}">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kitchen Count -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card bg-info text-white fixed-card mb-4">
+                        <div class="card-body"><b>Kitchens</b></div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <h4 class="mb-0">{{ kitchen_count }}</h4>
+                            <div class="small text-white"><i class="fas fa-utensils"></i></div>
+                            <a class="small text-white stretched-link" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Dashboard Content -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-primary text-white mb-4">
+                        <div class="card-body">Today's Report</div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-secondary text-white mb-4">
+                        <div class="card-body">Yesterday's Report</div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-success text-white mb-4">
+                        <div class="card-body">Current Month's Report</div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-info text-white mb-4">
+                        <div class="card-body">Current Year's Report</div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-chart-area me-1"></i>
+                            Area Chart Example
+                        </div>
+                        <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar me-1"></i>
+                            Bar Chart Example
+                        </div>
+                        <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    {% include 'admin/admin_footer.html' %}
+</div>
+
+
