@@ -16,5 +16,7 @@ class SuperDistributor(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image = db.Column(LONGBLOB,nullable=True)
 
+    distributors = db.relationship('Distributor', backref='super_distributors', lazy=True)
+
     def __repr__(self):
         return f'<SuperDistributor {self.name}>'

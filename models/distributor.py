@@ -16,5 +16,7 @@ class Distributor(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image = db.Column(LONGBLOB,nullable=True)
 
+    kitchens = db.relationship('Kitchen', backref='distributor', lazy=True)
+
     def __repr__(self):
         return f'<Distributor {self.name}>'

@@ -8,6 +8,7 @@ from models import db
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
+from utils.services import get_model_counts
 
 
 super_distributor_bp = Blueprint('super_distributor', __name__, template_folder='../templates/super_distributor', static_folder='../static')
@@ -70,13 +71,14 @@ def all_super_distributor():
     role = session.get('role')
     user_name = session.get('user_name')
     user_id = session.get('user_id') 
+    counts = get_model_counts()
     if role == 'Admin':
         # Admin sees all super distributors
         all_distributors = SuperDistributor.query.all()
     else:
         # Non-admin sees only their related super distributors
         all_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
-    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name)
+    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name ,**counts)
 
 
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])

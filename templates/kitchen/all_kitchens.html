@@ -14,7 +14,11 @@
     <main>
         <div class="container-fluid px-4">
             <h2 class="text-center">Kitchens List</h2>
+            {% if role == 'Admin' %}
+            <p><b>Total Kitchens - {{kitchen_count}}</b></p>
+            {% else %}
 
+            {% endif %}
         <!-- Display flash messages for success or error -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -50,6 +54,7 @@
                                 <p class="card-text"><strong>Email:</strong> {{ kitchen.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ kitchen.contact }}</p>
                                 <p class="card-text"><strong>Address:</strong> {{ kitchen.address }}</p>
+                                <p class="card-text"><strong>Distributor:</strong>{{kitchen.distributor.name}}</p>
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('kitchen.edit_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-warning btn-sm">Edit</a>
@@ -63,4 +68,4 @@
         </div>
     </main>
 
-{% include 'admin/admin_footer.html' %}
+{% include 'admin/admin_footer.html' %}e

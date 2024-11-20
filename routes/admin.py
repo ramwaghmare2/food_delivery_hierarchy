@@ -1,6 +1,6 @@
 
 from flask import Blueprint,render_template
-
+from utils.services import get_model_counts
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -72,16 +72,10 @@ def admin_dashboard():
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
 
-    manager_count = Manager.query.count()
-    super_distributor_count = SuperDistributor.query.count()
-    distributor_count = Distributor.query.count()
-    kitchen_count = Kitchen.query.count()
+    counts = get_model_counts()
 
     return render_template('admin/admin_index.html',
-                            manager_count = manager_count,
-                            super_distributor_count = super_distributor_count,
-                            distributor_count = distributor_count,
-                            kitchen_count = kitchen_count,
+                            **counts,
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 

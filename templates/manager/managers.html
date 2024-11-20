@@ -40,7 +40,7 @@
                                 <h5 class="card-title">{{ manager.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ manager.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ manager.contact }}</p>
-
+                                
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('manager.edit_manager', manager_id=manager.id) }}" class="btn btn-warning btn-sm">Edit</a>

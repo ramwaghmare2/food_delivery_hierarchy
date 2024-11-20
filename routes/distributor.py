@@ -6,6 +6,7 @@ from models import db ,SuperDistributor
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
+from utils.services import get_model_counts
 
 distributor_bp = Blueprint('distributor', __name__, template_folder='../templates/distributor', static_folder='../static')
 
@@ -22,6 +23,7 @@ def all_distributor():
     role = session.get('role')
     user_name = session.get('user_name')
     user_id = session.get('user_id')
+    counts = get_model_counts()
     if role == 'Admin':
         # Admin sees all distributors
         all_distributors = Distributor.query.all()
@@ -30,12 +32,13 @@ def all_distributor():
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
         super_distributor_ids = [sd.id for sd in super_distributors]
         all_distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
-    return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role,user_name=user_name)
+    return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role,user_name=user_name,**counts)
 
 
 
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
+    counts = get_model_counts()
     role = session.get('role')
     user_name = session.get('user_name')
     user_id = session.get('user_id')  # Assuming 'user_id' is stored in the session
@@ -49,7 +52,7 @@ def distrubutor_all_kitchens():
             distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
             distributor_ids = [dist.id for dist in distributors]
             all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
-    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name)
+    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name, **counts)
 
 
 @distributor_bp.route('/kitchen/<int:kitchen_id>')
