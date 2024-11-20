@@ -278,6 +278,7 @@ def delete_super_distributor(sd_id):
 
 
 
+
 @super_distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)

@@ -19,3 +19,4 @@ class SuperDistributor(db.Model):
 
     def __repr__(self):
         return f'<SuperDistributor {self.name}>'
+

@@ -100,6 +100,7 @@ def delete_account():
         return redirect('/customer/logout')
     except Exception as e:
         return handle_error(e)
+    
 
 @customer_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
