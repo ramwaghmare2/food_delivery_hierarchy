@@ -20,3 +20,4 @@ class Distributor(db.Model):
     def __repr__(self):
         return f'<Distributor {self.name}>'
     
+    

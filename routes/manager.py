@@ -168,6 +168,7 @@ def delete_manager(manager_id):
     return redirect(url_for('manager.get_managers'))
 
 
+
 @manager_bp.route('/manager/<int:manager_id>', methods=['GET'])
 def get_manager_profile(manager_id):
     try:

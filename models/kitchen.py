@@ -34,3 +34,4 @@ class Kitchen(db.Model):
     def __repr__(self):
         return f'<kitchens {self.name}>'
     
+    

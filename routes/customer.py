@@ -101,6 +101,7 @@ def delete_account():
     except Exception as e:
         return handle_error(e)
     
+    
 
 @customer_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():

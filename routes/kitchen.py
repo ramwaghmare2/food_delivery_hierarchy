@@ -145,6 +145,7 @@ def delete_kitchen(kitchen_id):
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")
+
         
 
     return redirect(url_for('kitchen.get_kitchens'))

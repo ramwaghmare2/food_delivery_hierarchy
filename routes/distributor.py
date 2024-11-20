@@ -127,6 +127,7 @@ def delete_distributor(distributor_id):
 
 
 
+
 @distributor_bp.route('/login', methods=['GET','POST'])
 def distributor_login():
     
