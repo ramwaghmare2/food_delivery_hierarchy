@@ -27,6 +27,7 @@
         <!-- Manager Cards -->
         <div class="row">
             {% for manager in managers %}
+            {% if manager.status == 'activated' %}
                 <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
                     <div class="card manager-card">
                         <div class="card-body manager-card-body">
@@ -40,7 +41,7 @@
                                 <h5 class="card-title">{{ manager.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ manager.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ manager.contact }}</p>
-                                
+
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('manager.edit_manager', manager_id=manager.id) }}" class="btn btn-warning btn-sm">Edit</a>
@@ -50,8 +51,10 @@
                         </div>
                     </div>
                 </div>
+            {% endif %}
             {% endfor %}
         </div>
     </main>
 
 {% include 'admin/admin_footer.html' %}
+

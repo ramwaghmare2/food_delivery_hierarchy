@@ -7,7 +7,6 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from extensions import bcrypt
 from werkzeug.utils import secure_filename
 import os
-from utils.services import get_model_counts
 
 manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')
 
@@ -59,7 +58,7 @@ def add_manager():
             return render_template('add_manager.html',role=role, user_name=user_name)
 
         # Create manager instance and add to db
-        new_manager = Manager(name=name, email=email, password=password, contact=contact)
+        new_manager = Manager(name=name, email=email, password=password, contact=contact,image=image_filename)
         try:
             db.session.add(new_manager)
             db.session.commit()
@@ -80,13 +79,13 @@ def allowed_file(filename):
 def get_managers():
     role = session.get('role')
     user_name = session.get('user_name')
-    counts = get_model_counts()
+    manager_count = Manager.query.count()
     try:
         role = role.decode('utf-8') if isinstance(role, bytes) else role
         user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
 
         managers = Manager.query.all()
-        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts)
+        return render_template('managers.html', managers=managers, role=role, user_name=user_name,manager_count=manager_count)
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
         return render_template('managers.html', managers=[], role=role, user_name=user_name)
@@ -158,7 +157,8 @@ def delete_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
 
     try:
-        db.session.delete(manager)
+        manager.status = 'deactivated'
+        # db.session.delete(manager)
         db.session.commit()
         flash("Manager deleted successfully!", "success")
     except Exception as e:
@@ -166,6 +166,8 @@ def delete_manager(manager_id):
         flash(f"Error deleting manager: {str(e)}", "danger")
 
     return redirect(url_for('manager.get_managers'))
+
+
 
 @manager_bp.route('/manager/<int:manager_id>', methods=['GET'])
 def get_manager_profile(manager_id):

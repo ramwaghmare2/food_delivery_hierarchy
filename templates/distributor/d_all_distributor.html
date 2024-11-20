@@ -10,10 +10,7 @@
     <main>
         <div class="container-fluid px-4">
             <h2 class="text-center">Distributors List</h2>
-            {% if role == 'Admin' %}
-                <p><b>Total Distributors - {{distributor_count}}</b></p>
-            {% else %}
-            {% endif %}
+
         <!-- Display flash messages for success or error -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -31,6 +28,7 @@
         <!-- Manager Cards -->
         <div class="row">
             {% for distributor in all_distributors %}
+            {% if distributor.status == 'activated' %}
                 <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
                     <div class="card manager-card">
                         <div class="card-body manager-card-body">
@@ -48,7 +46,7 @@
                                 <h5 class="card-title">{{ distributor.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ distributor.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ distributor.contact }}</p>
-                                <!--<p class="card-text"><strong>S-Distributor:</strong> {{ distributor.super_distributors.name }}</p>-->
+
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('distributor.edit_distributor', distributor_id=distributor.id ) }}" class="btn btn-warning btn-sm">Edit</a>
@@ -58,8 +56,10 @@
                         </div>
                     </div>
                 </div>
+            {% endif %}
             {% endfor %}
         </div>
     </main>
 
 {% include 'admin/admin_footer.html' %}
+
