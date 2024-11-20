@@ -10,7 +10,10 @@
     <main>
         <div class="container-fluid px-4">
             <h2 class="text-center">Distributors List</h2>
-
+            {% if role == 'Admin' %}
+                <p><b>Total Distributors - {{distributor_count}}</b></p>
+            {% else %}
+            {% endif %}
         <!-- Display flash messages for success or error -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -45,7 +48,7 @@
                                 <h5 class="card-title">{{ distributor.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ distributor.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ distributor.contact }}</p>
-
+                                <!--<p class="card-text"><strong>S-Distributor:</strong> {{ distributor.super_distributors.name }}</p>-->
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('distributor.edit_distributor', distributor_id=distributor.id ) }}" class="btn btn-warning btn-sm">Edit</a>

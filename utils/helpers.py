@@ -8,3 +8,5 @@ def format_response(status=200, message=None, data=None):
 
 def handle_error(e):
     return format_response(status=500, message=str(e))
+
+

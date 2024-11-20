@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from extensions import bcrypt
 from werkzeug.utils import secure_filename
 import os
+from utils.services import get_model_counts
 
 manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')
 
@@ -58,7 +59,7 @@ def add_manager():
             return render_template('add_manager.html',role=role, user_name=user_name)
 
         # Create manager instance and add to db
-        new_manager = Manager(name=name, email=email, password=password, contact=contact,image=image_filename)
+        new_manager = Manager(name=name, email=email, password=password, contact=contact)
         try:
             db.session.add(new_manager)
             db.session.commit()
@@ -79,13 +80,13 @@ def allowed_file(filename):
 def get_managers():
     role = session.get('role')
     user_name = session.get('user_name')
-    manager_count = Manager.query.count()
+    counts = get_model_counts()
     try:
         role = role.decode('utf-8') if isinstance(role, bytes) else role
         user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
 
         managers = Manager.query.all()
-        return render_template('managers.html', managers=managers, role=role, user_name=user_name,manager_count=manager_count)
+        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts)
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
         return render_template('managers.html', managers=[], role=role, user_name=user_name)
