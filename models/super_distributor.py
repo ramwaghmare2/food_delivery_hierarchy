@@ -12,11 +12,12 @@ class SuperDistributor(db.Model):
     contact = db.Column(db.String(20), nullable=True)
     manager_id = db.Column(db.Integer, db.ForeignKey('managers.id'), nullable=True)
     #distributor_id = db.Column(db.Integer, db.ForeignKey('distributors.id'), nullable=True)
+    status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image = db.Column(LONGBLOB,nullable=True)
 
-    distributors = db.relationship('Distributor', backref='super_distributors', lazy=True)
-
     def __repr__(self):
         return f'<SuperDistributor {self.name}>'
+
+

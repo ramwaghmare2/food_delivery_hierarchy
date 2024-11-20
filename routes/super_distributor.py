@@ -8,7 +8,6 @@ from models import db
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
-from utils.services import get_model_counts
 
 
 super_distributor_bp = Blueprint('super_distributor', __name__, template_folder='../templates/super_distributor', static_folder='../static')
@@ -71,14 +70,13 @@ def all_super_distributor():
     role = session.get('role')
     user_name = session.get('user_name')
     user_id = session.get('user_id') 
-    counts = get_model_counts()
     if role == 'Admin':
         # Admin sees all super distributors
         all_distributors = SuperDistributor.query.all()
     else:
         # Non-admin sees only their related super distributors
         all_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
-    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name ,**counts)
+    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name)
 
 
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
@@ -113,7 +111,7 @@ def add_distributor():
             db.session.add(new_distributor)
             db.session.commit()
             flash('Distributor Added Successfully.')
-            return redirect(url_for('super_distributor.add_distributor'), role=role, user_name=user_name)
+            return redirect(url_for('super_distributor.add_distributor'), user_name=user_name)
 
         return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors, user_name=user_name)
 
@@ -268,7 +266,8 @@ def delete_super_distributor(sd_id):
     super_distributor = SuperDistributor.query.get_or_404(sd_id)
 
     try:
-        db.session.delete(super_distributor)
+        super_distributor.status = 'deactivated'
+        # db.session.delete(super_distributor)
         db.session.commit()
         flash("Super Distributor deleted successfully!", "success")
     except Exception as e:
@@ -276,6 +275,8 @@ def delete_super_distributor(sd_id):
         flash(f"Error deleting manager: {str(e)}", "danger")
 
     return redirect(url_for('super_distributor.all_super_distributor'))
+
+
 
 
 

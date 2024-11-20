@@ -21,6 +21,7 @@ class Kitchen(db.Model):
     district = db.Column(db.String(50), nullable=True)
     address = db.Column(db.String(255), nullable=True)
     image = db.Column(LONGBLOB,nullable=True)
+    status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
 
     # Method to hash password
     def set_password(self, password):
@@ -32,3 +33,5 @@ class Kitchen(db.Model):
 
     def __repr__(self):
         return f'<kitchens {self.name}>'
+    
+    
