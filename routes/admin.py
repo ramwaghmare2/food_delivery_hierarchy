@@ -1,5 +1,5 @@
 
-from flask import Blueprint,render_template
+from flask import Blueprint,render_template, flash
 
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -66,28 +66,17 @@ def role_required(required_roles):
 def admin_dashboard():
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     user_name = session.get('user_name', 'User')
-    role = session.get('role')
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
 
-    manager_count = Manager.query.count()
-    super_distributor_count = SuperDistributor.query.count()
-    distributor_count = Distributor.query.count()
-    kitchen_count = Kitchen.query.count()
-
-    return render_template('admin/admin_index.html',
-                            manager_count = manager_count,
-                            super_distributor_count = super_distributor_count,
-                            distributor_count = distributor_count,
-                            kitchen_count = kitchen_count,
+    return render_template('admin/admin_index.html', 
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
                            kitchens=kitchens,
-                           user_name=user_name,
-                           role=role)
+                           user_name=user_name)
 
 VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 
@@ -95,7 +84,8 @@ VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 @role_required('Admin')
 def add_user(role):
     if role not in VALID_ROLES:
-        return jsonify({"error": "Invalid role"}), 400
+        flash("Invalid role")
+        return redirect(url_for('admin_bp.add_user'))
 
     if request.method == 'POST':
         data = request.form
@@ -103,13 +93,15 @@ def add_user(role):
         confirm_password = data.get('confirm_password')
         
         if password != confirm_password:
-            return jsonify({"error": "Passwords do not match"}), 400
+            flash("Passwords do not match")
+            return redirect(url_for('admin_bp.add_user'))
 
         user = create_user(data, role)
         if user:
             return redirect(url_for('admin_bp.admin_dashboard'))
         else:
-            return jsonify({"error": "User already exists or invalid role"}), 400
+            flash("User already exists or invalid role")
+            return redirect(url_for('admin_bp.add_user'))
 
     return render_template('admin/add_user.html', role=role)
 
@@ -120,6 +112,7 @@ def signup():
         role = data.get('role')
         if data['password'] != data['confirmPassword']:
             return jsonify({"error": "Passwords do not match"}), 400
+        
          
         user = create_user(data, role)
         if user:
@@ -141,7 +134,8 @@ def login():
         password = data.get('password')
         
         if not email or not password:
-            return jsonify({"error": "Email and password are required"}), 400
+            flash("Email and password are required")
+            return redirect(url_for('admin_bp.login'))
         
         # Map roles to their respective models
         role_model_map = {
@@ -155,12 +149,14 @@ def login():
         # Get the appropriate model for the role
         model = role_model_map.get(role)
         if not model:
-            return jsonify({"error": "Invalid role"}), 400
+            flash("Invalid role")
+            return redirect(url_for('admin_bp.login'))
         
         # Query the database for the user
         user = model.query.filter_by(email=email).first()
         if not user or not check_password_hash(user.password, password):
-            return jsonify({"error": "Invalid email or password"}), 401
+            flash("Invalid email or password")
+            return redirect(url_for('admin_bp.login'))
 
         # Store user data in the session
         session['user_id'] = user.id
@@ -179,7 +175,8 @@ def login():
         route_name = dashboard_routes.get(role)
         
         if not route_name:
-            return jsonify({"error": "Dashboard route not defined for this role"}), 500
+            flash("Dashboard route not defined for this role")
+            return redirect(url_for('admin_bp.login'))
         
         # Redirect to the dashboard using `url_for`
         return redirect(url_for(route_name))

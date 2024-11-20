@@ -16,6 +16,7 @@ class Manager(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     #image = db.Column(db.String(255), nullable=True)  
     image = db.Column(LONGBLOB,nullable=True)
+    status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     # Method to hash password
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')

@@ -94,7 +94,8 @@ def delete_account():
         if not check_password_hash(user.password, data['password']):
             return render_template('customer/delete_account.html', error="Invalid password.")
 
-        db.session.delete(user)
+        user.status = 'deactivated'
+        # db.session.delete(user)
         db.session.commit()
         return redirect('/customer/logout')
     except Exception as e:

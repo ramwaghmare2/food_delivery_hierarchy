@@ -27,6 +27,7 @@
         <!-- Manager Cards -->
         <div class="row">
             {% for manager in managers %}
+            {% if manager.status == 'activated' %}
                 <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
                     <div class="card manager-card">
                         <div class="card-body manager-card-body">
@@ -50,6 +51,7 @@
                         </div>
                     </div>
                 </div>
+            {% endif %}
             {% endfor %}
         </div>
     </main>

@@ -114,7 +114,8 @@ def delete_distributor(distributor_id):
     distributor = Distributor.query.get_or_404(distributor_id)
 
     try:
-        db.session.delete(distributor)
+        distributor.status = 'deactivated'
+        # db.session.delete(distributor)
         db.session.commit()
         flash("Distributor deleted successfully!", "success")
     except Exception as e:

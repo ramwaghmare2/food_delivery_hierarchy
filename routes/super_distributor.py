@@ -111,7 +111,7 @@ def add_distributor():
             db.session.add(new_distributor)
             db.session.commit()
             flash('Distributor Added Successfully.')
-            return redirect(url_for('super_distributor.add_distributor'), role=role, user_name=user_name)
+            return redirect(url_for('super_distributor.add_distributor'), user_name=user_name)
 
         return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors, user_name=user_name)
 
@@ -266,7 +266,8 @@ def delete_super_distributor(sd_id):
     super_distributor = SuperDistributor.query.get_or_404(sd_id)
 
     try:
-        db.session.delete(super_distributor)
+        super_distributor.status = 'deactivated'
+        # db.session.delete(super_distributor)
         db.session.commit()
         flash("Super Distributor deleted successfully!", "success")
     except Exception as e:

@@ -157,7 +157,8 @@ def delete_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
 
     try:
-        db.session.delete(manager)
+        manager.status = 'deactivated'
+        # db.session.delete(manager)
         db.session.commit()
         flash("Manager deleted successfully!", "success")
     except Exception as e:

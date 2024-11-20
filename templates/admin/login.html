@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
+    
     
     <form method="POST" action="{{ url_for('admin_bp.login') }}">
         <label for="role">Role:</label>
@@ -22,6 +18,16 @@
 
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
 
         <button type="submit">Login</button>
     </form>

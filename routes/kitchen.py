@@ -138,7 +138,8 @@ def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
 
     try:
-        db.session.delete(kitchen)
+        kitchen.status = 'deactivated'
+        # db.session.delete(kitchen)
         db.session.commit()
         flash("Kitchen deleted successfully!", "success")
     except Exception as e:
