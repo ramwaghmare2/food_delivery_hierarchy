@@ -32,6 +32,11 @@
                     <div class="card manager-card">
                         <div class="card-body manager-card-body">
                             <!-- Manager Image -->
+                            {% if manager.image_base64 %}
+                            <img src="{{ manager.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
+                            {% else %}
+                            No Image
+                            {% endif %}
                             <div>
                                 
                             </div>

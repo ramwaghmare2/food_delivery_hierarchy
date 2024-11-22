@@ -1,0 +1,40 @@
+{% include 'admin/admin_header.html' %}
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid px-4">      
+
+    <div class="profile-card">
+        
+        {% if encoded_image %}
+        <div>
+            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 120px; height: 120px;">
+        </div>
+    {% endif %}
+        
+        <div class="profile-name">{{admin.name}}</div>
+        <div class="text-center text-muted">{{role}}</div>
+
+        <div class="profile-details">
+            <div class="info-item">
+                <span><strong>Email:</strong></span>
+                <span>{{admin.email}}</span>
+            </div>
+            <div class="info-item">
+                <span><strong>Phone:</strong></span>
+                <span>{{admin.contact}}</span>
+            </div>
+            <div class="info-item">
+                <span><strong>Created at:</strong></span>
+                <span>{{admin.created_at}}</span>
+            </div>
+        </div>
+
+        <div class="edit-btn">
+            <a href="{{ url_for('admin_bp.edit_admin', admin_id=admin.id) }}" class="btn btn-primary">Edit Profile</a>
+        </div>
+    </div>
+</div>
+{% include 'admin/admin_footer.html' %}
+</main>
+</div>
+

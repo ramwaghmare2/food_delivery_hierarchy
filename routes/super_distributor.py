@@ -8,11 +8,13 @@ from models import db
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
+from utils.services import get_model_counts ,allowed_file
+from base64 import b64encode
 
 
 super_distributor_bp = Blueprint('super_distributor', __name__, template_folder='../templates/super_distributor', static_folder='../static')
 
-
+# Route for Super Distributor Dashboard
 @super_distributor_bp.route('/super-distributor', methods=['GET'])
 def super_distributor():
     user_name = session.get('user_name', 'User')
@@ -69,14 +71,22 @@ def add_kitchen():
 def all_super_distributor():
     role = session.get('role')
     user_name = session.get('user_name')
-    user_id = session.get('user_id') 
+    user_id = session.get('user_id')
+    counts = get_model_counts() 
     if role == 'Admin':
         # Admin sees all super distributors
         all_distributors = SuperDistributor.query.all()
     else:
         # Non-admin sees only their related super distributors
         all_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
-    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name)
+    # Convert images to Base64 format
+    for distributors in all_distributors:
+            if distributors.image:
+                distributors.image_base64 = f"data:image/jpeg;base64,{b64encode(distributors.image).decode('utf-8')}"
+            else:
+                distributors.image_base64 = None
+    
+    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name, **counts)
 
 
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
@@ -89,10 +99,15 @@ def add_distributor():
 
 
         if request.method == 'POST':
+            image = request.files.get('image')
             if role== "SuperDistributor":
-                super_distributor = request.form.get('super_distributor')
-            else:
                 super_distributor = session.get('user_id')
+            else:
+                super_distributor = request.form.get('super_distributor')
+
+            image_binary = None
+            if image and allowed_file(image.filename):
+                image_binary = image.read()
 
             if Distributor.query.filter_by(email=request.form.get('email')).first() or Distributor.query.filter_by(contact=request.form.get('mobile_number')).first():
                 flash('Distributor with this email or mobile number already exists.')
@@ -105,13 +120,14 @@ def add_distributor():
                 email=request.form.get('email'),
                 password=hashed_password,
                 contact=request.form.get('mobile_number'),
-                super_distributor=super_distributor
+                super_distributor=super_distributor,
+                image=image_binary
             )
 
             db.session.add(new_distributor)
             db.session.commit()
             flash('Distributor Added Successfully.')
-            return redirect(url_for('super_distributor.add_distributor'), user_name=user_name)
+            return redirect(url_for('super_distributor.add_distributor'))
 
         return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors, user_name=user_name)
 
@@ -130,6 +146,12 @@ def add_super_distributor():
         managers = Manager.query.all()
 
         if request.method == 'POST':
+            image = request.files.get('image')
+
+            image_binary = None
+            if image and allowed_file(image.filename):
+                image_binary = image.read()
+
             if role== "Admin":
                 manager_id = request.form.get('manager')
             else:
@@ -146,7 +168,8 @@ def add_super_distributor():
                 email=request.form.get('email'),
                 password=hashed_password,
                 contact=request.form.get('mobile_number'),
-                manager_id=manager_id
+                manager_id=manager_id,
+                image=image_binary
             )
 
             db.session.add(new_distributor)
@@ -160,10 +183,6 @@ def add_super_distributor():
         flash(f'Error: {e}')
         return redirect(url_for('super_distributor.add_distributor'))
 
-
-# Function for image storage
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 # Function for edit the super_distributor
 @super_distributor_bp.route('/edit/<int:sd_id>', methods=['GET', 'POST'])
@@ -201,24 +220,15 @@ def edit_super_distributor(sd_id):
         if password:
             sd.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # Handle image update if a new image is uploaded
         if image and allowed_file(image.filename):
-            # If a new image is uploaded, delete the old one
-            if sd.image:
-                try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], sd.image))
-                except Exception as e:
-                    flash(f"Error deleting old image: {str(e)}", "danger")
-            
-            # Save the new image
-            image_filename = secure_filename(image.filename)
-            image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename))
-            sd.image = image_filename
+            # Convert the image to binary data
+            image_binary = image.read()
+            sd.image = image_binary
 
         try:
             db.session.commit()
             flash("Super Distributor updated successfully!", "success")
-            return redirect(url_for('super_distributor.all_super_distributor'),role=role, user_name=user_name)
+            return redirect(url_for('super_distributor.all_super_distributor'))
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Super Distributor: {str(e)}", "danger")

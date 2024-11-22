@@ -34,11 +34,11 @@
                         <div class="card-body manager-card-body">
                             <!-- Manager Image -->
                             <div>
-                                {% if distributor.image %}
-                                    <img src="{{ url_for('static', filename='images/' + distributor.image) }}" alt="Dsitributor Image" class="manager-image">
-                                {% else %}
-                                    <div class="manager-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
-                                {% endif %}
+                                {% if distributor.image_base64 %}
+                            <img src="{{ distributor.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
+                            {% else %}
+                            No Image
+                            {% endif %}
                             </div>
 
                             <!-- Manager Info -->
