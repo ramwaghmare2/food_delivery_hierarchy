@@ -14,7 +14,7 @@
     <main>
         <div class="container-fluid px-4">
             <h2 class="text-center">Kitchens List</h2>
-
+            <p><b>Total Kitchens - {{ kitchen_count }}</b></p>
         <!-- Display flash messages for success or error -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -36,14 +36,14 @@
                 <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
                     <div class="card manager-card">
                         <div class="card-body manager-card-body">
-                            <!-- Manager Image -->
+                            <!-- Manager Image 
                             <div>
                                 {% if kitchen.image %}
                                     <img src="{{ url_for('static', filename='images/' + kitchen.image) }}" alt="Kitchen Image" class="manager-image">
                                 {% else %}
                                     <div class="manager-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
                                 {% endif %}
-                            </div>
+                            </div> -->
 
                             <!-- Manager Info -->
                             <div class="manager-info mt-3">

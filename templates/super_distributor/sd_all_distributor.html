@@ -10,7 +10,7 @@
     <main>
         <div class="container-fluid px-4">
             <h2 class="text-center">Super Distributors List</h2>
-
+            <p><b>Total S-Distributors - {{super_distributor_count}}</b></p>
         <!-- Display flash messages for success or error -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -34,10 +34,10 @@
                         <div class="card-body manager-card-body">
                             <!-- Manager Image -->
                             <div>
-                                {% if sd.image %}
-                                    <img src="{{ url_for('static', filename='images/' + sd.image) }}" alt="Manager Image" class="manager-image">
+                                {% if sd.image_base64 %}
+                            <img src="{{ sd.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
                                 {% else %}
-                                    <div class="manager-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
+                                No Image
                                 {% endif %}
                             </div>
 

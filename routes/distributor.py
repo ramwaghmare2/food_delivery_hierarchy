@@ -6,17 +6,19 @@ from models import db ,SuperDistributor
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
+from utils.services import get_model_counts, allowed_file
+from base64 import b64encode
 
 distributor_bp = Blueprint('distributor', __name__, template_folder='../templates/distributor', static_folder='../static')
 
-
+# Route for distributor dashboard
 @distributor_bp.route('/')
 def distributor_home():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     return render_template('d_index.html',user_name=user_name,role=role)
 
-
+# Route for display all distributor
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
@@ -30,15 +32,22 @@ def all_distributor():
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
         super_distributor_ids = [sd.id for sd in super_distributors]
         all_distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+    # Convert images to Base64 format
+    for distributors in all_distributors:
+            if distributors.image:
+                distributors.image_base64 = f"data:image/jpeg;base64,{b64encode(distributors.image).decode('utf-8')}"
+            else:
+                distributors.image_base64 = None
     return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role,user_name=user_name)
 
 
-
+# Route to display all kitchens
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
     role = session.get('role')
     user_name = session.get('user_name')
     user_id = session.get('user_id')  # Assuming 'user_id' is stored in the session
+    counts = get_model_counts()
     if role == 'Admin':
             # Admin sees all kitchens
             all_kitchens = Kitchen.query.all()
@@ -49,7 +58,7 @@ def distrubutor_all_kitchens():
             distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
             distributor_ids = [dist.id for dist in distributors]
             all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
-    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name)
+    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name, **counts)
 
 
 @distributor_bp.route('/kitchen/<int:kitchen_id>')
@@ -57,7 +66,7 @@ def view_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
     return render_template('d_kitchen_detail.html', kitchen=kitchen)
 
-
+# Route to delete kitchen
 @distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['GET','POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
@@ -67,7 +76,7 @@ def delete_kitchen(kitchen_id):
     return redirect(url_for('distributor.distrubutor_all_kitchens'))
 
 
-
+# Route to add kitchen
 @distributor_bp.route('/add-kitchen', methods=['GET','POST'])
 def add_kitchen():
     try:
@@ -107,7 +116,7 @@ def add_kitchen():
         return redirect(url_for('distributor.add_kitchen'))
     
 
-# Function for delete the distributor
+# Route for delete the distributor
 @distributor_bp.route('/delete/<int:distributor_id>', methods=['GET', 'POST'])
 def delete_distributor(distributor_id):
     
@@ -162,7 +171,7 @@ def allowed_file(filename):
 
 
 
-# Function for edit the super_distributor
+# Route for edit the distributor
 @distributor_bp.route('/edit/<int:distributor_id>', methods=['GET', 'POST'])
 def edit_distributor(distributor_id):
     distributor = Distributor.query.get_or_404(distributor_id)
@@ -197,19 +206,10 @@ def edit_distributor(distributor_id):
         if password:
             distributor.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # Handle image update if a new image is uploaded
         if image and allowed_file(image.filename):
-            # If a new image is uploaded, delete the old one
-            if distributor.image:
-                try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], distributor.image))
-                except Exception as e:
-                    flash(f"Error deleting old image: {str(e)}", "danger")
-            
-            # Save the new image
-            image_filename = secure_filename(image.filename)
-            image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename))
-            distributor.image = image_filename
+            # Convert the image to binary data
+            image_binary = image.read()
+            distributor.image = image_binary
 
         try:
             db.session.commit()

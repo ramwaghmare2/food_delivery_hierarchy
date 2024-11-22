@@ -1,11 +1,13 @@
-
-from flask import Blueprint,render_template
+from models import db 
+from flask import Blueprint,render_template, flash
 from utils.services import get_model_counts
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from sqlalchemy.exc import IntegrityError
 from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
+from utils.services import allowed_file
+from base64 import b64encode
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 
@@ -67,15 +69,24 @@ def admin_dashboard():
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     user_name = session.get('user_name', 'User')
     role = session.get('role')
+    user_id = session.get('user_id')
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
-
     counts = get_model_counts()
+    # Query the admin by id
+    admin = Admin.query.get_or_404(user_id)
+
+    # Encode the image to Base64 for rendering in HTML
+    encoded_image = None
+    if admin.image:
+        encoded_image = b64encode(admin.image).decode('utf-8')
 
     return render_template('admin/admin_index.html',
                             **counts,
+                           admin=admin,
+                           encoded_image=encoded_image,
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
@@ -106,7 +117,8 @@ def add_user(role):
             return jsonify({"error": "User already exists or invalid role"}), 400
 
     return render_template('admin/add_user.html', role=role)
-
+    
+# Route for Sign Up
 @admin_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -123,6 +135,7 @@ def signup():
 
     return render_template("admin/signup.html")
 
+# Route for Login 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -273,10 +286,81 @@ def kitchen_dashboard():
 
     return render_template('admin/kitchen_dashboard.html', kitchens=kitchens)
 
-
+# Route for Logout
 @admin_bp.route('/logout')
 # @role_required('Admin')
 def logout():
     session.pop('user_id', None)
     session.pop('role', None) 
     return render_template('admin/login.html')
+
+# Route for profile of the manager
+@admin_bp.route('/admin/<int:admin_id>', methods=['GET'])
+def get_admin_profile(admin_id):
+    role = session.get('role')
+
+    # Query the admin by id
+    admin = Admin.query.get_or_404(admin_id)
+
+    # Encode the image to Base64 for rendering in HTML
+    encoded_image = None
+    if admin.image:
+        encoded_image = b64encode(admin.image).decode('utf-8')
+
+    return render_template('admin/admin_profile.html', admin=admin, role=role, encoded_image=encoded_image)
+
+@admin_bp.route('/edit/<int:admin_id>', methods=['GET', 'POST'])
+def edit_admin(admin_id):
+    admin = Admin.query.get_or_404(admin_id)
+
+    role = session.get('role')
+    user_name = session.get('user_name')
+
+    if isinstance(role, bytes):
+        role = role.decode('utf-8')
+    if isinstance(user_name, bytes):
+        user_name = user_name.decode('utf-8')
+
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        contact = request.form.get('contact')
+        password = request.form.get('password')
+        image = request.files.get('image')  # Get the image from the form if provided
+
+        # Validate if email already exists (excluding the current manager)
+        existing_admin_email = Admin.query.filter(Admin.email == email, admin.id != admin.id).first()
+        if existing_admin_email:
+            flash("The email is already in use by another admin.", "danger")
+            return render_template('admin/edit_admin.html',admin=admin, role=role, user_name=user_name)
+
+        # Validate if contact already exists (excluding the current manager)
+        existing_admin_contact = Admin.query.filter(Admin.contact == contact, Admin.id != admin.id).first()
+        if existing_admin_contact:
+            flash("The contact number is already in use by another admin.", "danger")
+            return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
+
+        # Update manager details
+        admin.name = name
+        admin.email = email
+        admin.contact = contact
+
+        # If password is provided, hash and update it
+        if password:
+            admin.password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        # Handle image update if a new image is uploaded
+        if image and allowed_file(image.filename):
+            # Convert the image to binary data
+            image_binary = image.read()
+            admin.image = image_binary
+
+        try:
+            db.session.commit()
+            flash("Admin updated successfully!", "success")
+            return redirect(url_for('admin_bp.admin_dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating admin: {str(e)}", "danger")
+
+    return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)

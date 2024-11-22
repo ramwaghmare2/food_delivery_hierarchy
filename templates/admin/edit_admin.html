@@ -1,11 +1,5 @@
 {% if role == 'Admin' %}
     {% include 'admin/admin_header.html' %}
-{% elif role == 'Manager' %}
-    {% include 'manager_header.html' %}
-{% elif role == "SuperDistributor" %}
-    {% include 'distributor/d_header.html'%}
-{% elif role == "Distributor" %}
-    {% include 'distributor/d_header.html'%}
 {% endif %}
 <body>
 <div id="layoutSidenav_content">
@@ -24,25 +18,25 @@
     <main>
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
-            <h2 class="sd-form">Edit Kitchen</h2>
+            <h2 class="sd-form">Edit Admin</h2>
             <form method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
-                    <input name="name" type="text" value="{{ kitchen.name }}" required>
+                    <input name="name" type="text" value="{{ admin.name }}" required>
                 </div>
                 <div class="sd-row">
-                    <input name="email" type="email" value="{{ kitchen.email }}" required>
+                    <input name="email" type="email" value="{{ admin.email }}" required>
                 </div>
                 <div class="sd-row">
-                    <input name="contact" type="text" value="{{ kitchen.contact }}" required>
+                    <input name="contact" type="text" value="{{ admin.contact }}" required>
                 </div>
                 <div class="sd-row">
                     <label for="password" class="form-label">Password (Leave blank if unchanged)</label>
                     <input type="password" class="form-control" id="password" name="password">
                 </div>
-                <!--<div class="sd-row">
+                <div class="sd-row">
                     <label for="image" class="form-label">Profile Image (Optional)</label>
                     <input type="file" class="form-control-file" id="image" name="image">
-                </div> -->
+                </div>
                 
                 <br>
                 <div class="sd-buttons">
@@ -50,7 +44,6 @@
                 </div>
             </form>
         </div>
-        <!-- End of Add Doctor Form Content -->
     </main>
 </body>
 
