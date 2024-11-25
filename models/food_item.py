@@ -2,8 +2,6 @@ from . import db
 from datetime import datetime
 from sqlalchemy.dialects.mysql import LONGBLOB
 
-
-# FoodItem model
 class FoodItem(db.Model):
     __tablename__ = 'food_items'
     
@@ -16,8 +14,11 @@ class FoodItem(db.Model):
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    image = db.Column(LONGBLOB,nullable=True)
+    image = db.Column(LONGBLOB, nullable=True)
+
+    # Relationships
+    orders = db.relationship('Order', secondary='order_items', back_populates='food_items')  # Many-to-Many via OrderItem
+    order_items = db.relationship('OrderItem', back_populates='food_item')  # Bidirectional link with OrderItem
 
     def __repr__(self):
         return f'<FoodItem {self.item_name}>'
-

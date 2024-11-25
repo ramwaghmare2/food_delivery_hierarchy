@@ -1,6 +1,11 @@
+# from crypt import methods
+from email.policy import default
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from models import db
 from flask import Blueprint,render_template, flash
-from utils.helpers import handle_error, get_model_counts
+from models.order import OrderItem
+from utils.helpers import handle_error #get_model_counts
 from models import db 
 from flask import Blueprint,render_template, flash
 from utils.services import get_model_counts
@@ -8,12 +13,18 @@ from flask import Blueprint, request, jsonify, session, render_template, redirec
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from sqlalchemy.exc import IntegrityError
-from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
+from models import Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer
 from utils.services import allowed_file
 from base64 import b64encode
+from extensions import bcrypt
+from datetime import datetime, timedelta
+from collections import defaultdict
+from flask_socketio import SocketIO, emit
+from flask import current_app
+from flask_login import user_logged_in, user_logged_out, current_user
+from extensions import socketio
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
-
 
 # Helper function to create a user based on role
 def create_user(data, role):
@@ -66,36 +77,81 @@ def role_required(required_roles):
     return wrapper
 
 # Route for displaying admin dashboard
+from flask_login import current_user
+from flask import render_template, session
+
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_dashboard():
     from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
     user_name = session.get('user_name', 'User')
     role = session.get('role')
+
+    # Get counts for managers, distributors, etc.
+    manager_count = Manager.query.count()
+    super_distributor_count = SuperDistributor.query.count()
+    distributor_count = Distributor.query.count()
+    kitchen_count = Kitchen.query.count()
+
+    # Query sales and orders
+    total_sales = Sales.query.all()  # Assuming you have a Sale model to track sales
+    total_orders = Order.query.all()
+
+    total_sales_amount = sum([sale.price for sale in total_sales])  # Adjust field as necessary
+    total_orders_count = len(total_orders)
+
     user_id = session.get('user_id')
     managers = Manager.query.all()
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
-    counts = get_model_counts()
-    # Query the admin by id
-    admin = Admin.query.get_or_404(user_id)
 
-    # Encode the image to Base64 for rendering in HTML
-    encoded_image = None
-    if admin.image:
-        encoded_image = b64encode(admin.image).decode('utf-8')
+    # Check if the user is authenticated
+    if current_user.is_authenticated:
+        # Query the admin by current_user.id if authenticated
+        admin = Admin.query.get(current_user.id)
+        
+        # Encode the image to Base64 for rendering in HTML
+        encoded_image = None
+        if admin and admin.image:
+            encoded_image = b64encode(admin.image).decode('utf-8')
+    else:
+        # Redirect to login page if the user is not authenticated
+        return redirect(url_for('admin_bp.login'))
 
     return render_template('admin/admin_index.html',
-                            **counts,
-                           admin=admin,
-                           encoded_image=encoded_image,
+                           manager_count=manager_count,
+                           super_distributor_count=super_distributor_count,
+                           distributor_count=distributor_count,
+                           kitchen_count=kitchen_count,
+                           total_sales_amount=total_sales_amount,
+                           total_orders_count=total_orders_count,
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
                            kitchens=kitchens,
                            user_name=user_name,
+                           admin_username=current_user.name,
+                           online_status=admin.online_status if admin else False,
                            role=role)
+
+@socketio.on('custom_event')
+def handle_custom_event(data):
+    print(f"Received data: {data}")
+    emit('response_event', {'message': 'Success'})
+
+def register_signals(app):
+    @user_logged_in.connect_via(app)
+    def update_online_status_on_login(sender, user):
+        if isinstance(user, Admin):
+            user.online_status = True
+            db.session.commit()
+
+    @user_logged_out.connect_via(app)
+    def update_online_status_on_logout(sender, user):
+        if isinstance(user, Admin):
+            user.online_status = False
+            db.session.commit()
 
 VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 
@@ -177,6 +233,7 @@ def login():
             session['role'] = role
             session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
             print(user.name)
+            # print(session)
 
             dashboard_routes = {
                 "Admin": "admin_bp.admin_dashboard",
@@ -192,59 +249,10 @@ def login():
             
             return redirect(url_for(route_name))
         
-        return render_template('admin/login.html')
+        return render_template('admin/admin.html')
 
     except Exception as e:
         return handle_error(e)
-
-
-"""
-@admin_bp.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-
-        data = request.form
-        print("Form Data:", data)  
-        
-        role = data.get('role')
-        email = data.get('email')
-        password = data.get('password')
-        
-        if not email or not password:
-            return jsonify({"error": "Email and password are required"}), 400
-        
-        if role == "Admin":
-            user = Admin.query.filter_by(email=email).first()
-        elif role == "Manager":
-            user = Manager.query.filter_by(email=email).first()
-        elif role == "SuperDistributor":
-            user = SuperDistributor.query.filter_by(email=email).first()
-        elif role == "Distributor":
-            user = Distributor.query.filter_by(email=email).first()
-        elif role == "Kitchen":
-            user = Kitchen.query.filter_by(email=email).first()
-        else:
-            return jsonify({"error": "Invalid role"}), 400
-
-        if not user or not check_password_hash(user.password, password):
-            return jsonify({"error": "Invalid email or password"}), 401
-
-        session['user_id'] = user.id
-        session['role'] = role
-
-        # Redirect based on role
-        if role == "Admin":
-            return redirect(url_for('admin_bp.admin_dashboard'))
-        elif role == "Manager":
-            return redirect(url_for('manager.manager_dashboard'))
-        elif role == "SuperDistributor":
-            return redirect(url_for('super_distributor.super_distributor'))
-        elif role == "Distributor":
-            return redirect(url_for('distributor.distributor_home'))
-        elif role == "Kitchen":
-            return redirect(url_for('kitchen.kitchen_dashboard'))
-        
-    return render_template('admin/login.html') """
 
 @admin_bp.route('/manager', methods=['GET'])
 @role_required('Manager')  
@@ -368,3 +376,149 @@ def edit_admin(admin_id):
             flash(f"Error updating admin: {str(e)}", "danger")
 
     return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
+
+
+############ Sales Data Visualization ################
+sales_bp = Blueprint('sales', __name__)
+
+@sales_bp.route('/sales_report', methods=['GET'])
+def sales_report():
+    # Get the filter parameter from the query string
+    filter_param = request.args.get('filter', 'today')  # Default to 'today' if no filter provided
+
+    # Initialize the query
+    query = Sales.query
+
+    # Apply the filter if provided
+    today = datetime.today()
+    start_time, end_time = None, None
+
+    if filter_param == 'today':
+        start_time = datetime.combine(today, datetime.min.time())
+        end_time = datetime.combine(today + timedelta(days=1), datetime.min.time())
+    elif filter_param == 'yesterday':
+        start_time = datetime.combine(today - timedelta(days=1), datetime.min.time())
+        end_time = datetime.combine(today, datetime.min.time())
+    elif filter_param == 'week':
+        start_time = today - timedelta(days=today.weekday())
+        end_time = start_time + timedelta(days=7)
+    elif filter_param == 'month':
+        start_time = datetime(today.year, today.month, 1)
+        next_month = today.month % 12 + 1
+        year = today.year + (today.month // 12)
+        end_time = datetime(year, next_month, 1)
+
+    if start_time and end_time:
+        query = query.filter(Sales.datetime >= start_time, Sales.datetime < end_time)
+
+    # Aggregate total sales and quantity sold
+    total_sales_amount = query.with_entities(db.func.sum(Sales.total_price)).scalar() or 0
+    quantity_sold = query.with_entities(db.func.sum(Sales.quantity)).scalar() or 0
+
+    # Total orders count
+    total_orders_count = Order.query.count()
+
+    # Get sales data for the line chart (sales by date)
+    sales_by_date = db.session.query(
+        func.date(Sales.datetime).label('sale_date'),
+        func.sum(Sales.total_price).label('total_sales')
+    ).filter(Sales.datetime >= start_time, Sales.datetime < end_time).group_by(func.date(Sales.datetime)).all()
+
+    # Process sales data into a dictionary
+    sales_by_date_dict = defaultdict(float)
+    for sale in sales_by_date:
+        sales_by_date_dict[sale.sale_date] += float(sale.total_sales)
+
+    # Convert the sales data (for table and chart)
+    dates = [str(date) for date in sales_by_date_dict.keys()] if sales_by_date_dict else ["No Data"]
+    sales = list(sales_by_date_dict.values()) if sales_by_date_dict else [0]
+
+    sales_data = query.all()
+
+    return render_template(
+        'admin/sales_report.html',
+        total_sales_amount=total_sales_amount,
+        total_orders_count=total_orders_count,
+        quantity_sold=quantity_sold,
+        filter_param=filter_param,  # Pass filter to the template
+        sales_data=sales_data,
+        dates=dates,
+        sales=sales,
+    )
+
+######################## Orders data visualization API ###################################
+
+orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
+
+@orders_bp.route('/list', methods=['GET'])
+def order_list():
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', '', type=str)
+
+    query = Order.query.options(
+        joinedload(Order.customer),
+        joinedload(Order.order_items).joinedload(OrderItem.food_item)
+    )
+
+    if search_query:
+        orders = Order.query.join(Customer).filter(
+            (Order.order_id.like(f'%{search_query}%')) |
+            (Customer.name.like(f'%{search_query}%'))
+        ).paginate(page=page, per_page=10)
+    else:
+        orders = Order.query.paginate(page=page, per_page=10)
+
+    for order in orders.items:
+        print(f"Order ID: {order.order_id}")
+        if order.order_items:
+            for item in order.order_items:
+                print(f" - Food Item: {item.food_item.item_name}, Quantity: {item.quantity}")
+            else:
+                print(" - No order items found")
+
+    return render_template('admin/order_list.html', orders=orders)
+
+
+
+######################## Updating User Status ############################
+""" from flask_login import current_user, login_required
+import logging
+
+
+socketio = SocketIO()
+
+def get_current_user_id():
+    # Placeholder function to fetch the current user ID from the session or token
+    # Replace with actual logic based on your authentication implementation
+    return current_user.id if current_user.is_authenticated else None
+
+def update_user_status(id, is_online):
+    #Update the user's online status in the database.
+    if id:
+        user = Admin.query.get(id)
+        if user:
+            user.online_status = is_online
+            db.session.commit()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def broadcast_user_status(user_id, is_online):
+    #Broadcast user status to all connected clients.
+    socketio.emit('user_status_update', {'userId': user_id, 'online': is_online})
+
+@socketio.on('connect')
+def handle_connect():
+    user_id = get_current_user_id()
+    update_user_status(user_id, True)
+    broadcast_user_status(user_id, True)
+    logger.info(f"User {user_id} connected and marked as online")
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    user_id = get_current_user_id()
+    update_user_status(user_id, False)
+    broadcast_user_status(user_id, False)
+    print(f"User {user_id} disconnected and marked as offline.") 
+    
+    """

@@ -1,0 +1,223 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div class="container-fluid" style="background-color: #2e2e2e; color: white; min-height: 100vh; padding: 20px;">
+    <h1 class="h3 mb-4 text-gray-100">Sales Report</h1>
+
+    <!-- Totals Table -->
+    <div class="card shadow mb-4" style="background-color: #3e3e3e;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover text-white">
+                <thead>
+                    <tr class="thead-light">
+                        <th>Total Sales ($)</th>
+                        <th>Quantity Sold</th>
+                        <th>Total Orders</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>${{ total_sales_amount }}</td>
+                        <td>{{ quantity_sold }}</td>
+                        <td>{{ total_orders_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Filter Dropdown -->
+    <div class="form-row align-items-center mb-4">
+        <div class="col-md-4">
+            <form id="filter-form" method="GET" action="/admin/sales/sales_report">
+                <select class="form-control" name="filter" id="date-filter">
+                    <option value="today" {% if filter_param=='today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if filter_param=='yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="week" {% if filter_param=='week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if filter_param=='month' %}selected{% endif %}>This Month</option>
+                </select>
+                <button type="submit" class="btn btn-primary mt-2">Apply Filter</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chart.js Canvas -->
+    <div class="card shadow mb-4" style="background-color: #3e3e3e;">
+        <div class="card-header py-3">
+            <h3 class="m-0 font-weight-bold text-primary">Sales Visualization</h3>
+        </div>
+        <div class="card-body">
+            <canvas id="sales-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Sales Data Table -->
+    <div class="card shadow" style="background-color: #3e3e3e;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered text-white">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Product Name</th>
+                            <th>Price ($)</th>
+                            <th>Quantity</th>
+                            <th>Sale Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if sales_data %}
+                        {% for sale in sales_data %}
+                        <tr>
+                            <td>{{ sale.sale_id }}</td>
+                            <td>{{ sale.item_name }}</td>
+                            <td>${{ sale.price }}</td>
+                            <td>{{ sale.quantity }}</td>
+                            <td>{{ sale.datetime.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No sales data available</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart.js Configuration
+    const data = {
+        labels: ['Total Sales', 'Quantity Sold'],
+        datasets: [
+            {
+                label: 'Total Sales ($)',
+                data: [{{ total_sales_amount | tojson }}, 0],
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            },
+            {
+                label: 'Quantity Sold',
+                data: [0, {{ quantity_sold | tojson }}],
+                backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1,
+            },
+        ],
+    };
+
+    const ctx = document.getElementById('sales-chart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                },
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                },
+                y: {
+                    beginAtZero: true,
+                },
+            },
+        },
+    });
+</script>
+
+<!-- Line Chart for Sales by Date -->
+<div class="card shadow mb-4" style="background-color: #3e3e3e;">
+    <div class="card-header py-3">
+        <h3 class="m-0 font-weight-bold text-primary">Sales by Date</h3>
+    </div>
+    <div class="card-body">
+        <canvas id="sales-line-chart"></canvas>
+    </div>
+</div>
+
+<script>
+    // Line Chart for Sales by Date
+    const lineData = {
+        labels: {{ dates | tojson }},
+        datasets: [
+            {
+                label: 'Sales ($)',
+                data: {{ sales | tojson }},
+                fill: false,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                tension: 0.1,
+            }
+        ]
+    };
+
+    const lineCtx = document.getElementById('sales-line-chart').getContext('2d');
+    const salesLineChart = new Chart(lineCtx, {
+        type: 'line',
+        data: lineData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                },
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Sales ($)'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+
+<style>
+    .table-bordered th, .table-bordered td {
+        border: 1px solid #ffffff !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #484848 !important;
+    }
+
+    .table-responsive {
+        margin-top: 15px;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+
+    .card-header {
+        background-color: #4b4b4b;
+        color: #fff;
+    }
+</style>
+{% endblock %}
