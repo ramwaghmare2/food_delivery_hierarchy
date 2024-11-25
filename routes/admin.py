@@ -1,3 +1,6 @@
+from models import db
+from flask import Blueprint,render_template, flash
+from utils.helpers import handle_error, get_model_counts
 from models import db 
 from flask import Blueprint,render_template, flash
 from utils.services import get_model_counts
@@ -138,60 +141,61 @@ def signup():
 # Route for Login 
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+    try:
+        if request.method == 'POST':
+            data = request.form
+            print("Form Data:", data)  
+            
+            role = data.get('role')
+            email = data.get('email')
+            password = data.get('password')
+            
+            if not email or not password:
+                return jsonify({"error": "Email and password are required"}), 400
+            
+            role_model_map = {
+                "Admin": Admin,
+                "Manager": Manager,
+                "SuperDistributor": SuperDistributor,
+                "Distributor": Distributor,
+                "Kitchen": Kitchen
+            }
+            
+            model = role_model_map.get(role)
+            if not model:
+                return jsonify({"error": "Invalid role"}), 400
+            
+            user = model.query.filter_by(email=email).first()
 
-        data = request.form
-        print("Form Data:", data)  
-        
-        role = data.get('role')
-        email = data.get('email')
-        password = data.get('password')
-        
-        if not email or not password:
-            return jsonify({"error": "Email and password are required"}), 400
-        
-        # Map roles to their respective models
-        role_model_map = {
-            "Admin": Admin,
-            "Manager": Manager,
-            "SuperDistributor": SuperDistributor,
-            "Distributor": Distributor,
-            "Kitchen": Kitchen
-        }
-        
-        # Get the appropriate model for the role
-        model = role_model_map.get(role)
-        if not model:
-            return jsonify({"error": "Invalid role"}), 400
-        
-        # Query the database for the user
-        user = model.query.filter_by(email=email).first()
-        if not user or not check_password_hash(user.password, password):
-            return jsonify({"error": "Invalid email or password"}), 401
+            if not user:
+                return jsonify({"error": f"No {role} found with this email."}), 404
+            
+            if not check_password_hash(user.password, password):
+                return jsonify({"error": f"Incorrect password for {role}."}), 401
+            
+            session['user_id'] = user.id
+            session['role'] = role
+            session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
+            print(user.name)
 
-        # Store user data in the session
-        session['user_id'] = user.id
-        session['role'] = role
-        session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
-        print(user.name)
-
-        # Redirect based on role with URLs
-        dashboard_routes = {
-            "Admin": "admin_bp.admin_dashboard",
-            "Manager": "manager.manager_dashboard",
-            "SuperDistributor": "super_distributor.super_distributor",
-            "Distributor": "distributor.distributor_home",
-            "Kitchen": "kitchen.kitchen_dashboard"
-        }
-        route_name = dashboard_routes.get(role)
+            dashboard_routes = {
+                "Admin": "admin_bp.admin_dashboard",
+                "Manager": "manager.manager_dashboard",
+                "SuperDistributor": "super_distributor.super_distributor",
+                "Distributor": "distributor.distributor_home",
+                "Kitchen": "kitchen.kitchen_dashboard"
+            }
+            route_name = dashboard_routes.get(role)
+            
+            if not route_name:
+                return jsonify({"error": "Dashboard route not defined for this role"}), 500
+            
+            return redirect(url_for(route_name))
         
-        if not route_name:
-            return jsonify({"error": "Dashboard route not defined for this role"}), 500
-        
-        # Redirect to the dashboard using `url_for`
-        return redirect(url_for(route_name))
+        return render_template('admin/login.html')
 
-    return render_template('admin/login.html')
+    except Exception as e:
+        return handle_error(e)
 
 
 """
