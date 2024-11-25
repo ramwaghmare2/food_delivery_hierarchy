@@ -7,7 +7,7 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from extensions import bcrypt
 from werkzeug.utils import secure_filename
 import os
-from utils.services import get_model_counts ,allowed_file
+from utils.services import get_model_counts ,allowed_file ,get_image
 from base64 import b64encode
 
 
@@ -18,14 +18,18 @@ manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager
 def manager_dashboard():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
-    return render_template('manager_index.html', user_name=user_name,role=role)
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id)
+    return render_template('manager_index.html', user_name=user_name,role=role , encoded_image = image_data)
 
 # Route to Add a new manager
 @manager_bp.route('/add', methods=['GET', 'POST'])
 def add_manager():
 
     role = session.get('role')                 # Get the role from  the session
-    user_name = session.get('user_name')        # Get the user_name from  the session
+    user_name = session.get('user_name') 
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id)       
 
     if request.method == 'POST':
         name = request.form['name']     # Get the name from  the form
@@ -60,12 +64,12 @@ def add_manager():
             db.session.add(new_manager)
             db.session.commit()
             flash("Manager added successfully!", "success")
-            return render_template('add_manager.html', role=role)  # Stay on the same page or render
+            return render_template('add_manager.html', role=role ,encoded_image = image_data)  # Stay on the same page or render
         except Exception as e:
             db.session.rollback()
             flash(f"Error adding manager: {str(e)}", "danger")
     
-    return render_template('add_manager.html', role=role,user_name=user_name)
+    return render_template('add_manager.html', role=role,user_name=user_name, encoded_image = image_data)
 
 
 # Route for get all Managers
@@ -73,6 +77,8 @@ def add_manager():
 def get_managers():
     role = session.get('role')
     user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
     counts = get_model_counts()
     try:
         role = role.decode('utf-8') if isinstance(role, bytes) else role
@@ -87,19 +93,20 @@ def get_managers():
             else:
                 manager.image_base64 = None
 
-        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts)
+        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts ,encoded_image=image_data)
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
-        return render_template('managers.html', managers=[], role=role, user_name=user_name)
+        return render_template('managers.html', managers=[], role=role, user_name=user_name,encoded_image=image_data)
 
 
 # Route for edit the manager
 @manager_bp.route('/edit/<int:manager_id>', methods=['GET', 'POST'])
 def edit_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
-
+    user_id = session.get('user_id')
     role = session.get('role')
     user_name = session.get('user_name')
+    image_data = get_image(role, user_id)
 
     if isinstance(role, bytes):
         role = role.decode('utf-8')
@@ -117,13 +124,13 @@ def edit_manager(manager_id):
         existing_manager_email = Manager.query.filter(Manager.email == email, Manager.id != manager.id).first()
         if existing_manager_email:
             flash("The email is already in use by another manager.", "danger")
-            return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name)
+            return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name,encoded_image=image_data)
 
         # Validate if contact already exists (excluding the current manager)
         existing_manager_contact = Manager.query.filter(Manager.contact == contact, Manager.id != manager.id).first()
         if existing_manager_contact:
             flash("The contact number is already in use by another manager.", "danger")
-            return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name)
+            return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name,encoded_image=image_data)
 
         # Update manager details
         manager.name = name
@@ -148,7 +155,7 @@ def edit_manager(manager_id):
             db.session.rollback()
             flash(f"Error updating manager: {str(e)}", "danger")
 
-    return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name)
+    return render_template('edit_manager.html', manager=manager, role=role, user_name=user_name,encoded_image=image_data)
 
 
 # Route for delete the manager

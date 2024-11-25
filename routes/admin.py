@@ -1,28 +1,19 @@
-# from crypt import methods
-from email.policy import default
+from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
+from flask_socketio import SocketIO, emit
+from flask_login import user_logged_in, user_logged_out, current_user
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
-from models import db
-from flask import Blueprint,render_template, flash
+from sqlalchemy.exc import IntegrityError
+from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer
 from models.order import OrderItem
-from utils.helpers import handle_error #get_model_counts
-from models import db 
-from flask import Blueprint,render_template, flash
-from utils.services import get_model_counts
-from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
+from utils.helpers import handle_error 
+from utils.services import allowed_file ,get_model_counts ,get_image
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from sqlalchemy.exc import IntegrityError
-from models import Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer
-from utils.services import allowed_file
 from base64 import b64encode
-from extensions import bcrypt
+from extensions import bcrypt, socketio
 from datetime import datetime, timedelta
 from collections import defaultdict
-from flask_socketio import SocketIO, emit
-from flask import current_app
-from flask_login import user_logged_in, user_logged_out, current_user
-from extensions import socketio
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 
@@ -109,29 +100,24 @@ def admin_dashboard():
     # Check if the user is authenticated
     if current_user.is_authenticated:
         # Query the admin by current_user.id if authenticated
-        admin = Admin.query.get(current_user.id)
-        
-        # Encode the image to Base64 for rendering in HTML
-        encoded_image = None
-        if admin and admin.image:
-            encoded_image = b64encode(admin.image).decode('utf-8')
-    else:
-        # Redirect to login page if the user is not authenticated
-        return redirect(url_for('admin_bp.login'))
+        admin = Admin.query.get(current_user.id)       
+    counts = get_model_counts()
+    image_data= get_image(role, user_id)
+    #encoded_image = image_data.get('encoded_image')
+    admin = Admin.query.get_or_404(user_id)
 
     return render_template('admin/admin_index.html',
-                           manager_count=manager_count,
-                           super_distributor_count=super_distributor_count,
-                           distributor_count=distributor_count,
-                           kitchen_count=kitchen_count,
-                           total_sales_amount=total_sales_amount,
-                           total_orders_count=total_orders_count,
+                            **counts,
+                           admin=admin,
+                           encoded_image=image_data,
                            managers=managers, 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
                            kitchens=kitchens,
                            user_name=user_name,
                            admin_username=current_user.name,
+                           total_sales_amount=total_sales_amount,
+                           total_orders_count=total_orders_count,
                            online_status=admin.online_status if admin else False,
                            role=role)
 
@@ -328,6 +314,8 @@ def edit_admin(admin_id):
     role = session.get('role')
     user_name = session.get('user_name')
 
+    image_data= get_image(role, admin_id)
+
     if isinstance(role, bytes):
         role = role.decode('utf-8')
     if isinstance(user_name, bytes):
@@ -374,6 +362,8 @@ def edit_admin(admin_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating admin: {str(e)}", "danger")
+
+        return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name ,encoded_image=image_data)
 
     return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
 
@@ -479,46 +469,3 @@ def order_list():
     return render_template('admin/order_list.html', orders=orders)
 
 
-
-######################## Updating User Status ############################
-""" from flask_login import current_user, login_required
-import logging
-
-
-socketio = SocketIO()
-
-def get_current_user_id():
-    # Placeholder function to fetch the current user ID from the session or token
-    # Replace with actual logic based on your authentication implementation
-    return current_user.id if current_user.is_authenticated else None
-
-def update_user_status(id, is_online):
-    #Update the user's online status in the database.
-    if id:
-        user = Admin.query.get(id)
-        if user:
-            user.online_status = is_online
-            db.session.commit()
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def broadcast_user_status(user_id, is_online):
-    #Broadcast user status to all connected clients.
-    socketio.emit('user_status_update', {'userId': user_id, 'online': is_online})
-
-@socketio.on('connect')
-def handle_connect():
-    user_id = get_current_user_id()
-    update_user_status(user_id, True)
-    broadcast_user_status(user_id, True)
-    logger.info(f"User {user_id} connected and marked as online")
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    user_id = get_current_user_id()
-    update_user_status(user_id, False)
-    broadcast_user_status(user_id, False)
-    print(f"User {user_id} disconnected and marked as offline.") 
-    
-    """

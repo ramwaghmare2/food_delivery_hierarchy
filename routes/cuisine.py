@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify ,render_template,flash,redirect,url_for,session
 from models import db, Cuisine
+from utils.services import get_image
 
 cuisine_bp = Blueprint('cuisine', __name__ , static_folder='../static')
 
@@ -8,6 +9,8 @@ cuisine_bp = Blueprint('cuisine', __name__ , static_folder='../static')
 def add_cuisine():
     role = session.get('role')
     user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data = get_image(role ,user_id)
     if request.method == 'POST':
         
         # Get the form data
@@ -35,7 +38,7 @@ def add_cuisine():
         return redirect(url_for('cuisine.add_cuisine'))
     cuisines = Cuisine.query.order_by(Cuisine.id).all()
     # Render the template for GET requests
-    return render_template('add_cuisine.html',cuisines=cuisines,role=role, user_name=user_name)
+    return render_template('add_cuisine.html',cuisines=cuisines,role=role, user_name=user_name , encoded_image=image_data)
 
 @cuisine_bp.route('/cuisine/delete/<int:id>', methods=['POST','GET'])
 def delete_cuisine(id):

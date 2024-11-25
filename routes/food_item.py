@@ -67,7 +67,6 @@ def get_food_items_by_kitchen(kitchen_id):
     user_name = session.get('user_name')
     # Query to get food items for the given kitchen_id
     food_items = FoodItem.query.filter_by(kitchen_id=kitchen_id).all()
-    print(food_items)
     # Render the template with the food items
     return render_template('food_item.html', food_items=food_items, kitchen_id=kitchen_id, user_id=user_id,user_name=user_name)
 
@@ -90,13 +89,13 @@ def get_food_item(id):
 def edit_food_item(id):
     # Retrieve the food item by ID
     food_items = FoodItem.query.get_or_404(id)
+    user_id= session.get('user_id')
 
     if request.method == 'POST':
         # Update food item with the form data
         food_items.name = request.form['name']
         food_items.description = request.form['description']
         food_items.price = request.form['price']
-        food_items.cuisine_id = request.form['cuisine_id']
         
         # Commit the changes to the database
         db.session.commit()
@@ -108,7 +107,7 @@ def edit_food_item(id):
         return redirect(url_for('food_item.get_food_items_by_kitchen', kitchen_id=food_items.kitchen_id))
 
     # If it's a GET request, render the edit form with the current data
-    return render_template('edit_food_item.html', food_items=food_items)
+    return render_template('edit_food_item.html', food_items=food_items ,user_id=user_id)
 
 # Delete a FoodItem by ID
 @food_item_bp.route('/food_items/delete/<int:item_id>', methods=['GET'])

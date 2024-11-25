@@ -42,6 +42,13 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
+                            <p class="text-center">
+                                {% if encoded_image %}
+                                <div>
+                            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
+                                </div>
+                                {% endif %}
+                            </p>
                             <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
                             <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('kitchen.kitchen_dashboard')}}">
@@ -70,10 +77,10 @@
                             </a>
                             <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
-                                    <a class="nav-link collapsed" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
+                                    <a class="nav-link collapsed" href="">
                                         All Orders
                                     </a>
-                                    <a class="nav-link collapsed" href="{{ url_for('kitchen.create_kitchen') }}">
+                                    <a class="nav-link collapsed" href="">
                                         Place Order
                                     </a>
                                 </nav>

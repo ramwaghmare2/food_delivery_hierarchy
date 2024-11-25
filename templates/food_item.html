@@ -1,5 +1,17 @@
 {% include 'kitchen/kitchen_header.html' %}
 <div id="layoutSidenav_content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class=" btn" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <main>
 <h1>Food Items from Kitchen {{ user_name }}</h1>
 
@@ -9,10 +21,10 @@
                 <li>
                     <strong>{{ item.item_name }}</strong><br>
                     Description: {{ item.description }}<br>
-                    Price: ${{ item.price }}<br>
+                    Price: ₹{{ item.price }}<br>
                     <hr>
-                    <!-- Edit and Delete Buttons 
-                    <a href="" class="btn btn-warning">Edit</a> -->
+                    <!-- Edit and Delete Buttons  -->
+                    <a href="{{ url_for('food_item.edit_food_item', id=item.id) }}" class="btn btn-warning">Edit</a>
                     <a href="{{ url_for('food_item.delete_food_item', item_id=item.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
 
                 </li>

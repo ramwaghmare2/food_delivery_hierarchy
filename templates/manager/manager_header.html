@@ -45,6 +45,13 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
+                            <p class="text-center">
+                                {% if encoded_image %}
+                                <div>
+                            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
+                                </div>
+                                {% endif %}
+                            </p>
                             <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
                             <div class="sb-sidenav-menu-heading">Core</div>
                                 <a class="nav-link" href="{{ url_for('manager.manager_dashboard')}}">
@@ -105,9 +112,9 @@
                                 <a class="nav-link collapsed" href="{{ url_for('cuisine.add_cuisine') }}">
                                     Add Cuisine
                                 </a>
-                                <a class="nav-link collapsed" href="#">
+                                <!--    <a class="nav-link collapsed" href="#">
                                     List Cuisine
-                                </a>
+                                </a>-->
                             </nav>
                         </div>
 
