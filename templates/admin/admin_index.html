@@ -2,19 +2,7 @@
 
 <div id="layoutSidenav_content">
     <main>
-        <div class="container-fluid px-4 mt-4">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+        <div class="container-fluid px-4">
             <h1 class="mt-4">Admin</h1>
             <ol class="breadcrumb mb-4">
                 <li class="breadcrumb-item active">Dashboard</li>
@@ -75,45 +63,36 @@
                 </div>
             </div>
 
-            <!-- Existing Dashboard Content 
-            <div class="row">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-primary text-white mb-4">
-                        <div class="card-body">Today's Report</div>
+            <!-- Sales and Order Data -->
+            <div class="row mb-4">
+                <!-- Total Sales -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card bg-primary text-white fixed-card mb-4">
+                        <div class="card-body"><b>Total Sales</b></div>
                         <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <h4 class="mb-0">${{ total_sales_amount }}</h4>
+                            <div class="small text-white"><i class="fas fa-dollar-sign"></i></div>
+                            <a class="small text-white stretched-link" href="{{ url_for('sales.sales_report') }}">View Details</a>
                             <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-secondary text-white mb-4">
-                        <div class="card-body">Yesterday's Report</div>
+
+                <!-- Total Orders -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card bg-secondary text-white fixed-card mb-4">
+                        <div class="card-body"><b>Total Orders</b></div>
                         <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <h4 class="mb-0">{{ total_orders_count }}</h4>
+                            <div class="small text-white"><i class="fas fa-box"></i></div>
+                            <a class="small text-white stretched-link" href="{{ url_for('orders.order_list') }}">View Details</a>
                             <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-success text-white mb-4">
-                        <div class="card-body">Current Month's Report</div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card bg-info text-white mb-4">
-                        <div class="card-body">Current Year's Report</div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <a class="small text-white stretched-link" href="#">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div>
-            </div>  -->
+            </div>
+
+            <!-- Existing Dashboard Content (Charts, etc.) -->
             <div class="row">
                 <div class="col-xl-6">
                     <div class="card mb-4">
@@ -138,5 +117,3 @@
     </main>
     {% include 'admin/admin_footer.html' %}
 </div>
-
-

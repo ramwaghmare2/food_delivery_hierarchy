@@ -8,7 +8,7 @@ from models import db
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
-from utils.services import get_model_counts ,allowed_file
+from utils.services import get_model_counts ,allowed_file, get_image
 from base64 import b64encode
 
 
@@ -19,59 +19,17 @@ super_distributor_bp = Blueprint('super_distributor', __name__, template_folder=
 def super_distributor():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
-    return render_template('sd_index.html',user_name=user_name,role=role)
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
+    return render_template('sd_index.html',user_name=user_name,role=role ,encoded_image = image_data)
 
-@super_distributor_bp.route('/all-kitchens', methods=['GET'])
-def all_kitchen():
-    all_kitchens = Kitchen.query.all()
-    role = session.get('role')
-    user_name = session.get('user_name')
-    return render_template('sd_all_kitchens.html', all_kitchens=all_kitchens, role=role, user_name=user_name)
-
-@super_distributor_bp.route('/add-kitchen', methods=['GET', 'POST'])
-def add_kitchen():
-    role = session.get('role')
-    user_name = session.get('user_name')
-    try:
-
-        if request.method == 'POST':
-
-            if Kitchen.query.filter_by(email=request.form.get('email')).first() or Kitchen.query.filter_by(contact=request.form.get('mobile_number')).first():
-                flash('Kitchen with this email or mobile number already exists.')
-                return redirect(url_for('super_distributor.add_kitchen'))
-
-            hashed_password = generate_password_hash(request.form.get('password'))
-
-            new_kitchen = Kitchen(
-                name = request.form.get('name'),
-                email = request.form.get('email'),
-                password = hashed_password,
-                contact = request.form.get('mobile_number'),
-                city = request.form.get('city'),
-                pin_code = request.form.get('pin_code'),
-                state = request.form.get('state'),
-                district = request.form.get('district'),
-                address = request.form.get('address')
-            )
-
-            db.session.add(new_kitchen)
-            db.session.commit()
-
-            return redirect(url_for('super_distributor.super_distributor'), role=role, user_name=user_name)
-
-        return render_template('sd_add_kitchen.html')
-    
-    
-    except Exception as e:
-        flash(f'Error: {e}')
-        return redirect(url_for('super_distributor.add_kitchen'), role=role , user_name=user_name)
-    
 
 @super_distributor_bp.route('/all-super-distributor', methods=['GET'])
 def all_super_distributor():
     role = session.get('role')
     user_name = session.get('user_name')
     user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
     counts = get_model_counts() 
     if role == 'Admin':
         # Admin sees all super distributors
@@ -86,13 +44,15 @@ def all_super_distributor():
             else:
                 distributors.image_base64 = None
     
-    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name, **counts)
+    return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name, **counts ,encoded_image = image_data)
 
 
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
 def add_distributor():
     role = session.get('role')
     user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
     try:
 
         super_distributors = SuperDistributor.query.all() 
@@ -129,7 +89,7 @@ def add_distributor():
             flash('Distributor Added Successfully.')
             return redirect(url_for('super_distributor.add_distributor'))
 
-        return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors, user_name=user_name)
+        return render_template('sd_add_distributor.html', role=role,  super_distributors=super_distributors, user_name=user_name , encoded_image=image_data)
 
     except Exception as e:
         flash(f'Error: {e}')
@@ -137,9 +97,12 @@ def add_distributor():
     
 @super_distributor_bp.route('/add-super-distributor', methods=['GET', 'POST'])
 def add_super_distributor():
+    
+    role = session.get('role')
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
     try:
         
-        role = session.get('role')
         user_name = session.get('user_name')
         
 
@@ -177,7 +140,7 @@ def add_super_distributor():
             flash('Super Distributor Added Successfully.')
             return redirect(url_for('super_distributor.add_super_distributor'))
 
-        return render_template('add_super_distributor.html', role=role,managers=managers, user_name=user_name)
+        return render_template('add_super_distributor.html', role=role,managers=managers, user_name=user_name, encoded_image = image_data)
 
     except Exception as e:
         flash(f'Error: {e}')
@@ -191,6 +154,8 @@ def edit_super_distributor(sd_id):
 
     role = session.get('role')
     user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
 
     if request.method == 'POST':
         name = request.form['name']
@@ -232,42 +197,11 @@ def edit_super_distributor(sd_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Super Distributor: {str(e)}", "danger")
-            return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name)
+            return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name, encoded_image=image_data)
 
-    return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name)
+    return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name, encoded_image = image_data)
 
 
-@super_distributor_bp.route('/login', methods=['GET', 'POST'])
-def sd_login():
-    try:
-
-        if request.method == 'POST':
-
-            login_id = request.form.get('mobile_number') or request.form.get('email')
-            password = request.form.get('password')
-
-            sd = SuperDistributor.query.filter(
-                (SuperDistributor.contact == login_id) | (SuperDistributor.email == login_id)
-            ).first()
-
-            if not sd or not check_password_hash(sd.password, password):
-                flash('Invalid Credentials, Please check Mobile Number, Email or Password.')
-                return redirect(url_for('super_distributor.sd_login'))
-            
-            return redirect(url_for('super_distributor.super_distributor'))
-        
-        return render_template('sd_login.html')
-    
-    except Exception as e:
-        flash(f'Error: {e}')
-        return redirect(url_for('super_distributor.sd_login'))
-    
-
-@super_distributor_bp.route('/forgot-password', methods=['GET', 'POST'])
-def sd_forgot_password():
-    if request.method == 'POST':
-        return redirect(url_for('super_distributor.sd_login'))
-    return render_template('sd_password.html')
 
 
 # Function for delete the super distributor
@@ -285,30 +219,3 @@ def delete_super_distributor(sd_id):
         flash(f"Error deleting manager: {str(e)}", "danger")
 
     return redirect(url_for('super_distributor.all_super_distributor'))
-
-
-
-
-
-@super_distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['POST'])
-def delete_kitchen(kitchen_id):
-    kitchen = Kitchen.query.get_or_404(kitchen_id)
-    db.session.delete(kitchen)
-    db.session.commit()
-    flash('Kitchen deleted successfully!')
-    return redirect(url_for('super_distributor.all_kitchen'))
-
-
-@super_distributor_bp.route('/delete-distributor/<int:distributor_id>', methods=['POST'])
-def delete_distributor(distributor_id):
-    distributor = Distributor.query.get_or_404(distributor_id)
-    db.session.delete(distributor)
-    db.session.commit()
-    flash('Distributor deleted successfully!')
-    return redirect(url_for('super_distributor.all_distributor'))
-
-
-
-@super_distributor_bp.route('/logout', methods=['GET'])
-def sd_logout():
-    return redirect(url_for('super_distributor.sd_login'))

@@ -32,7 +32,8 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <!--   <li><a class="dropdown-item" href="#!">Settings</a></li> -->
+                        <li><a class="dropdown-item" href="#!">Settings</a></li>
+                        <li><a class="dropdown-item" href="#!">Activity Log</a></li>
                         <li><hr class="dropdown-divider" /></li>
                         <li><a class="dropdown-item" href="{{ url_for('admin_bp.logout') }}">Logout</a></li>
                     </ul>
@@ -44,15 +45,6 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
-                            
-                            <p class="text-center">
-                                {% if encoded_image %}
-        <div>
-            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 120px; height: 120px;">
-        </div>
-    {% endif %}
-                            </p>
-                        
                             <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
                             <div class="sb-sidenav-menu-heading">Core</div>
                                 <a class="nav-link" href="{{ url_for('admin_bp.admin_dashboard')}}">
@@ -127,9 +119,9 @@
                                 <a class="nav-link collapsed" href="{{ url_for('cuisine.add_cuisine') }}">
                                     Add Cuisine
                                 </a>
-                            <!--    <a class="nav-link collapsed" href="#">
+                                <a class="nav-link collapsed" href="#">
                                     List Cuisine
-                                </a>-->
+                                </a>
                             </nav>
                         </div>
 

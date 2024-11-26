@@ -4,17 +4,20 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import bcrypt
 import os
-from utils.services import get_model_counts
+from utils.services import get_model_counts , get_image
 
 kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 
 # Route to add a new Kitchen
 @kitchen_bp.route('/kitchens', methods=['GET','POST'])
 def create_kitchen():
+    user_id = session.get('user_id')
+    role = session.get('role')
+    image_data= get_image(role, user_id) 
     user_name = session.get('user_name')
     distributors = Distributor.query.all()
     data = request.form
-    role = session.get('role')
+    
     if request.method == 'POST':
         if role=='Distributor':
             distributor_id = session.get('user_id')
@@ -37,9 +40,9 @@ def create_kitchen():
         db.session.add(new_kitchen)
         db.session.commit()
         flash('Kitchen Added Successfully.')
-        return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name)
+        return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name ,encoded_image = image_data)
         # return jsonify({'message': 'Kitchen created successfully', 'kitchen_id': new_kitchen.id}), 201
-    return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name)
+    return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name ,encoded_image = image_data)
 
 # Route to Get a list of all Kitchens
 @kitchen_bp.route('/all-kitchens', methods=['GET'])
@@ -47,23 +50,10 @@ def get_kitchens():
     role = session.get('role')
     user_name = session.get('user_name')
     kitchens = Kitchen.query.all()
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
     counts = get_model_counts()
-    return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role ,user_name=user_name, **counts)
-
-
-# Get a specific Kitchen by ID
-@kitchen_bp.route('/kitchens/<int:id>', methods=['GET'])
-def get_kitchen(id):
-    kitchen = Kitchen.query.get_or_404(id)
-    kitchen_data = {
-        'id': kitchen.id,
-        'name': kitchen.name,
-        'email': kitchen.email,
-        'contact': kitchen.contact,
-        'location': kitchen.location,
-        # Add other fields as needed
-    }
-    return jsonify(kitchen_data), 200
+    return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role ,user_name=user_name, **counts , encoded_image=image_data)
 
 # Route for edit the super_distributor
 @kitchen_bp.route('/edit/<int:kitchen_id>', methods=['GET', 'POST'])
@@ -72,6 +62,8 @@ def edit_kitchen(kitchen_id):
 
     role = session.get('role')
     user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
 
     if request.method == 'POST':
         name = request.form['name']
@@ -83,13 +75,13 @@ def edit_kitchen(kitchen_id):
         existing_kitchen_email = Kitchen.query.filter(Kitchen.email == email, Kitchen.id != Kitchen.id).first()
         if existing_kitchen_email:
             flash("The email is already in use by another Kitchen.", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user_name)
+            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user_name, encoded_image=image_data)
 
         # Validate if contact already exists (excluding the current kitchen)
         existing_kitchen_contact = Kitchen.query.filter(Kitchen.contact == contact, Kitchen.id != Kitchen.id).first()
         if existing_kitchen_contact:
             flash("The contact number is already in use by another Kitchen.", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name)
+            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name ,encoded_image= image_data)
 
         # Update kitchen details
         kitchen.name = name
@@ -107,9 +99,9 @@ def edit_kitchen(kitchen_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Kitchen: {str(e)}", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user_name)
+            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user_name, encoded_image =image_data)
 
-    return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name)
+    return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name ,encoded_image = image_data)
 
 # Route for delete the kitchen
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])
@@ -125,8 +117,6 @@ def delete_kitchen(kitchen_id):
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")
 
-        
-
     return redirect(url_for('kitchen.get_kitchens'))
 
 # Route for Display Kitchen Dashboard
@@ -135,5 +125,6 @@ def kitchen_dashboard():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
+    image_data= get_image(role, user_id) 
     print(f"User Name: {user_name}, User ID: {user_id}")
-    return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id,role=role)
+    return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id,role=role ,encoded_image= image_data)

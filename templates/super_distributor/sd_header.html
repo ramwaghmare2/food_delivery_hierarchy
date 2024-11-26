@@ -42,6 +42,13 @@
             <div id="layoutSidenav_nav">
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
+                        <p class="text-center">
+                            {% if encoded_image %}
+                            <div>
+                        <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
+                            </div>
+                            {% endif %}
+                        </p>
                         <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
                         <div class="nav">
                             <div class="sb-sidenav-menu-heading">Core</div>
