@@ -79,9 +79,12 @@ def admin_dashboard():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
+    counts = get_model_counts()
+    image_data = get_image(role, user_id)
+    user = Admin.query.get_or_404(user_id)
 
     # Initialize counts and data variables
-    counts = {}
+    count = {}
     admin = None
     admin_username = "Guest"
     online_status = False
@@ -102,7 +105,7 @@ def admin_dashboard():
             db.session.commit()
 
         # Get counts for entities
-        counts = get_model_counts()
+        
         managers = Manager.query.all()
         super_distributors = SuperDistributor.query.all()
         distributors = Distributor.query.all()
@@ -115,10 +118,10 @@ def admin_dashboard():
         total_orders_count = len(total_orders)
 
         # Fetch admin image data
-        image_data = get_image(role, current_user.id)
-    else:
+        #image_data = get_image(role, current_user.id)
+    #else:
         # Fetch image data only if user_id is available
-        image_data = get_image(role, user_id) if user_id else None
+        #image_data = get_image(role, user_id) if user_id else None
 
     # Handle inactive status based on a timeout (e.g., 5 minutes of inactivity)
     if admin and admin.last_active:
@@ -131,7 +134,7 @@ def admin_dashboard():
     return render_template(
         'admin/admin_index.html',
         **counts,
-        admin=admin,
+        user=user,
         encoded_image=image_data,
         managers=managers,
         super_distributors=super_distributors,
@@ -320,28 +323,28 @@ def logout():
     return render_template('admin/login.html')
 
 # Route for profile of the manager
-@admin_bp.route('/admin/<int:admin_id>', methods=['GET'])
-def get_admin_profile(admin_id):
+@admin_bp.route('/admin/<int:user_id>', methods=['GET'])
+def get_user_profile(user_id):
     role = session.get('role')
 
     # Query the admin by id
-    admin = Admin.query.get_or_404(admin_id)
+    user = Admin.query.get_or_404(user_id)
 
     # Encode the image to Base64 for rendering in HTML
     encoded_image = None
-    if admin.image:
-        encoded_image = b64encode(admin.image).decode('utf-8')
+    if user.image:
+        encoded_image = b64encode(user.image).decode('utf-8')
 
-    return render_template('admin/admin_profile.html', admin=admin, role=role, encoded_image=encoded_image)
+    return render_template('admin/admin_profile.html', user=user, user_name=user.name, role=role, encoded_image=encoded_image)
 
-@admin_bp.route('/edit/<int:admin_id>', methods=['GET', 'POST'])
-def edit_admin(admin_id):
-    admin = Admin.query.get_or_404(admin_id)
+@admin_bp.route('/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_admin(user_id):
+    user = Admin.query.get_or_404(user_id)
 
     role = session.get('role')
     user_name = session.get('user_name')
 
-    image_data= get_image(role, admin_id)
+    image_data= get_image(role, user_id)
 
     if isinstance(role, bytes):
         role = role.decode('utf-8')
@@ -356,43 +359,43 @@ def edit_admin(admin_id):
         image = request.files.get('image')  # Get the image from the form if provided
 
         # Validate if email already exists (excluding the current manager)
-        existing_admin_email = Admin.query.filter(Admin.email == email, admin.id != admin.id).first()
+        existing_admin_email = Admin.query.filter(Admin.email == email, user.id != user.id).first()
         if existing_admin_email:
             flash("The email is already in use by another admin.", "danger")
             return render_template('admin/edit_admin.html',admin=admin, role=role, user_name=user_name)
 
         # Validate if contact already exists (excluding the current manager)
-        existing_admin_contact = Admin.query.filter(Admin.contact == contact, Admin.id != admin.id).first()
+        existing_admin_contact = Admin.query.filter(Admin.contact == contact, user.id != user.id).first()
         if existing_admin_contact:
             flash("The contact number is already in use by another admin.", "danger")
             return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
 
         # Update manager details
-        admin.name = name
-        admin.email = email
-        admin.contact = contact
+        user.name = name
+        user.email = email
+        user.contact = contact
 
         # If password is provided, hash and update it
         if password:
-            admin.password = bcrypt.generate_password_hash(password).decode('utf-8')
+            user.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
         # Handle image update if a new image is uploaded
         if image and allowed_file(image.filename):
             # Convert the image to binary data
             image_binary = image.read()
-            admin.image = image_binary
+            user.image = image_binary
 
         try:
             db.session.commit()
             flash("Admin updated successfully!", "success")
-            return redirect(url_for('admin_bp.admin_dashboard'))
+            return redirect(url_for('admin_bp.get_user_profile',user_id=user_id,user_name=user_name))
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating admin: {str(e)}", "danger")
 
-        return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name ,encoded_image=image_data)
+        return render_template('admin/edit_admin.html', user=user, role=role, user_name=user_name ,encoded_image=image_data)
 
-    return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
+    return render_template('admin/edit_admin.html', user=user, role=role, user_name=user_name ,encoded_image=image_data)
 
 
 ############ Sales Data Visualization ################
