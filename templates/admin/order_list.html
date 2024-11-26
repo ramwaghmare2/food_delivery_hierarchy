@@ -1,0 +1,139 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Order List</h1>
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('orders.order_list') }}" id="searchForm">
+        <div class="form-row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" name="search" placeholder="Search by order ID or customer name" value="{{ request.args.get('search', '') }}" id="searchInput">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary" id="searchBtn">Search</button>
+            </div>
+        </div>
+    </form>
+    <br>
+
+    <!-- Orders Table -->
+    <table class="table table-striped table-bordered" id="ordersTable">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Total Price</th>
+                <th>Order Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr class="orderRow">
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.customer.name }}</td>
+                    <td>
+                        {% for product in order.products %}
+                            {{ product.name }}<br>
+                        {% endfor %}
+                    </td>
+                    <td>{{ order.quantity }}</td>
+                    <td>{{ order.order_status }}</td>
+                    <td>${{ order.total_price }}</td>
+                    <td>{{ order.created_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination (if needed) -->
+    <div class="pagination">
+        {% if orders.has_prev %}
+            <a href="{{ url_for('orders.order_list', page=orders.prev_num, search=request.args.get('search')) }}" class="btn btn-link">Previous</a>
+        {% endif %}
+        {% if orders.has_next %}
+            <a href="{{ url_for('orders.order_list', page=orders.next_num, search=request.args.get('search')) }}" class="btn btn-link">Next</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript for Search functionality -->
+<script>
+    document.getElementById("searchBtn").addEventListener("click", function(event) {
+        event.preventDefault(); // Prevents the form from submitting normally
+        var searchQuery = document.getElementById("searchInput").value;
+
+        // Filter rows based on search query
+        var rows = document.querySelectorAll("#ordersTable tbody tr");
+        rows.forEach(function(row) {
+            var orderId = row.cells[0].textContent.toLowerCase();
+            var customerName = row.cells[1].textContent.toLowerCase();
+
+            if (orderId.includes(searchQuery.toLowerCase()) || customerName.includes(searchQuery.toLowerCase())) {
+                row.style.display = ""; // Show row
+            } else {
+                row.style.display = "none"; // Hide row
+            }
+        });
+    });
+</script>
+
+<!-- Optional: Responsive Design CSS -->
+<style>
+    /* Basic table styling */
+    table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+    }
+    
+    th, td {
+        padding: 12px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Pagination styling */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .pagination a {
+        padding: 10px;
+        margin: 0 5px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+
+    .pagination a:hover {
+        background-color: #0056b3;
+    }
+
+    /* Make the table responsive */
+    @media (max-width: 768px) {
+        table {
+            font-size: 12px;
+        }
+
+        .pagination a {
+            padding: 8px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+{% endblock %}

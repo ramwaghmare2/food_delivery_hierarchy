@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
 from flask_socketio import SocketIO, emit
-from flask_login import user_logged_in, user_logged_out, current_user
+# from flask_login import user_logged_in, user_logged_out, current_user
+# from flask_security.signals import user_logged_in, user_logged_out
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
@@ -74,54 +75,79 @@ from flask import render_template, session
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_dashboard():
-    from models import Manager, SuperDistributor, Distributor, Kitchen  # Delayed imports
+    # Fetch session data
     user_name = session.get('user_name', 'User')
     role = session.get('role')
-
-    # Get counts for managers, distributors, etc.
-    manager_count = Manager.query.count()
-    super_distributor_count = SuperDistributor.query.count()
-    distributor_count = Distributor.query.count()
-    kitchen_count = Kitchen.query.count()
-
-    # Query sales and orders
-    total_sales = Sales.query.all()  # Assuming you have a Sale model to track sales
-    total_orders = Order.query.all()
-
-    total_sales_amount = sum([sale.price for sale in total_sales])  # Adjust field as necessary
-    total_orders_count = len(total_orders)
-
     user_id = session.get('user_id')
-    managers = Manager.query.all()
-    super_distributors = SuperDistributor.query.all()
-    distributors = Distributor.query.all()
-    kitchens = Kitchen.query.all()
 
-    # Check if the user is authenticated
+    # Initialize counts and data variables
+    counts = {}
+    admin = None
+    admin_username = "Guest"
+    online_status = False
+    managers, super_distributors, distributors, kitchens = [], [], [], []
+    total_sales_amount = 0
+    total_orders_count = 0
+
     if current_user.is_authenticated:
-        # Query the admin by current_user.id if authenticated
-        admin = Admin.query.get(current_user.id)       
-    counts = get_model_counts()
-    image_data= get_image(role, user_id)
-    #encoded_image = image_data.get('encoded_image')
-    admin = Admin.query.get_or_404(user_id)
+        # Fetch authenticated user's admin data
+        admin = Admin.query.get(current_user.id)
+        admin_username = current_user.user_name if admin else "Admin"
+        online_status = admin.online_status if admin else False
 
-    return render_template('admin/admin_index.html',
-                            **counts,
-                           admin=admin,
-                           encoded_image=image_data,
-                           managers=managers, 
-                           super_distributors=super_distributors, 
-                           distributors=distributors, 
-                           kitchens=kitchens,
-                           user_name=user_name,
-                           admin_username=current_user.name,
-                           total_sales_amount=total_sales_amount,
-                           total_orders_count=total_orders_count,
-                           online_status=admin.online_status if admin else False,
-                           role=role)
+        # Update the online status of the current admin
+        if admin:
+            admin.online_status = True  # Mark as online
+            admin.last_active = datetime.utcnow()  # Update last active timestamp
+            db.session.commit()
 
-@socketio.on('custom_event')
+        # Get counts for entities
+        counts = get_model_counts()
+        managers = Manager.query.all()
+        super_distributors = SuperDistributor.query.all()
+        distributors = Distributor.query.all()
+        kitchens = Kitchen.query.all()
+
+        # Query sales and orders data
+        total_sales = Sales.query.all()
+        total_orders = Order.query.all()
+        total_sales_amount = sum(sale.price for sale in total_sales)
+        total_orders_count = len(total_orders)
+
+        # Fetch admin image data
+        image_data = get_image(role, current_user.id)
+    else:
+        # Fetch image data only if user_id is available
+        image_data = get_image(role, user_id) if user_id else None
+
+    # Handle inactive status based on a timeout (e.g., 5 minutes of inactivity)
+    if admin and admin.last_active:
+        now = datetime.utcnow()
+        if now - admin.last_active > timedelta(minutes=5):
+            admin.online_status = False  # Mark as offline after timeout
+            db.session.commit()
+
+    # Render the admin dashboard template
+    return render_template(
+        'admin/admin_index.html',
+        **counts,
+        admin=admin,
+        encoded_image=image_data,
+        managers=managers,
+        super_distributors=super_distributors,
+        distributors=distributors,
+        kitchens=kitchens,
+        user_name=user_name,
+        admin_username=admin_username,
+        total_sales_amount=total_sales_amount,
+        total_orders_count=total_orders_count,
+        online_status=online_status,
+        role=role,
+    )
+
+
+
+"""@socketio.on('custom_event')
 def handle_custom_event(data):
     print(f"Received data: {data}")
     emit('response_event', {'message': 'Success'})
@@ -138,7 +164,8 @@ def register_signals(app):
         if isinstance(user, Admin):
             user.online_status = False
             db.session.commit()
-
+"""
+            
 VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 
 @admin_bp.route('/add_user/<role>', methods=['GET', 'POST'])
@@ -235,7 +262,7 @@ def login():
             
             return redirect(url_for(route_name))
         
-        return render_template('admin/admin.html')
+        return render_template('admin/login.html')
 
     except Exception as e:
         return handle_error(e)

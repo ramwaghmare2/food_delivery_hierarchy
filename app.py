@@ -8,8 +8,8 @@ import os
 from extensions import bcrypt, socketio
 #from flask_socketio import SocketIO
 from routes.admin import socketio
-from routes.admin import register_signals
-from extensions import socketio
+# from routes.admin import register_signals
+# from extensions import socketio
 from flask_login import LoginManager, login_manager
 from models import Admin
 
@@ -35,13 +35,13 @@ def create_app():
 
     # Initialize Flask-Migrate
     migrate = Migrate(app, db)
-    socketio.init_app(app)
+    #socketio.init_app(app)
 
     app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'static/images')
     app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
     from routes import create_app_routes
-    register_signals(app)
+    # register_signals(app)
 
     # Register all blueprints through create_app_routes
     create_app_routes(app)  # This will register admin_bp and other blueprints
@@ -50,4 +50,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    socketio.run(app, debug=True)
+    app.run(debug=True)
