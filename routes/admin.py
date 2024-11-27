@@ -362,13 +362,13 @@ def edit_admin(user_id):
         existing_admin_email = Admin.query.filter(Admin.email == email, user.id != user.id).first()
         if existing_admin_email:
             flash("The email is already in use by another admin.", "danger")
-            return render_template('admin/edit_admin.html',admin=admin, role=role, user_name=user_name)
+            return render_template('admin/edit_admin.html',user=user, role=role, user_name=user_name)
 
         # Validate if contact already exists (excluding the current manager)
         existing_admin_contact = Admin.query.filter(Admin.contact == contact, user.id != user.id).first()
         if existing_admin_contact:
             flash("The contact number is already in use by another admin.", "danger")
-            return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
+            return render_template('admin/edit_admin.html', user=user, role=role, user_name=user_name)
 
         # Update manager details
         user.name = name

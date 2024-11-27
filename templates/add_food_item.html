@@ -12,7 +12,7 @@
     <main>
         <div class="sd-container" >
             <h2 class="sd-form">Add Food Item</h2>
-            <form action="{{ url_for('food_item.add_food_item') }}" method="post" class="sd-form">
+            <form action="{{ url_for('food_item.add_food_item') }}" method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="item_name" type="text" placeholder="Item Name*" required>
                 </div>
@@ -31,6 +31,10 @@
                             <option value="{{ cuisine.id }}">{{ cuisine.name }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="sd-row">
+                    <label for="image">Food Image</label>
+                    <input type="file" class="form-control-file" id="image" name="image">
                 </div>
                 <br>
                 <div class="sd-buttons">

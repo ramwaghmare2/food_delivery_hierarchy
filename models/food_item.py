@@ -17,6 +17,8 @@ class FoodItem(db.Model):
     image = db.Column(LONGBLOB, nullable=True)
 
     # Relationships
+    order_item = db.relationship('OrderItem', backref='food_items')
+    kitchen = db.relationship('Kitchen', back_populates='food_items')
     orders = db.relationship('Order', secondary='order_items', back_populates='food_items')  # Many-to-Many via OrderItem
     order_items = db.relationship('OrderItem', back_populates='food_item')  # Bidirectional link with OrderItem
 
