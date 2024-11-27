@@ -1,11 +1,24 @@
-from flask import Blueprint, jsonify, request, render_template, redirect ,flash ,url_for
+from flask import Blueprint, jsonify, request, render_template, redirect ,flash ,url_for, session
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
-from models import Customer, db
+from models import Customer, db, FoodItem
 from utils.helpers import format_response, handle_error
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
+from utils.services import get_image
+from base64 import b64encode
 
-customer_bp = Blueprint('customer', __name__,template_folder='../templates/customer')
+customer_bp = Blueprint('customer', __name__,template_folder='../templates/customer', static_folder='../templates/customer/static')
+
+
+@customer_bp.route('/', methods=['GET'])
+def customer_dashboard():
+
+    food_items = FoodItem.query.all()
+    for item in food_items:
+        if item.image:
+            item.image = b64encode(item.image).decode('utf-8')
+            item.image = f"data:image/jpeg;base64,{item.image}"
+    return render_template('index.html', food_items=food_items)
 
 @customer_bp.route('/register', methods=['GET', 'POST'])
 def register_user():
@@ -54,10 +67,12 @@ def login_user():
             return render_template('login.html')
 
         #access_token = create_access_token(identity=user.id)
+        session['user_id'] = user.id
         flash("You have logged in successfully.", "success")
-        return render_template('profile.html',user=user)
+        return redirect(url_for('customer.customer_dashboard'))
     except Exception as e:
         return handle_error(e)
+        
 
 @customer_bp.route('/profile', methods=['GET'])
 #@jwt_required()
@@ -75,7 +90,9 @@ def profile():
 
 @customer_bp.route('/logout', methods=['GET'])
 def logout_user():
-    return render_template('customer/logout.html')
+    session.pop('user_id', None)
+    flash('Logout Successful')
+    return render_template('login.html')
 
 @customer_bp.route('/delete', methods=['GET', 'POST'])
 @jwt_required()

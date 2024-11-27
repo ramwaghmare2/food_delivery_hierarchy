@@ -13,6 +13,7 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     # Relationships
+    
     customer = db.relationship('Customer', backref='orders')
     order_items = db.relationship('OrderItem', back_populates='order')  # Bidirectional link with OrderItem
     food_items = db.relationship('FoodItem', secondary='order_items', back_populates='orders')  # Many-to-Many via OrderItem
@@ -30,6 +31,7 @@ class OrderItem(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
 
     # Relationships
+    
     order = db.relationship('Order', back_populates='order_items')  # Bidirectional link with Order
     food_item = db.relationship('FoodItem', back_populates='order_items')  # Bidirectional link with FoodItem
 

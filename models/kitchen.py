@@ -23,6 +23,10 @@ class Kitchen(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
 
+    food_items = db.relationship('FoodItem', back_populates='kitchen')
+    # order = db.relationship('Order', back_populates='kitchen')
+
+
     # Method to hash password
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
