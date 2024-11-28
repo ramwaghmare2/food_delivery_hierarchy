@@ -11,8 +11,7 @@ from models import Customer, FoodItem, Order
 
 order_bp = Blueprint('order', __name__)
 
-# Method to place new order
-
+################################## Method to place new order ##################################
 @order_bp.route('/', methods=['POST'])
 @jwt_required()
 def place_order():
@@ -100,7 +99,7 @@ def place_order():
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-# Method to get Order Details by order_id.
+################################## Method to get Order Details by order_id. ##################################
 @order_bp.route('/<int:order_id>', methods=['GET'])
 @jwt_required()
 def get_order(order_id):
@@ -129,7 +128,7 @@ def get_order(order_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Method to get Order Details by user_id.
+################################## Method to get Order Details by user_id. ##################################
 @order_bp.route('/user/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_orders_by_user_id(user_id):
@@ -156,7 +155,7 @@ def get_orders_by_user_id(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Method to get orders of login user
+################################## Method to get orders of login user ##################################
 @order_bp.route('/my-orders', methods=['GET'])
 @jwt_required()
 def get_orders_login_user():
@@ -195,7 +194,7 @@ def get_orders_login_user():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Method to Delete the Order along with Order items
+################################## Method to Delete the Order along with Order items ##################################
 @order_bp.route('/delete/<int:order_id>', methods=['DELETE'])
 @jwt_required()
 def delete_order(order_id):
@@ -222,7 +221,7 @@ def delete_order(order_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 400  
 
-
+################################## Route for Order Cart ##################################
 @order_bp.route('/cart', methods=['POST'])
 @jwt_required()
 def order_cart():

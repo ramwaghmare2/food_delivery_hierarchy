@@ -1,9 +1,8 @@
-from flask import Blueprint, jsonify, request, render_template, redirect ,flash ,url_for
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask import Blueprint, request, render_template, redirect ,flash
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Customer, db
-from utils.helpers import format_response, handle_error
+from utils.helpers import handle_error
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
 
 customer_bp = Blueprint('customer', __name__,template_folder='../templates/customer')
 

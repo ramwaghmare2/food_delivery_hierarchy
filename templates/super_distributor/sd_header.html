@@ -10,6 +10,16 @@
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
         <link href="static/css/styles.css" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <style>
+            /* Style for the green dot */
+            .green-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: green;
+                display: inline-block;
+            }
+        </style>
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
@@ -42,15 +52,13 @@
             <div id="layoutSidenav_nav">
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
-                        <p class="text-center">
-                            {% if encoded_image %}
-                            <div>
-                        <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
-                            </div>
-                            {% endif %}
-                        </p>
-                        <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
                         <div class="nav">
+                            <p class="text-center">
+                                <b>Welcome !<br> {{ user_name }}</b><br>
+                                {% if role == 'Super Distributor' %}
+                                    <span class="green-dot"></span>
+                                {% endif %}
+                            </p> 
                             <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('super_distributor.super_distributor')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>

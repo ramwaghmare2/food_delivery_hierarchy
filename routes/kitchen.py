@@ -1,14 +1,12 @@
-from flask import Blueprint, request, jsonify, session, redirect, render_template, flash, current_app, url_for
+from flask import Blueprint, request, session, redirect, render_template, flash, url_for
 from models import db, Kitchen, Distributor
-from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
 import bcrypt
-import os
 from utils.services import get_model_counts , get_image
 
 kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 
-# Route to add a new Kitchen
+################################## Route to add a new Kitchen ##################################
 @kitchen_bp.route('/kitchens', methods=['GET','POST'])
 def create_kitchen():
     user_id = session.get('user_id')
@@ -44,7 +42,7 @@ def create_kitchen():
         # return jsonify({'message': 'Kitchen created successfully', 'kitchen_id': new_kitchen.id}), 201
     return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name ,encoded_image = image_data)
 
-# Route to Get a list of all Kitchens
+################################## Route to Get a list of all Kitchens ##################################
 @kitchen_bp.route('/all-kitchens', methods=['GET'])
 def get_kitchens():
     role = session.get('role')
@@ -55,7 +53,7 @@ def get_kitchens():
     counts = get_model_counts()
     return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role ,user_name=user_name, **counts , encoded_image=image_data)
 
-# Route for edit the super_distributor
+################################## Route for edit the super_distributor ##################################
 @kitchen_bp.route('/edit/<int:kitchen_id>', methods=['GET', 'POST'])
 def edit_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
@@ -103,7 +101,7 @@ def edit_kitchen(kitchen_id):
 
     return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user_name ,encoded_image = image_data)
 
-# Route for delete the kitchen
+################################## Route for delete the kitchen ##################################
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
@@ -119,7 +117,7 @@ def delete_kitchen(kitchen_id):
 
     return redirect(url_for('kitchen.get_kitchens'))
 
-# Route for Display Kitchen Dashboard
+################################## Route for Display Kitchen Dashboard ##################################
 @kitchen_bp.route("/kitchen_dashboard", methods=['GET', 'POST'])
 def kitchen_dashboard():
     user_name = session.get('user_name', 'User')

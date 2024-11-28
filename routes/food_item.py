@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify, render_template ,flash ,redirect,url_for,session
-from models import db, FoodItem ,Cuisine
+from models import db, FoodItem, Cuisine
 
 food_item_bp = Blueprint('food_item', __name__)
 
-
+################################## Route for Add Food Item ##################################
 @food_item_bp.route('/add_food_item', methods=['GET', 'POST'])
 def add_food_item():
     user_id = session.get('user_id')
@@ -33,7 +33,7 @@ def add_food_item():
 
 
 
-# Create a new FoodItem
+################################## Create a New FoodItem ##################################
 @food_item_bp.route('/food_items', methods=['POST'])
 def create_food_item():
     data = request.json
@@ -47,20 +47,6 @@ def create_food_item():
     db.session.commit()
     return jsonify({'message': 'Food item created successfully', 'food_item_id': new_food_item.id}), 201
 
-# Get all FoodItems
-"""@food_item_bp.route('/food_items', methods=['GET'])
-def get_food_items():
-    food_items = FoodItem.query.all()
-    food_item_list = [
-        {
-            'name': item.item_name,
-            'description': item.description,
-            'price': item.price,
-            'kitchen_id': item.kitchen_id
-        } for item in food_items
-    ]
-    return jsonify(food_item_list), 200"""
-
 @food_item_bp.route('/food_items/<int:kitchen_id>', methods=['GET'])
 def get_food_items_by_kitchen(kitchen_id):
     user_id=session.get('user_id')
@@ -70,21 +56,7 @@ def get_food_items_by_kitchen(kitchen_id):
     # Render the template with the food items
     return render_template('food_item.html', food_items=food_items, kitchen_id=kitchen_id, user_id=user_id,user_name=user_name)
 
-
-# Get a specific FoodItem by ID
-"""@food_item_bp.route('/food_items/<int:id>', methods=['GET'])
-def get_food_item(id):
-    food_item = FoodItem.query.get_or_404(id)
-    food_item_data = {
-        'id': food_item.id,
-        'name': food_item.name,
-        'description': food_item.description,
-        'price': food_item.price,
-        'cuisine_id': food_item.cuisine_id
-    }
-    return jsonify(food_item_data), 200"""
-
-# Update a FoodItem by ID
+################################## Update a FoodItem by ID ##################################
 @food_item_bp.route('/food_items/edit/<int:id>', methods=['GET', 'POST'])
 def edit_food_item(id):
     # Retrieve the food item by ID
@@ -109,7 +81,7 @@ def edit_food_item(id):
     # If it's a GET request, render the edit form with the current data
     return render_template('edit_food_item.html', food_items=food_items ,user_id=user_id)
 
-# Delete a FoodItem by ID
+################################## Delete a FoodItem by ID ##################################
 @food_item_bp.route('/food_items/delete/<int:item_id>', methods=['GET'])
 def delete_food_item(item_id):
     item = FoodItem.query.get_or_404(item_id)

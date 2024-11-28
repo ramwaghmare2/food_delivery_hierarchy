@@ -71,7 +71,7 @@ def add_manager():
     
     return render_template('add_manager.html', role=role,user_name=user_name, encoded_image = image_data)
 
-
+"""
 # Route for get all Managers
 @manager_bp.route('/managers', methods=['GET'])
 def get_managers():
@@ -98,6 +98,91 @@ def get_managers():
         flash(f"Error retrieving managers: {str(e)}", "danger")
         return render_template('managers.html', managers=[], role=role, user_name=user_name,encoded_image=image_data)
 
+"""
+
+"""
+@manager_bp.route('/managers', methods=['GET'])
+def get_managers():
+    role = session.get('role')
+    user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data = get_image(role, user_id)
+    counts = get_model_counts()
+
+    try:
+        role = role.decode('utf-8') if isinstance(role, bytes) else role
+        user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
+
+        managers = Manager.query.all()
+        active_managers = [manager for manager in managers if manager.status == 'activated']
+
+        # Convert images to Base64 format
+        for manager in managers:
+            if manager.image:
+                manager.image_base64 = f"data:image/jpeg;base64,{b64encode(manager.image).decode('utf-8')}"
+            else:
+                manager.image_base64 = None
+
+        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts, encoded_image=image_data)
+    except Exception as e:
+        flash(f"Error retrieving managers: {str(e)}", "danger")
+        # return render_template('managers.html', managers=[], role=role, user_name=user_name, encoded_image=image_data)
+        return render_template('managers.html', managers=active_managers, manager_count=len(active_managers), role=role, user_name=user_name, **counts, encoded_image=image_data)
+
+
+"""
+@manager_bp.route('/managers', methods=['GET'])
+def get_managers():
+    role = session.get('role')
+    user_name = session.get('user_name')
+    user_id = session.get('user_id')
+    image_data = get_image(role, user_id)  # Fetch user image
+    counts = get_model_counts()  # Fetch model counts (e.g., for dashboard stats)
+
+    # Get filter status from request parameters
+    filter_status = request.args.get('status', 'all').lower()
+
+    try:
+        # Decode role and user_name if they are bytes
+        role = role.decode('utf-8') if isinstance(role, bytes) else role
+        user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
+
+        # Fetch managers based on filter
+        if filter_status == 'activated':
+            managers = Manager.query.filter_by(status='activated').all()
+        elif filter_status == 'deactivated':
+            managers = Manager.query.filter_by(status='deactivated').all()
+        else:  # 'all' or no filter
+            managers = Manager.query.all()
+
+        # Convert images to Base64 format for rendering
+        for manager in managers:
+            if manager.image:
+                manager.image_base64 = f"data:image/jpeg;base64,{b64encode(manager.image).decode('utf-8')}"
+            else:
+                manager.image_base64 = None
+
+        # Render the template with filtered managers
+        return render_template(
+            'managers.html',
+            managers=managers,
+            role=role,
+            user_name=user_name,
+            filter=filter_status,  # Pass the filter to the template
+            **counts,
+            encoded_image=image_data
+        )
+    except Exception as e:
+        flash(f"Error retrieving managers: {str(e)}", "danger")
+        return render_template(
+            'managers.html',
+            managers=[],
+            role=role,
+            user_name=user_name,
+            filter=filter_status,
+            **counts,
+            encoded_image=image_data
+        )
 
 # Route for edit the manager
 @manager_bp.route('/edit/<int:manager_id>', methods=['GET', 'POST'])

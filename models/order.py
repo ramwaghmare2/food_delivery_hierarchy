@@ -13,6 +13,7 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     # Relationships
+    
     customer = db.relationship('Customer', backref='orders')
     order_items = db.relationship('OrderItem', back_populates='order')  # Bidirectional link with OrderItem
     food_items = db.relationship('FoodItem', secondary='order_items', back_populates='orders')  # Many-to-Many via OrderItem

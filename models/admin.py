@@ -1,5 +1,3 @@
-from email.policy import default
-from sqlalchemy import BOOLEAN
 from . import db
 from datetime import datetime
 from sqlalchemy.dialects.mysql import LONGBLOB

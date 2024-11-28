@@ -17,6 +17,8 @@ class Manager(db.Model):
     #image = db.Column(db.String(255), nullable=True)  
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
+    online_status = db.Column(db.Boolean, nullable=True, default=False)
+
     # Method to hash password
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')

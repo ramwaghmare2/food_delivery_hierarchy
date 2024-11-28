@@ -1,6 +1,5 @@
 from . import db
 from datetime import datetime
-from .food_item import FoodItem
 from sqlalchemy.dialects.mysql import LONGBLOB
 
 # Cuisine model
