@@ -47,7 +47,13 @@
                                     <div class="manager-image bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
                                 {% endif %}
                             </div> -->
-
+                            <div class="status-dot mt-2">
+                                {% if kitchen.online_status %}
+                                    <span class="green-dot"></span> Online
+                                {% else %}
+                                    <span class="red-dot"></span> Offline
+                                {% endif %}
+                            </div>
                             <!-- Manager Info -->
                             <div class="manager-info mt-3">
                                 <h5 class="card-title">{{ kitchen.name }}</h5>
@@ -66,6 +72,23 @@
             {% endif %}
             {% endfor %}
         </div>
+        <style>
+            .green-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: green;
+                display: inline-block;
+            }
+        
+            .red-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: red;
+                display: inline-block;
+            }
+        </style>
     </main>
 
 {% include 'admin/admin_footer.html' %}

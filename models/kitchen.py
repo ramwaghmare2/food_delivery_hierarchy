@@ -1,5 +1,4 @@
 from . import db
-from datetime import datetime
 from extensions import bcrypt
 from sqlalchemy.dialects.mysql import LONGBLOB
 
@@ -22,6 +21,7 @@ class Kitchen(db.Model):
     address = db.Column(db.String(255), nullable=True)
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
+    online_status = db.Column(db.Boolean, nullable=True, default=False)
 
     food_items = db.relationship('FoodItem', backref='kitchen', lazy=True)
 
@@ -37,5 +37,4 @@ class Kitchen(db.Model):
 
     def __repr__(self):
         return f'<kitchens {self.name}>'
-    
     

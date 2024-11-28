@@ -4,7 +4,7 @@ from utils.services import get_image
 
 cuisine_bp = Blueprint('cuisine', __name__ , static_folder='../static')
 
-
+################################## Route for Add Cuisine's ##################################
 @cuisine_bp.route('/cuisine', methods=['GET', 'POST'])
 def add_cuisine():
     role = session.get('role')
@@ -40,6 +40,7 @@ def add_cuisine():
     # Render the template for GET requests
     return render_template('add_cuisine.html',cuisines=cuisines,role=role, user_name=user_name , encoded_image=image_data)
 
+################################## Route for Delete Cuisine ##################################
 @cuisine_bp.route('/cuisine/delete/<int:id>', methods=['POST','GET'])
 def delete_cuisine(id):
     cuisine = Cuisine.query.get_or_404(id)
@@ -52,21 +53,21 @@ def delete_cuisine(id):
         flash(f'An error occurred: {str(e)}', 'error')
     return redirect(url_for('cuisine.add_cuisine'))
 
-# Get all Cuisines
+################################## Get all Cuisines ##################################
 @cuisine_bp.route('/cuisines', methods=['GET'])
 def get_cuisines():
     cuisines = Cuisine.query.all()
     cuisine_list = [{'id': cuisine.id, 'name': cuisine.name, 'description': cuisine.description} for cuisine in cuisines]
     return jsonify(cuisine_list), 200
 
-# Get a specific Cuisine by ID
+################################## Get a specific Cuisine by ID ##################################
 @cuisine_bp.route('/cuisines/<int:id>', methods=['GET'])
 def get_cuisine(id):
     cuisine = Cuisine.query.get_or_404(id)
     cuisine_data = {'id': cuisine.id, 'name': cuisine.name, 'description': cuisine.description}
     return jsonify(cuisine_data), 200
 
-# Update a Cuisine by ID
+################################## Update a Cuisine by ID ##################################
 @cuisine_bp.route('/cuisines/<int:id>', methods=['PUT'])
 def update_cuisine(id):
     data = request.json
@@ -75,11 +76,3 @@ def update_cuisine(id):
     cuisine.description = data.get('description', cuisine.description)
     db.session.commit()
     return jsonify({'message': 'Cuisine updated successfully'}), 200
-
-""" Delete a Cuisine by ID
-@cuisine_bp.route('/cuisines/<int:id>', methods=['DELETE'])
-def delete_cuisine(id):
-    cuisine = Cuisine.query.get_or_404(id)
-    db.session.delete(cuisine)
-    db.session.commit()
-    return jsonify({'message': 'Cuisine deleted successfully'}), 200"""

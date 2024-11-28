@@ -10,6 +10,16 @@
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <style>
+            /* Style for the green dot */
+            .green-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: green;
+                display: inline-block;
+            }
+        </style>
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
@@ -48,8 +58,13 @@
                             <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
                                 </div>
                                 {% endif %}
-                            </p>
-                            <p class="text-center"><b>Welcome !<br> {{ user_name }}</b></p>
+                                <p class="text-center">
+                                    <b>Welcome !<br> {{ user_name }}</b><br>
+                                    {% if role == 'Distributor' %}
+                                        <span class="green-dot"></span>
+                                    {% endif %}
+                                </p> 
+                            <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('distributor.distributor_home')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Dashboard

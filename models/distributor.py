@@ -16,6 +16,7 @@ class Distributor(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image = db.Column(LONGBLOB,nullable=True)
+    online_status = db.Column(db.Boolean, nullable=True, default=False)
 
     def __repr__(self):
         return f'<Distributor {self.name}>'

@@ -1,29 +1,26 @@
-from flask import Blueprint, render_template, request, url_for, redirect, flash, session, current_app
+from flask import Blueprint, render_template, request, url_for, redirect, flash, session
 from models.distributor import Distributor
-from models.kitchen import Kitchen
 from models.super_distributor import SuperDistributor
 from models.manager import Manager
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 from models import db
-from werkzeug.utils import secure_filename
 import bcrypt
-import os
 from utils.services import get_model_counts ,allowed_file, get_image
 from base64 import b64encode
 
 
 super_distributor_bp = Blueprint('super_distributor', __name__, template_folder='../templates/super_distributor', static_folder='../static')
 
-# Route for Super Distributor Dashboard
+################################## Route for Super Distributor Dashboard ##################################
 @super_distributor_bp.route('/super-distributor', methods=['GET'])
 def super_distributor():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
-    return render_template('sd_index.html',user_name=user_name,role=role ,encoded_image = image_data)
+    return render_template('sd_index.html',user_name=user_name,role="Super Distributor" ,encoded_image = image_data)
 
-
+################################## Route for Get All Super Distributor's ##################################
 @super_distributor_bp.route('/all-super-distributor', methods=['GET'])
 def all_super_distributor():
     role = session.get('role')
@@ -46,7 +43,7 @@ def all_super_distributor():
     
     return render_template('sd_all_distributor.html', all_super_distributors=all_distributors, role=role, user_name=user_name, **counts ,encoded_image = image_data)
 
-
+################################## Route for Ass Distributor ##################################
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
 def add_distributor():
     role = session.get('role')
@@ -94,7 +91,8 @@ def add_distributor():
     except Exception as e:
         flash(f'Error: {e}')
         return redirect(url_for('super_distributor.add_distributor'))
-    
+
+################################## Add Super Distributor ##################################
 @super_distributor_bp.route('/add-super-distributor', methods=['GET', 'POST'])
 def add_super_distributor():
     
@@ -147,7 +145,7 @@ def add_super_distributor():
         return redirect(url_for('super_distributor.add_distributor'))
 
 
-# Function for edit the super_distributor
+################################## Function for edit the super_distributor ##################################
 @super_distributor_bp.route('/edit/<int:sd_id>', methods=['GET', 'POST'])
 def edit_super_distributor(sd_id):
     sd = SuperDistributor.query.get_or_404(sd_id)
@@ -202,9 +200,7 @@ def edit_super_distributor(sd_id):
     return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=user_name, encoded_image = image_data)
 
 
-
-
-# Function for delete the super distributor
+################################## Function for delete the super distributor ##################################
 @super_distributor_bp.route('/delete/<int:sd_id>', methods=['GET', 'POST'])
 def delete_super_distributor(sd_id):
     super_distributor = SuperDistributor.query.get_or_404(sd_id)

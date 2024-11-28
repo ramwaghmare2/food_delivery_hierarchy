@@ -146,7 +146,7 @@ def get_order(order_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Method to get Order Details by user_id.
+################################## Method to get Order Details by user_id. ##################################
 @order_bp.route('/user/<int:user_id>', methods=['GET'])
 def get_orders_by_user_id(user_id):
     try:
@@ -172,7 +172,7 @@ def get_orders_by_user_id(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Method to get orders of login user
+################################## Method to get orders of login user ##################################
 @order_bp.route('/my-orders', methods=['GET'])
 def get_orders_login_user():
     try:
@@ -210,7 +210,7 @@ def get_orders_login_user():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Method to Delete the Order along with Order items
+################################## Method to Delete the Order along with Order items ##################################
 @order_bp.route('/delete/<int:order_id>', methods=['DELETE'])
 def delete_order(order_id):
     try:
@@ -236,7 +236,7 @@ def delete_order(order_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 400  
 
-
+################################## Route for Order Cart ##################################
 @order_bp.route('/cart', methods=['POST'])
 def order_cart():
     data =request.json

@@ -4,7 +4,6 @@ from models.super_distributor import SuperDistributor
 from models.kitchen import Kitchen
 from models.admin import Admin
 from base64 import b64encode
-import base64
 
 def get_model_counts():
     """Returns a dictionary with counts of all models."""

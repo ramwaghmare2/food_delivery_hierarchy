@@ -1,17 +1,14 @@
 from flask import Blueprint, redirect, render_template, url_for, request, flash, session, current_app
 from models.kitchen import Kitchen
 from models.distributor import Distributor
-from werkzeug.security import check_password_hash, generate_password_hash
-from models import db ,SuperDistributor 
-from werkzeug.utils import secure_filename
+from models import db, SuperDistributor 
 import bcrypt
-import os
 from utils.services import get_model_counts, allowed_file ,get_image
 from base64 import b64encode
 
 distributor_bp = Blueprint('distributor', __name__, template_folder='../templates/distributor', static_folder='../static')
 
-# Route for distributor dashboard
+################################## Route for distributor dashboard ##################################
 @distributor_bp.route('/')
 def distributor_home():
     user_name = session.get('user_name', 'User')
@@ -20,7 +17,7 @@ def distributor_home():
     image_data= get_image(role, user_id) 
     return render_template('d_index.html',user_name=user_name,role=role ,encoded_image = image_data)
 
-# Route for display all distributor
+################################## Route for display all distributor ##################################
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
@@ -44,7 +41,7 @@ def all_distributor():
     return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role,user_name=user_name, encoded_image=image_data)
 
 
-# Route to display all kitchens
+################################## Route to display all kitchens ##################################
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
     role = session.get('role')
@@ -64,7 +61,7 @@ def distrubutor_all_kitchens():
             all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
     return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name, **counts , encoded_image=image_data)
 
-# Route to delete kitchen
+################################## Route to delete kitchen ##################################
 @distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['GET','POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
@@ -73,7 +70,7 @@ def delete_kitchen(kitchen_id):
     flash('Kitchen deleted successfully!')
     return redirect(url_for('distributor.distrubutor_all_kitchens'))
 
-# Route for delete the distributor
+################################## Route for delete the distributor ##################################
 @distributor_bp.route('/delete/<int:distributor_id>', methods=['GET', 'POST'])
 def delete_distributor(distributor_id):
     
@@ -90,11 +87,11 @@ def delete_distributor(distributor_id):
 
     return redirect(url_for('distributor.all_distributor'))
 
-# Function for image storage
+################################## Function for image storage ##################################
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
-# Route for edit the distributor
+################################## Route for edit the distributor ##################################
 @distributor_bp.route('/edit/<int:distributor_id>', methods=['GET', 'POST'])
 def edit_distributor(distributor_id):
     distributor = Distributor.query.get_or_404(distributor_id)
