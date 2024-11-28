@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template ,flash ,redirect,url_for,session
-from models import db, FoodItem, Cuisine
+from models import db, FoodItem ,Cuisine
+from utils.services import allowed_file
 
 food_item_bp = Blueprint('food_item', __name__)
 
@@ -7,11 +8,18 @@ food_item_bp = Blueprint('food_item', __name__)
 @food_item_bp.route('/add_food_item', methods=['GET', 'POST'])
 def add_food_item():
     user_id = session.get('user_id')
+    print(user_id)
     if request.method == 'POST':
         item_name = request.form['item_name']
         description = request.form['description']
         price = request.form['price']
         cuisine_id = request.form['cuisine_id']
+        image = request.files.get('image')  # Get the image from the form
+        print(request.files)
+
+        image_binary = None
+        if image and allowed_file(image.filename):
+            image_binary = image.read()
         
         try:
             new_food_item = FoodItem(
@@ -19,7 +27,8 @@ def add_food_item():
                 description=description,
                 price=price,
                 cuisine_id=cuisine_id,
-                kitchen_id=user_id
+                kitchen_id=user_id,
+                image=image_binary
             )
             db.session.add(new_food_item)
             db.session.commit()
@@ -64,10 +73,16 @@ def edit_food_item(id):
     user_id= session.get('user_id')
 
     if request.method == 'POST':
+        image = request.files.get('image')  # Get the image from the form
+
+        image_binary = None
+        if image and allowed_file(image.filename):
+            image_binary = image.read()
         # Update food item with the form data
         food_items.name = request.form['name']
         food_items.description = request.form['description']
         food_items.price = request.form['price']
+        food_items.image = image_binary
         
         # Commit the changes to the database
         db.session.commit()

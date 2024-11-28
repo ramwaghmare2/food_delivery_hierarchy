@@ -15,8 +15,9 @@ class Order(db.Model):
     # Relationships
     
     customer = db.relationship('Customer', backref='orders')
-    order_items = db.relationship('OrderItem', back_populates='order')  # Bidirectional link with OrderItem
-    food_items = db.relationship('FoodItem', secondary='order_items', back_populates='orders')  # Many-to-Many via OrderItem
+    kitchen = db.relationship('Kitchen', backref='orders')
+    order_items = db.relationship('OrderItem', backref='order', lazy=True)  # Bidirectional link with OrderItem
+    # Many-to-Many via OrderItem
 
     def __repr__(self):
         return f'<Order {self.order_id}>'
@@ -31,8 +32,9 @@ class OrderItem(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
 
     # Relationships
-    order = db.relationship('Order', back_populates='order_items')  # Bidirectional link with Order
-    food_item = db.relationship('FoodItem', back_populates='order_items')  # Bidirectional link with FoodItem
+    
+    # order = db.relationship('Order', back_populates='order_items')  # Bidirectional link with Order
+    food_item = db.relationship('FoodItem', backref='order_items')  # Bidirectional link with FoodItem
 
     def __repr__(self):
         return f'<OrderItem {self.order_item_id}>'

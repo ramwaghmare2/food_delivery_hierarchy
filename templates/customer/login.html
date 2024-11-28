@@ -14,15 +14,15 @@
             <div class="card shadow-lg p-4">
                 <h1 class="text-center mb-4">Login</h1>
                 {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 <form method="POST" action="{{ url_for('customer.login_user') }}">
                     <div class="mb-3">
                         <input type="text" class="form-control" name="email" placeholder="Email or Contact" required>

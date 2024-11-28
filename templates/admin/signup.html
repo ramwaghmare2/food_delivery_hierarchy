@@ -22,10 +22,10 @@
                                     <div class="card-header"><h3 class="text-center font-weight-light my-4">Sign Up</h3></div>
                                     <div class="card-body">
                                         <form action="{{ url_for('admin_bp.signup') }}" method="POST">
-                                            <label for="role" >Role</label>
                                             <div  class="form-floating mb-3">
                                                 
                                                 <select id="role" name="role" class="form-control">
+                                                    <option value="Select">Select Role</option>
                                                     <option value="Admin">Admin</option>
                                                     <option value="Manager">Manager</option>
                                                     <option value="SuperDistributor">Super Distributor</option>
@@ -35,7 +35,7 @@
                                             </div>
                                             <div class="form-floating mb-3">
                                                 <input name="name" class="form-control" id="inputEmail" type="text" placeholder="name" />
-                                                <label for="inputEmail">Email</label>
+                                                <label for="inputEmail">Name</label>
                                             </div>
                                             <div class="form-floating mb-3">
                                                 <input name="contact" class="form-control" id="inputPassword" type="text" placeholder="contact" />

@@ -11375,6 +11375,23 @@ body {
   animation-delay: calc(0.1s * var(--delay));
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.manager-card-cust {
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.6s ease forwards;
+  animation-delay: calc(0.1s * var(--delay));
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
 .manager-card:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -11397,6 +11414,13 @@ body {
   object-fit: cover;
   margin-right: 20px;
 }
+
+.manager-image-cust {
+  width: 250px;
+  height: 200px;
+  object-fit: cover;
+}
+
 .manager-info {
   flex: 1;
   margin-left: 20px;
@@ -11407,6 +11431,12 @@ body {
 .action-buttons {
   margin-top: 10px;
 }
+
+.action-buttons-cust {
+  margin-top: 10px;
+  margin-left: 80%;
+}
+
 .action-buttons a {
   margin-right: 10px;
 }

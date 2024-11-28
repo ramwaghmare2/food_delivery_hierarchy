@@ -1,6 +1,7 @@
-from flask import Blueprint, request, session, redirect, render_template, flash, url_for
-from models import db, Kitchen, Distributor
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, request, jsonify, session, redirect, render_template, flash, current_app, url_for
+from models import db, Kitchen, Distributor, FoodItem
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 import bcrypt
 from utils.services import get_model_counts , get_image
 
@@ -105,12 +106,14 @@ def edit_kitchen(kitchen_id):
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
-
+    food_items = FoodItem.query.filter_by(kitchen_id=kitchen_id)
     try:
+        for item in food_items:
+            item.status = 'deactivated'
         kitchen.status = 'deactivated'
-        # db.session.delete(kitchen)
         db.session.commit()
         flash("Kitchen deleted successfully!", "success")
+        return redirect(url_for('distributor.distrubutor_all_kitchens'))
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")
@@ -124,5 +127,4 @@ def kitchen_dashboard():
     role = session.get('role')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
-    print(f"User Name: {user_name}, User ID: {user_id}")
     return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id,role=role ,encoded_image= image_data)

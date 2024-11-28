@@ -6,7 +6,7 @@
     <main>
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
-            <h2 class="sd-form">Edit Kitchen</h2>
+            <h2 class="sd-form">Edit Food Item</h2>
             <form method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="name" type="text" value="{{ food_items.item_name }}" required>
@@ -17,7 +17,10 @@
                 <div class="sd-row">
                     <input name="price" type="text" value="{{ food_items.price }}" required>
                 </div>
-                
+                <div class="sd-row">
+                    <label for="image">Food Image</label>
+                    <input type="file" class="form-control-file" id="image" name="image">
+                </div>
                 <br>
                 <div class="sd-buttons">
                     <button type="submit" class="sd-submit">Update food item</button>
