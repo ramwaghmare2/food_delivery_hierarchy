@@ -15,12 +15,13 @@ class FoodItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image = db.Column(LONGBLOB, nullable=True)
+    status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
 
     # Relationships
-    order_item = db.relationship('OrderItem', backref='food_items')
-    kitchen = db.relationship('Kitchen', back_populates='food_items')
-    orders = db.relationship('Order', secondary='order_items', back_populates='food_items')  # Many-to-Many via OrderItem
-    order_items = db.relationship('OrderItem', back_populates='food_item')  # Bidirectional link with OrderItem
+    order_item = db.relationship('OrderItem', backref='food_items', lazy=True)
+    # kitchen = db.relationship('Kitchen', backref='food_items')
+    # orders = db.relationship('Order', secondary='order_items', back_populates='food_items')  # Many-to-Many via OrderItem
+    # order_items = db.relationship('OrderItem', back_populates='food_item')  # Bidirectional link with OrderItem
 
     def __repr__(self):
         return f'<FoodItem {self.item_name}>'

@@ -205,7 +205,7 @@ def get_orders_login_user():
             }
             for order in orders
         ]
-
+        print(type(orders_data[0]['items'][0]['item_id']))
         return render_template('order/my_orders.html', orders_data=orders_data)
     
     except Exception as e:
