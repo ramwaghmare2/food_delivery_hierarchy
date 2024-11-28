@@ -23,8 +23,8 @@ class Kitchen(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
 
-    food_items = db.relationship('FoodItem', back_populates='kitchen')
-    # order = db.relationship('Order', back_populates='kitchen')
+    food_items = db.relationship('FoodItem', backref='kitchen', lazy=True)
+
 
 
     # Method to hash password

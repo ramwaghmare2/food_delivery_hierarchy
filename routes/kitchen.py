@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session, redirect, render_template, flash, current_app, url_for
-from models import db, Kitchen, Distributor
+from models import db, Kitchen, Distributor, FoodItem
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import bcrypt
@@ -107,12 +107,14 @@ def edit_kitchen(kitchen_id):
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])
 def delete_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
-
+    food_items = FoodItem.query.filter_by(kitchen_id=kitchen_id)
     try:
+        for item in food_items:
+            item.status = 'deactivated'
         kitchen.status = 'deactivated'
-        # db.session.delete(kitchen)
         db.session.commit()
         flash("Kitchen deleted successfully!", "success")
+        return redirect(url_for('distributor.distrubutor_all_kitchens'))
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")

@@ -216,7 +216,6 @@ def login():
     try:
         if request.method == 'POST':
             data = request.form
-            print("Form Data:", data)  
             
             role = data.get('role')
             email = data.get('email')
@@ -238,6 +237,12 @@ def login():
                 return jsonify({"error": "Invalid role"}), 400
             
             user = model.query.filter_by(email=email).first()
+
+            if role == 'Admin':
+                pass
+            elif user.status == 'deactivated' or user.status == '':
+                flash('User is not Active', 'danger')
+                return redirect(url_for('admin_bp.login'))
 
             if not user:
                 return jsonify({"error": f"No {role} found with this email."}), 404
