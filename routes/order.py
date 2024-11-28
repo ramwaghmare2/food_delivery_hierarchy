@@ -205,7 +205,6 @@ def get_orders_login_user():
             }
             for order in orders
         ]
-        print(type(orders_data[0]['items'][0]['item_id']))
         return render_template('order/my_orders.html', orders_data=orders_data)
     
     except Exception as e:
@@ -316,3 +315,36 @@ def order_cart():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
+    
+@order_bp.route('/kitchen-order/<int:kitchen_id>', methods=['GET'])
+def kitchen_orders(kitchen_id):
+    try:
+        user_id = session.get('user_id')
+        orders = Order.query.filter_by(kitchen_id=kitchen_id)
+        
+        orders_data = [
+            {
+                'order_id': order.order_id,
+                'kitchen_id': order.kitchen_id,
+                'total_amount': order.total_amount,
+                'status': order.order_status,
+                'created_at': order.created_at,
+                'updated_at': order.updated_at,
+                'items': [
+                    {
+                        'item_id': item.item_id,
+                        'quantity': item.quantity,
+                        'price': item.price,
+                        'total_price': item.price * item.quantity
+                    }
+                    for item in order.order_items
+                ]
+            }
+            for order in orders
+        ]
+
+        return render_template('order/kitchen_order.html', user_id=user_id, orders_data=orders_data)
+    
+    except Exception as e:
+        flash({'error': str(e)})
+        return redirect(url_for('kitchen.kitchen_dashboard'))
