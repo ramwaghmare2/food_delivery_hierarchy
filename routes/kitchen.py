@@ -128,5 +128,4 @@ def kitchen_dashboard():
     role = session.get('role')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
-    print(f"User Name: {user_name}, User ID: {user_id}")
     return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id,role=role ,encoded_image= image_data)
