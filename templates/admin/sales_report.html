@@ -13,14 +13,14 @@
             <table class="table table-bordered table-hover text-white">
                 <thead>
                     <tr class="thead-light">
-                        <th>Total Sales ($)</th>
+                        <th>Total Sales (₹)</th>
                         <th>Quantity Sold</th>
                         <th>Total Orders</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>${{ total_sales_amount }}</td>
+                        <td>₹ {{ total_sales_amount }}</td>
                         <td>{{ quantity_sold }}</td>
                         <td>{{ total_orders_count }}</td>
                     </tr>
@@ -66,7 +66,7 @@
                         <tr>
                             <th>Sale ID</th>
                             <th>Product Name</th>
-                            <th>Price ($)</th>
+                            <th>Price (₹)</th>
                             <th>Quantity</th>
                             <th>Sale Date</th>
                         </tr>
@@ -101,7 +101,7 @@
         labels: ['Total Sales', 'Quantity Sold'],
         datasets: [
             {
-                label: 'Total Sales ($)',
+                label: 'Total Sales (₹)',
                 data: [{{ total_sales_amount | tojson }}, 0],
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -157,7 +157,7 @@
         labels: {{ dates | tojson }},
         datasets: [
             {
-                label: 'Sales ($)',
+                label: 'Sales (₹)',
                 data: {{ sales | tojson }},
                 fill: false,
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -188,7 +188,7 @@
                 y: {
                     title: {
                         display: true,
-                        text: 'Sales ($)'
+                        text: 'Sales (₹)'
                     },
                     beginAtZero: true
                 }

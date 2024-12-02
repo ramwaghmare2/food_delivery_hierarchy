@@ -343,7 +343,8 @@ def sales_report():
 
     
 ################################## Orders data visualization API ##################################
-orders_bp = Blueprint('orders', __name__, url_prefix='/sales') # Blueprint for List of Order
+orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
+"""
 @orders_bp.route('/list', methods=['GET'])
 def order_list():
     page = request.args.get('page', 1, type=int)
@@ -371,7 +372,53 @@ def order_list():
                 print(" - No order items found")
 
     return render_template('admin/order_list.html', orders=orders)
+"""
+################################## Orders data visualization API ##################################
+orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
 
+import sqlalchemy as sa
+
+@orders_bp.route('/list', methods=['GET'])
+def order_list():
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', '', type=str)
+    filter_by = request.args.get('filter_by', 'all')
+    order_status = request.args.get('status', '', type=str)
+
+    query = Order.query
+    exception_message = None
+
+    if search_query:
+        if search_query.isdigit():  
+            if filter_by == 'user_id':
+                query = query.filter(Order.user_id == int(search_query))
+                exception_message = f"No Orders available for User ID {search_query}"
+            elif filter_by == 'order_id':
+                query = query.filter(Order.order_id == int(search_query))
+                exception_message = f"No Orders available for Order ID {search_query}"
+            elif filter_by == 'kitchen_id':
+                query = query.filter(Order.kitchen_id == int(search_query))
+                exception_message = f"No Orders available for Kitchen ID {search_query}"
+            else:  
+                query = Order.query
+        else:
+            query = query.join(Customer).filter(Customer.name.ilike(f'%{search_query}'))
+            exception_message = f"No orders available for customer matching '{search_query}'"
+
+    if order_status:
+        if order_status in ['pending', 'processing', 'cancelled', 'completed']:
+            status_query = Order.query.filter(Order.order_status == order_status)
+            query = query.intersect(status_query)
+            exception_message = f"No orders available with status '{order_status}'"
+        else:
+            exception_message = f"Invalid status filter: '{order_status}"
+
+    orders = query.paginate(page=page, per_page=10)
+
+    if not orders.items:
+        return render_template('admin/order_list.html', orders=None, exception_message=exception_message)
+    
+    return render_template('admin/order_list.html', orders=orders, exception_message=None)
 
 ################################## Manager Dashboard ##################################
 @admin_bp.route('/manager', methods=['GET'])
