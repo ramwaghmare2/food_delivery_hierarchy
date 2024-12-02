@@ -54,6 +54,13 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <p class="text-center">
+                                {% if encoded_image %}
+                                <div>
+                            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
+                                </div>
+                                {% endif %}
+                            <p class="text-center">
+                            <p class="text-center">
                                 <b>Welcome !<br> {{ user_name }}</b><br>
                                 {% if role == 'Admin' %}
                                     <span class="green-dot"></span>

@@ -18,6 +18,8 @@ class Distributor(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     online_status = db.Column(db.Boolean, nullable=True, default=False)
 
+    kitchens = db.relationship('Kitchen', backref='distributors', lazy=True)
+
     def __repr__(self):
         return f'<Distributor {self.name}>'
     
