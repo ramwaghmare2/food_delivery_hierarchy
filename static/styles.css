@@ -51,3 +51,26 @@ button {
     border-radius: 4px;
     cursor: pointer;
 }
+
+.order-card {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.order-items {
+    margin-top: 10px;
+}
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}
+.total-price {
+    font-weight: bold;
+    color: #333;
+}
