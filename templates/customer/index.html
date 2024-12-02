@@ -39,7 +39,7 @@
 
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
-                                    <a href="" class="btn btn-warning btn-sm">Add To Cart</a>
+                                    <a href="{{ url_for('order.add_to_cart', item_id=item.id) }}" class="btn btn-warning btn-sm">Add To Cart</a>
                                     <a href="{{ url_for('order.place_order', item_id=item.id) }}" class="btn btn-danger btn-sm">Place Order</a>
                                 </div>
                             </div>
