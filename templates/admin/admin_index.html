@@ -70,10 +70,10 @@
                     <div class="card bg-primary text-white fixed-card mb-4">
                         <div class="card-body"><b>Total Sales</b></div>
                         <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">${{ total_sales_amount }}</h4>
-                            <div class="small text-white"><i class="fas fa-dollar-sign"></i></div>
+                            <h4 class="mb-0">₹ {{ total_sales_amount }}</h4>
+                            <div class="small text-white"><i class="fas fa-rupee-sign"></i></div>
                             <a class="small text-white stretched-link" href="{{ url_for('sales.sales_report') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            <div class="small text-white"><i class="fas fa-angle-right" ></i></div>
                         </div>
                     </div>
                 </div>
@@ -92,17 +92,72 @@
                 </div>
             </div>
 
-            <!-- Existing Dashboard Content (Charts, etc.) -->
-            <div class="row">
-                <div class="col-xl-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <i class="fas fa-chart-area me-1"></i>
-                            Area Chart Example
-                        </div>
-                        <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
-                    </div>
-                </div>
+    <!-- Totals Table -->
+    <div class="card shadow mb-4" style="background-color: #51eaf3;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover text-white">
+                <thead>
+                    <tr class="thead-light">
+                        <th>Total Sales (₹)</th>
+                        <th>Quantity Sold</th>
+                        <th>Total Orders</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+
+                        <td>₹ {{ total_sales_amount }}</td>
+                        <td>{{ quantity_sold }}</td>
+                        <td>{{ total_orders_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sales Data Table -->
+    <div class="card shadow" style="background-color: #51eaf3;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered text-white">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Product Name</th>
+                            <th>Price (₹)</th>
+                            <th>Quantity</th>
+                            <th>Sale Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if sales_data %}
+                        {% for sale in sales_data %}
+                        <tr>
+                            <td>{{ sale.sale_id }}</td>
+                            <td>{{ sale.item_name }}</td>
+                            <td>${{ sale.price }}</td>
+                            <td>{{ sale.quantity }}</td>
+                            <td>{{ sale.datetime.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No sales data available</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
                 <div class="col-xl-6">
                     <div class="card mb-4">
                         <div class="card-header">
@@ -117,3 +172,25 @@
     </main>
     {% include 'admin/admin_footer.html' %}
 </div>
+<style>
+    .table-bordered th, .table-bordered td {
+        border: 1px solid #ffffff !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #eef154 !important;
+    }
+
+    .table-responsive {
+        margin-top: 15px;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+
+    .card-header {
+        background-color: #eef154;
+        color: #fff;
+    }
+</style>
