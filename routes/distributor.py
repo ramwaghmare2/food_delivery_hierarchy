@@ -20,7 +20,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import warnings
 warnings.filterwarnings("ignore")
 
-@distributor_bp.route('/')
+"""@distributor_bp.route('/',methods=['GET'])
 def distributor_home():
     try:
         # Get the logged-in distributor's ID from the session
@@ -104,8 +104,65 @@ def distributor_home():
     
     except Exception as e:
         flash({'error': str(e)})
-        return redirect(url_for('distributor.distributor_home'))
+        return redirect(url_for('distributor.distributor_home'))"""
 
+import json
+
+@distributor_bp.route('/',methods=['GET'])
+def distributor_home():
+    try:
+        # Get the logged-in distributor's ID from the session
+        distributor_id = session.get('user_id')
+        if not distributor_id:
+            flash({'error': 'Unauthorized access'})
+            return redirect(url_for('distributor.distributor_home'))
+
+        # Fetch all kitchens under this distributor
+        kitchens = Kitchen.query.filter_by(distributor_id=distributor_id).all()
+
+        # Count of kitchens for the logged-in distributor
+        kitchen_count = len(kitchens)
+
+        # Fetch orders for these kitchens
+        kitchen_ids = [kitchen.id for kitchen in kitchens]
+        orders = Order.query.filter(Order.kitchen_id.in_(kitchen_ids)).all()
+
+        # Count of orders related to the kitchens
+        order_count = len(orders)
+
+        # Total price of all orders related to the kitchens
+        total_price = db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id.in_(kitchen_ids)).scalar()
+        total_price = float(total_price) if total_price else 0  # Convert to float
+
+        # Prepare data for charts
+        kitchen_order_count = {kitchen.name: 0 for kitchen in kitchens}
+        kitchen_sales = {kitchen.name: 0 for kitchen in kitchens}
+
+        for order in orders:
+            kitchen = next(k for k in kitchens if k.id == order.kitchen_id)
+            kitchen_order_count[kitchen.name] += 1
+            kitchen_sales[kitchen.name] += float(order.total_amount)  # Convert to float
+
+        # Get user data (name, role, etc.)
+        user_name = session.get('user_name', 'User')
+        role = session.get('role')
+        image_data = get_image(role, distributor_id)
+
+        # Render the distributor home page with chart data
+        return render_template('d_index.html', 
+                               user_name=user_name,
+                               role=role, 
+                               encoded_image=image_data,
+                               kitchen_count=kitchen_count,
+                               order_count=order_count,
+                               total_price=total_price,
+                               kitchen_names=json.dumps(list(kitchen_order_count.keys())),
+                               order_counts=json.dumps(list(kitchen_order_count.values())),
+                               sales_data=json.dumps(list(kitchen_sales.values()))
+                               )
+    except Exception as e:
+        flash({'error': str(e)})
+        return redirect(url_for('distributor.distributor_home'))
 
 ################################## Route for display all distributor ##################################
 @distributor_bp.route('/all-distributor', methods=['GET'])
