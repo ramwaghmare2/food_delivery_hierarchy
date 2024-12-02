@@ -29,23 +29,22 @@
         <div class="row">
             {% for distributor in all_distributors %}
             {% if distributor.status == 'activated' %}
-                <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
+                <div class="col-md-4 mb-4">
                     <div class="card manager-card">
+                        <div class="status-dot-container">
+                            {% if distributor.online_status %}
+                                <span class="green-dot"></span> <span class="status-text">Online</span>
+                            {% else %}
+                                <span class="red-dot"></span> <span class="status-text">Offline</span>
+                            {% endif %}
+                        </div>
                         <div class="card-body manager-card-body">
                             <!-- Manager Image -->
                             <div>
                                 {% if distributor.image_base64 %}
-                            <img src="{{ distributor.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
-                            {% else %}
-                            No Image
-                            {% endif %}
-                            </div>
-                            <!-- Distributor Online or Offline Status -->
-                            <div class="status-dot mt-2">
-                                {% if distributor.online_status %}
-                                    <span class="green-dot"></span> Online
+                                    <img src="{{ distributor.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
                                 {% else %}
-                                    <span class="red-dot"></span> Offline
+                                    No Image
                                 {% endif %}
                             </div>
                             <!-- Manager Info -->
@@ -53,7 +52,7 @@
                                 <h5 class="card-title">{{ distributor.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ distributor.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ distributor.contact }}</p>
-
+        
                                 <!-- Action Buttons -->
                                 <div class="action-buttons">
                                     <a href="{{ url_for('distributor.edit_distributor', distributor_id=distributor.id ) }}" class="btn btn-warning btn-sm">Edit</a>
@@ -66,23 +65,45 @@
             {% endif %}
             {% endfor %}
         </div>
+        
         <style>
-            .green-dot {
-                width: 10px;
-                height: 10px;
+            .status-dot-container {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                display: flex;
+                align-items: center;
+            }
+        
+            .green-dot, .red-dot {
+                width: 12px;
+                height: 12px;
                 border-radius: 50%;
-                background-color: green;
                 display: inline-block;
+                margin-right: 5px;
+            }
+        
+            .green-dot {
+                background-color: green;
             }
         
             .red-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
                 background-color: red;
-                display: inline-block;
+            }
+        
+            .status-text {
+                font-size: 14px;
+                font-weight: bold;
+                color: #333;
+            }
+        
+            .manager-card {
+                position: relative;
+                overflow: hidden;
             }
         </style>
+        
+        
     </main>
 
 {% include 'admin/admin_footer.html' %}

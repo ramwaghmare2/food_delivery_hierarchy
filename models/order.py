@@ -35,6 +35,6 @@ class OrderItem(db.Model):
     
     # order = db.relationship('Order', back_populates='order_items')  # Bidirectional link with Order
     food_item = db.relationship('FoodItem', backref='order_items')  # Bidirectional link with FoodItem
-
+    
     def __repr__(self):
         return f'<OrderItem {self.order_item_id}>'

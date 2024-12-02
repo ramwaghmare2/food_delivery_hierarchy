@@ -18,6 +18,8 @@ class SuperDistributor(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     online_status = db.Column(db.Boolean, nullable=True, default=False)
 
+    distributors = db.relationship('Distributor', backref='super_distributors', lazy=True)
+
     def __repr__(self):
         return f'<SuperDistributor {self.name}>'
 
