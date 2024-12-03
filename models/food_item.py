@@ -19,6 +19,7 @@ class FoodItem(db.Model):
 
     # Relationships
     order_item = db.relationship('OrderItem', backref='food_items', lazy=True)
+    sales = db.relationship('Sales', backref='food_items', lazy=True)
     # kitchen = db.relationship('Kitchen', backref='food_items')
     # orders = db.relationship('Order', secondary='order_items', back_populates='food_items')  # Many-to-Many via OrderItem
     # order_items = db.relationship('OrderItem', back_populates='food_item')  # Bidirectional link with OrderItem

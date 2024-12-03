@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request, jsonify, session, redirect, render_template, url_for, flash
 # from models import Order, OrderItem, MenuItem, User
-from models import Order, FoodItem, OrderItem
+from models import Order, FoodItem, OrderItem, Sales
 from models.order import db
 from werkzeug.exceptions import NotFound
 from decimal import Decimal
@@ -431,6 +431,15 @@ def update_status(order_id):
         order = Order.query.filter_by(order_id=order_id).first()
         order.order_status = 'Completed'
         db.session.commit()
+        sales = Sales(
+            order_id=order.order_id,
+            cuisine_id=order.order_items[0].food_item.cuisine_id,
+            kitchen_id=order.kitchen_id,
+            item_id=order.order_items[0].item_id
+        )
+        db.session.add(sales)
+        db.session.commit()
+
         flash('Order Status updated Successfully!')
         return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
     except Exception as e:
