@@ -15,6 +15,7 @@ class Cuisine(db.Model):
 
     # Relationship to FoodItem
     food_items = db.relationship('FoodItem', backref='cuisine', lazy=True)
+    sales = db.relationship('Sales', backref='cuisine', lazy=True)
 
     def __repr__(self):
         return f'<Cuisine {self.name}>'

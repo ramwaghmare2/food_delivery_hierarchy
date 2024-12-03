@@ -24,6 +24,7 @@ class Kitchen(db.Model):
     online_status = db.Column(db.Boolean, nullable=True, default=False)
 
     food_items = db.relationship('FoodItem', backref='kitchen', lazy=True)
+    sales = db.relationship('Sales', backref='kitchen', lazy=True)
 
 
 
