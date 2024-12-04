@@ -10,7 +10,7 @@ class Sales(db.Model):
     cuisine_id = db.Column(db.Integer, db.ForeignKey('cuisines.id'), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey('food_items.id'), nullable=False)
     payment_mode = db.Column(db.Enum('COD', 'UPI', 'Credit Card', 'Debit Card'), nullable=True)
-    datetime = db.Column(db.DateTime,default=datetime.utcnow)
+    datetime = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<Sales {self.item_name}>'
+        return f'<Sales sale_id={self.sale_id}, order_id={self.order_id}>'
