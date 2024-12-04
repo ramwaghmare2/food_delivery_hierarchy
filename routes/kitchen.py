@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify, session, redirect, render_template, flash, current_app, url_for
-from models import db, Kitchen, Distributor, FoodItem
+from models import db, Kitchen, Distributor, FoodItem, Order, Sales
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import bcrypt
+import json
 from utils.services import get_model_counts , get_image
+from sqlalchemy import func
 
 kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 
@@ -121,10 +123,76 @@ def delete_kitchen(kitchen_id):
     return redirect(url_for('kitchen.get_kitchens'))
 
 ################################## Route for Display Kitchen Dashboard ##################################
+from sqlalchemy import func
+from datetime import datetime, timedelta
+
 @kitchen_bp.route("/kitchen_dashboard", methods=['GET', 'POST'])
 def kitchen_dashboard():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
-    image_data= get_image(role, user_id) 
-    return render_template('kitchen/kitchen_index.html',user_name=user_name,user_id=user_id,role=role ,encoded_image= image_data)
+
+    # Filter orders by kitchen_id
+    orders = Order.query.filter(Order.kitchen_id == user_id).all()
+
+    # Filter sales by kitchen_id
+    sales = Sales.query.filter(Sales.kitchen_id == user_id).all()
+
+    # Count of orders related to the kitchens
+    order_count = len(orders)
+
+    # Total price of all orders related to the kitchens
+    total_price = db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id == user_id).scalar()
+    total_price = float(total_price) if total_price else 0  # Convert to float
+
+    kitchen_sales = 0
+    for order in orders:
+        kitchen_sales += float(order.total_amount)  # Sum the total sales
+
+    # Aggregate order counts and sales by date (daily)
+    order_dates = []
+    sales_per_date = []
+    order_count_per_date = []
+
+    # Aggregating data by day
+    for days_offset in range(30):  # For the last 30 days
+        date = datetime.now() - timedelta(days=days_offset)
+        formatted_date = date.strftime('%Y-%m-%d')
+        order_dates.append(formatted_date)
+        
+        # Count orders and sales for the specific date
+        orders_on_date = Order.query.filter(Order.kitchen_id == user_id, func.date(Order.created_at) == date.date()).all()
+        order_count_per_date.append(len(orders_on_date))
+
+        sales_on_date = db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id == user_id, func.date(Order.created_at) == date.date()).scalar()
+        sales_per_date.append(float(sales_on_date) if sales_on_date else 0)
+
+    # Assuming get_image function is working correctly
+    image_data = get_image(role, user_id)
+
+    # Initialize variables to hold the total values
+    total_sales_amount = 0
+    total_quantity_sold = 0
+    total_orders_count = len(sales)  # Total number of orders (sales records)
+
+    # Loop through each sale to calculate total sales amount and quantity sold
+    for sale in sales:
+        total_sales_amount += sale.orders.total_amount  # Assuming `total_amount` is the sale's total amount
+        for item in sale.orders.order_items:  # Assuming there's an order_items relationship
+            total_quantity_sold += item.quantity
+
+    return render_template('kitchen/kitchen_index.html',
+                           user_name=user_name,
+                           user_id=user_id,
+                           role=role,
+                           encoded_image=image_data,
+                           order_count=order_count,
+                           total_price=total_price,
+                           sales=sales,
+                           order_dates=order_dates,
+                           sales_per_date=sales_per_date,
+                           order_count_per_date=order_count_per_date,
+                           total_sales_amount=total_sales_amount,
+                           total_quantity_sold=total_quantity_sold,
+                           total_orders_count=total_orders_count
+                           )
