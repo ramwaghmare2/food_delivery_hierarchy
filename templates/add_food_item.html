@@ -1,13 +1,17 @@
 {% include 'kitchen/kitchen_header.html' %}
 <div id="layoutSidenav_content">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
+    <!-- Display flash messages for success or error -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button class="btn" type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-        {% endif %}
+        {% endfor %}
+    {% endif %}
     {% endwith %}
     <main>
         <div class="sd-container" >
