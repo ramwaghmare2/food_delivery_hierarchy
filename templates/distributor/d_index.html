@@ -3,55 +3,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    .chart-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.chart-container canvas {
-    width: 300px;
-    height: 400px;
-    border: 1px solid rgb(126, 120, 120); /* Border */
-    border-radius: 5px; /* Optional: Adds rounded corners */
-    padding: 10px; /* Optional: Adds spacing inside the border */
-}
-
-.chart-wrapper {
-    flex: 1;
-    margin: 10px;
-}
-
-
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    @keyframes bounceIn {
-    0% {
-        transform: translateY(1000px);
-        opacity: 0;
-    }
-    60% {
-        transform: translateY(-30px);
-        opacity: 1;
-    }
-    80% {
-        transform: translateY(10px);
-    }
-    100% {
-        transform: translateY(0);
-    }
-}
-
-.chart-container canvas {
-    animation: bounceIn 1s ease-out;
-}
+ 
 
 
 </style>
@@ -81,7 +33,7 @@
                         <div class="card-body"><b>Total Orders</b></div>
                         <div class="card-footer d-flex align-items-center justify-content-between">
                             <h4 class="mb-0">{{ order_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-box"></i></div>
+                            <div class="small text-white"><i class="fas fa-shopping-cart"></i></div>
                             <a class="small text-white stretched-link" href="{{ url_for('distributor.distributor_orders') }}">View Details</a>
                             <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                         </div>
@@ -97,6 +49,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="chart-container">
                 <div class="chart-wrapper">
                     <canvas id="barChart"></canvas>
@@ -111,9 +64,9 @@
                 const salesData = {{ sales_data | safe }};
                 const barWidth = kitchenNames.length > 5 ? 0.5 : 0.6;
 
-                // Bar Chart
-                const barCtx = document.getElementById('barChart').getContext('2d');
-new Chart(barCtx, {
+// Bar Chart
+const barCtx = document.getElementById('barChart').getContext('2d');
+const barChart = new Chart(barCtx, {
     type: 'bar',
     data: {
         labels: kitchenNames,
@@ -123,7 +76,6 @@ new Chart(barCtx, {
             backgroundColor: 'rgba(135, 206, 250, 0.6)', // Skyblue
             borderColor: 'rgba(135, 206, 250, 1)',
             borderWidth: 1,
-            borderSkipped: false,  // Prevent border from skipping corners
         }]
     },
     options: {
@@ -136,62 +88,52 @@ new Chart(barCtx, {
         scales: {
             x: {
                 title: { display: true, text: 'Kitchens' },
-                ticks: {
-                    maxRotation: 90,
-                    minRotation: 45
-                },
-                barPercentage: 0.8,  // Adjusted bar width to make it visually appealing
+                ticks: { maxRotation: 90, minRotation: 45 },
+                barPercentage: 0.8,
                 categoryPercentage: 0.8
             },
-            y: { title: { display: true, text: 'Number of Orders' }, beginAtZero: true }
+            y: {
+                title: { display: true, text: 'Number of Orders' },
+                beginAtZero: true
+            }
         },
         animation: {
-            duration: 1500, // Set the duration of the animation
-            easing: 'easeOutBounce', // Add an ease effect to make the animation smoother
-            onProgress: function(animation) {
-                // This function will run during the animation progress
-                console.log(`Animation Progress: ${Math.round(animation.progress)}%`);
-            },
-            onComplete: function() {
-                // This function will run when the animation is complete
-                console.log('Animation Complete!');
-            }
+            duration: 1500,
+            easing: 'easeOutBounce',
         },
         hover: {
             mode: 'nearest',
             intersect: true,
             onHover: function(event, chartElement) {
                 if (chartElement.length > 0) {
-                    // Highlight the bar when hovered
-                    const datasetIndex = chartElement[0].datasetIndex;
                     const index = chartElement[0].index;
-                    barChart.data.datasets[datasetIndex].backgroundColor[index] = 'rgba(0, 191, 255, 1)'; // Change color on hover
-                    barChart.update();
+                    barChart.data.datasets[0].backgroundColor[index] = 'rgba(0, 191, 255, 1)'; // Highlight color
+                    barChart.update('none');
                 }
             },
             onLeave: function(event, chartElement) {
-                // Reset the color when the hover leaves
                 if (chartElement.length > 0) {
-                    const datasetIndex = chartElement[0].datasetIndex;
                     const index = chartElement[0].index;
-                    barChart.data.datasets[datasetIndex].backgroundColor[index] = 'rgba(135, 206, 250, 0.6)'; // Reset color
-                    barChart.update();
+                    barChart.data.datasets[0].backgroundColor[index] = 'rgba(135, 206, 250, 0.6)'; // Reset color
+                    barChart.update('none');
                 }
             }
         }
     }
 });
 
+// Pie Chart
+const pieLabels = {{ pie_chart_labels | safe }};
+const pieData = {{ pie_chart_data | safe }};
 
-// Pie Chart with Zoom Effect on Hover for Individual Segments
 const pieCtx = document.getElementById('pieChart').getContext('2d');
 const pieChart = new Chart(pieCtx, {
     type: 'pie',
     data: {
-        labels: kitchenNames,
+        labels: pieLabels,
         datasets: [{
-            label: 'Total Sales',
-            data: salesData,
+            label: 'Kitchens Sale ',
+            data: pieData,
             backgroundColor: [
                 'rgba(255, 99, 132, 0.6)',   // Pink
                 'rgba(54, 162, 235, 0.6)',   // Blue
@@ -200,7 +142,15 @@ const pieChart = new Chart(pieCtx, {
                 'rgba(153, 102, 255, 0.6)',  // Purple
                 'rgba(255, 159, 64, 0.6)'    // Orange
             ],
-            borderWidth: 1
+            hoverBackgroundColor: [
+                'rgba(255, 99, 132, 0.8)',   // Brighter Pink
+                'rgba(54, 162, 235, 0.8)',   // Brighter Blue
+                'rgba(255, 206, 86, 0.8)',   // Brighter Yellow
+                'rgba(75, 192, 192, 0.8)',   // Brighter Green
+                'rgba(153, 102, 255, 0.8)',  // Brighter Purple
+                'rgba(255, 159, 64, 0.8)'    // Brighter Orange
+            ],
+            borderWidth: 1,
         }]
     },
     options: {
@@ -211,60 +161,21 @@ const pieChart = new Chart(pieCtx, {
                 display: true, 
                 position: 'top' 
             },
-            title: { display: true, text: 'Total Sales by Kitchen' }
+            title: { 
+                display: true, 
+                text: 'Total Sales Count by Kitchen' 
+            }
         },
         animation: {
-            onProgress: function () {
-                pieChart.update();
-            },
-            onComplete: function () {
-                pieChart.update();
-            }
+            duration: 1500,
+            easing: 'easeOutCubic',
         },
         hover: {
             mode: 'nearest',
             intersect: true,
-            onHover: function(event, chartElement) {
-                // Reset scale for all segments
-                pieChart.data.datasets[0].backgroundColor = [
-                    'rgba(255, 99, 132, 0.6)',   // Pink
-                    'rgba(54, 162, 235, 0.6)',   // Blue
-                    'rgba(255, 206, 86, 0.6)',   // Yellow
-                    'rgba(75, 192, 192, 0.6)',   // Green
-                    'rgba(153, 102, 255, 0.6)',  // Purple
-                    'rgba(255, 159, 64, 0.6)'    // Orange
-                ];
-
-                // Check if a segment is hovered
-                if (chartElement.length) {
-                    const segmentIndex = chartElement[0].index;
-
-                    // Apply zoom effect on hover: scale up the hovered segment
-                    const dataSetMeta = pieChart.getDatasetMeta(0);
-                    const segment = dataSetMeta.data[segmentIndex];
-                    segment.scale = 1.5;  // Zoom in by 50% or more (change this value for more/less zoom)
-
-                    // Update color for the hovered segment
-                    pieChart.data.datasets[0].backgroundColor[segmentIndex] = 'rgba(54, 162, 235, 1)'; // Blue for hover
-
-                    pieChart.update();
-                }
-            },
-            onLeave: function(event, chartElement) {
-                // Reset zoom effect when the cursor leaves the segment
-                if (chartElement.length) {
-                    const segmentIndex = chartElement[0].index;
-                    const dataSetMeta = pieChart.getDatasetMeta(0);
-                    const segment = dataSetMeta.data[segmentIndex];
-                    segment.scale = 1; // Reset to normal scale
-                    pieChart.data.datasets[0].backgroundColor[segmentIndex] = 'rgba(255, 99, 132, 0.6)'; // Reset color
-                    pieChart.update();
-                }
-            }
         }
     }
 });
-
             </script>
         </div>
     </main>

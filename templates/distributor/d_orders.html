@@ -68,9 +68,9 @@
                         </thead>
                         <tbody>
                             {% for order in orders_data %}
-                                {% for item in order['items'] %}
-                                <tr class="animated fadeInUp text-center">
+                            <tr class="animated fadeInUp text-center"></tr>
                                     <td>{{ loop.index }}</td>
+                                {% for item in order['items'] %}
                                     <td>{{ order.order_id }}</td>
                                     <td>{{ order.customer_name }}</td>
                                     <td>{{ item.item_name }}</td>
