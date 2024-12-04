@@ -49,8 +49,95 @@
                     </div>
                 </div>
             </div>
+            
+            <ol class="breadcrumb mt-2 mb-2">
+                <li class="breadcrumb-item active">Sales Data</li>
+            </ol>
+            <!-- Totals Table -->
+    <div class="card shadow mb-4 mt-4" style="background-color: #3e3e3e;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover text-white">
+                <thead>
+                    <tr class="thead-light">
+                        <th>Total Sales (₹)</th>
+                        <th>Quantity Sold</th>
+                        <th>Total Orders</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
 
-            <div class="chart-container">
+                        <td>₹ {{ total_price }}</td>
+                        <td>{{ total_quantity_sold}}</td>
+                        <td>{{ order_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <label for="filter" class="form-label">Filter By:</label>
+            <form method="GET" href="{{ url_for('distributor.distributor_home') }}" style="width:300px;display: flex; align-items: center;">
+                
+                <select name="filter" id="filter" class="form-select">
+                    <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All</option>
+                    <option value="today" {% if filter_type == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if filter_type == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="monthly" {% if filter_type == 'monthly' %}selected{% endif %}>Monthly</option>
+                    <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="margin-left: 10px;">Apply</button>
+            </form>
+
+    <!-- Sales Data Table -->
+    <div class="card shadow mt-4" style="background-color: #3e3e3e;">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
+        </div>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered text-white">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Item Name</th>
+                            <th>Price (₹)</th>
+                            <th>Quantity</th>
+                            <th>Sale Date</th>
+                            <th>Order id</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if total_sales_data %}
+                            {% for sale_id, datetime, item_name, price, quantity,order_id in total_sales_data %}
+                            <tr>
+                                <td>{{ sale_id }}</td>
+                                <td>{{ item_name }}</td>
+                                <td>₹ {{ price }}</td>
+                                <td>{{ quantity }}</td>
+                                <td>{{ datetime.strftime('%Y-%m-%d %H:%M:%S') if datetime else 'N/A' }}</td>
+                                <td>{{order_id}}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No sales data available</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+    <ol class="breadcrumb mt-5 mb-2">
+        <li class="breadcrumb-item active">Statistics</li>
+    </ol>
+            <div class="chart-container mt-2 mb-4">
                 <div class="chart-wrapper">
                     <canvas id="barChart"></canvas>
                 </div>
@@ -178,5 +265,63 @@ const pieChart = new Chart(pieCtx, {
 });
             </script>
         </div>
+
+        <style>
+            .table-bordered th, .table-bordered td {
+                border: 1px solid #ffffff !important;
+            }
+        
+            .table-hover tbody tr:hover {
+                background-color: #eef154 !important;
+            }
+        
+            .table-responsive {
+                margin-top: 15px;
+            }
+        
+            .card {
+                border-radius: 10px;
+            }
+        
+            .card-header {
+                background-color: #eef154;
+                color: #fff;
+            }
+        
+            .table-container {
+            max-height: 300px; /* Adjust as needed to show approximately 10 rows */
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .sales-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .sales-table th, .sales-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        /* Make the header sticky */
+        .sales-table th {
+            background-color: #f4f4f4; /* Header color */
+            position: sticky;
+            top: 0;
+            z-index: 2; /* Higher than tbody rows to stay above */
+        }
+        
+        /* Optional: Style for the table rows */
+        .sales-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .sales-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        </style>    
     </main>
 {% include 'd_footer.html' %}
