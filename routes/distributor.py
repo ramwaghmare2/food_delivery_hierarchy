@@ -1,8 +1,9 @@
 from flask import Blueprint, redirect, render_template, url_for, request, flash, session, current_app
 from models.kitchen import Kitchen
 from models.distributor import Distributor
-from models import db, SuperDistributor  ,Order ,OrderItem
+from models import db, SuperDistributor  ,Order
 import bcrypt
+import json
 from utils.services import get_model_counts, allowed_file ,get_image
 from base64 import b64encode
 from sqlalchemy import func
@@ -10,103 +11,6 @@ from sqlalchemy import func
 distributor_bp = Blueprint('distributor', __name__, template_folder='../templates/distributor', static_folder='../static')
 
 ################################## Route for distributor dashboard ##################################
-
-
-import io
-import base64
-import matplotlib.pyplot as plt
-import pandas as pd
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import warnings
-warnings.filterwarnings("ignore")
-
-"""@distributor_bp.route('/',methods=['GET'])
-def distributor_home():
-    try:
-        # Get the logged-in distributor's ID from the session
-        distributor_id = session.get('user_id')
-        if not distributor_id:
-            flash({'error': 'Unauthorized access'})
-            return redirect(url_for('distributor.distributor_home'))
-
-        # Fetch all kitchens under this distributor
-        kitchens = Kitchen.query.filter_by(distributor_id=distributor_id).all()
-
-        # Count of kitchens for the logged-in distributor
-        kitchen_count = len(kitchens)
-
-        # Fetch orders for these kitchens
-        kitchen_ids = [kitchen.id for kitchen in kitchens]
-        orders = Order.query.filter(Order.kitchen_id.in_(kitchen_ids)).all()
-
-        # Count of orders related to the kitchens
-        order_count = len(orders)
-
-        # Total price of all orders related to the kitchens
-        total_price = db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id.in_(kitchen_ids)).scalar()
-
-        # Fallback to 0 if no orders are found
-        if total_price is None:
-            total_price = 0
-
-        # Prepare data for bar chart and pie chart
-        kitchen_names = [kitchen.name for kitchen in kitchens]
-        kitchen_order_count = {kitchen.name: 0 for kitchen in kitchens}
-        kitchen_sales = {kitchen.name: 0 for kitchen in kitchens}
-
-        # Fill the data for orders
-        for order in orders:
-            kitchen = next(k for k in kitchens if k.id == order.kitchen_id)
-            kitchen_order_count[kitchen.name] += 1
-            kitchen_sales[kitchen.name] += order.total_amount
-
-        # Generate bar chart for kitchen orders
-        bar_fig, bar_ax = plt.subplots(figsize=(5, 4))
-        bar_width = 0.5 
-        bar_ax.bar(kitchen_order_count.keys(), kitchen_order_count.values(), color='skyblue',width=bar_width)
-        bar_ax.set_title('Kitchen Orders Count')
-        bar_ax.set_xlabel('Kitchens')
-        bar_ax.set_ylabel('Number of Orders')
-
-        # Save bar chart to image
-        bar_img = io.BytesIO()
-        FigureCanvas(bar_fig).print_png(bar_img)
-        bar_img.seek(0)
-        bar_chart = base64.b64encode(bar_img.getvalue()).decode('utf8')
-
-        # Generate pie chart for total sales by kitchen
-        pie_fig, pie_ax = plt.subplots(figsize=(5, 4))
-        pie_ax.pie(kitchen_sales.values(), labels=kitchen_sales.keys(), autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
-        pie_ax.set_title('Total Sales by Kitchen')
-
-        # Save pie chart to image
-        pie_img = io.BytesIO()
-        FigureCanvas(pie_fig).print_png(pie_img)
-        pie_img.seek(0)
-        pie_chart = base64.b64encode(pie_img.getvalue()).decode('utf8')
-
-        # Get user data (name, role, etc.)
-        user_name = session.get('user_name', 'User')
-        role = session.get('role')
-        image_data = get_image(role, distributor_id)
-
-        # Render the distributor home page with additional data
-        return render_template('d_index.html', 
-                               user_name=user_name,
-                               role=role, 
-                               encoded_image=image_data,
-                               kitchen_count=kitchen_count,
-                               order_count=order_count,
-                               total_price=total_price,
-                               bar_chart=bar_chart,  # Pass bar chart to template
-                               pie_chart=pie_chart   # Pass pie chart to template
-                               )
-    
-    except Exception as e:
-        flash({'error': str(e)})
-        return redirect(url_for('distributor.distributor_home'))"""
-
-import json
 
 @distributor_bp.route('/',methods=['GET'])
 def distributor_home():
