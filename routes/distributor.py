@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template, url_for, request, flash, session, current_app
 from models.kitchen import Kitchen
 from models.distributor import Distributor
-from models import db, SuperDistributor  ,Order ,OrderItem ,Sales
+from models import db, SuperDistributor  ,Order ,OrderItem ,Sales, FoodItem
 import bcrypt
 import json
 from utils.services import get_model_counts, allowed_file ,get_image
@@ -31,7 +31,7 @@ def distributor_home():
             return redirect(url_for('distributor.distributor_home'))
 
         # Get the filter type (if any)
-        filter_type = request.args.get('filter', 'all')
+        filter_type = request.args.get('filter', 'today')
 
         # Get the current date and calculate other date ranges for the filters
         today = datetime.today()
@@ -67,6 +67,36 @@ def distributor_home():
             query = query.filter(Order.created_at >= start_date, Order.created_at <= end_date)
 
         orders = query.all()
+
+        total_sales_data = db.session.query(
+            Sales.sale_id,
+            Sales.datetime,
+            FoodItem.item_name,
+            OrderItem.price,
+            OrderItem.quantity,
+            Order.order_id
+        ).join(Order, Sales.order_id == Order.order_id) \
+        .join(OrderItem, Order.order_id == OrderItem.order_id) \
+        .join(FoodItem, OrderItem.item_id == FoodItem.id) \
+        .filter(Order.kitchen_id.in_(kitchen_ids))
+
+        if start_date and end_date:
+            total_sales_data = total_sales_data.filter(Sales.datetime.between(start_date, end_date))
+
+        # Order by datetime for recent sales first
+        total_sales_data = total_sales_data.order_by(Sales.datetime.asc()).all()
+
+        # Query to calculate total quantity sold
+        total_quantity_sold = db.session.query(
+            func.sum(OrderItem.quantity).label('total_quantity')
+        ).join(Order, OrderItem.order_id == Order.order_id) \
+        .filter(Order.kitchen_id.in_(kitchen_ids))
+
+        #if start_date and end_date:
+            #total_quantity_sold = total_quantity_sold.filter(Sales.datetime.between(start_date, end_date))
+
+        # Fetch total quantity sold
+        total_quantity_sold = total_quantity_sold.scalar()
 
         # Prepare data for the table
         kitchen_sales = {kitchen.name: 0 for kitchen in kitchens}
@@ -130,7 +160,9 @@ def distributor_home():
             pie_chart_data=json.dumps(list(kitchen_sales_total.values())),
             kitchens=kitchens,
             kitchen_sales=kitchen_sales,
-            filter_type=filter_type
+            filter_type=filter_type,
+            total_sales_data=total_sales_data,
+            total_quantity_sold=total_quantity_sold
         )
     except Exception as e:
         flash({'error': str(e)})
