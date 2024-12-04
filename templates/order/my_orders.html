@@ -2,6 +2,19 @@
 
 <div class="container mt-5">
     <h2 class="text-center mb-4 text">Your Orders</h2>
+    <!-- Display flash messages for success or error -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button class="btn" type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
     
     {% if orders_data %}
         {% for order in orders_data %}
@@ -25,10 +38,8 @@
                     <strong class="total-price">Total Amount for Order: ₹{{ order.total_amount }}</strong>
                 </div>
                 <!-- Delete Button -->
-                {% if order.status == 'Completed' %}
-                    -
-                {% else %}
-                    <a href="" style="position: absolute; top: 10px; right: 10px;" class="btn btn-danger btn-sm">Cancel</a>
+                {% if order.status != 'Completed' %}
+                    <a href="{{ url_for('order.cancel_order', order_id=order.order_id) }}" style="position: absolute; top: 10px; right: 10px;" class="btn btn-danger btn-sm">Cancel</a>
                 {% endif %}
             </div>
         {% endfor %}
@@ -37,7 +48,7 @@
     {% endif %}
 
 </div>
-<br><br><br><br>
+<br><br><br><br><br>
 
 <!-- Additional styling for the table -->
 <style>

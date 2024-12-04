@@ -13,7 +13,7 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     # Relationships
-    
+    sales = db.relationship('Sales', backref='orders', lazy=True)
     customer = db.relationship('Customer', backref='orders')
     kitchen = db.relationship('Kitchen', backref='orders')
     order_items = db.relationship('OrderItem', backref='order', lazy=True)  # Bidirectional link with OrderItem

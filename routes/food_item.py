@@ -9,13 +9,17 @@ food_item_bp = Blueprint('food_item', __name__)
 def add_food_item():
     user_id = session.get('user_id')
     print(user_id)
+    
     if request.method == 'POST':
         item_name = request.form['item_name']
         description = request.form['description']
         price = request.form['price']
         cuisine_id = request.form['cuisine_id']
         image = request.files.get('image')  # Get the image from the form
-        print(request.files)
+
+        if len(description.split()) > 30:
+            flash('Description is too long, Wirte in 20 words!', 'danger')
+            return redirect(url_for('food_item.add_food_item'))
 
         image_binary = None
         if image and allowed_file(image.filename):
@@ -32,6 +36,7 @@ def add_food_item():
             )
             db.session.add(new_food_item)
             db.session.commit()
+            exception_message = f"Description is too long, Wirte in 20 words!"
             flash('Food item added successfully!', 'success')
             return redirect(url_for('food_item.add_food_item'))  # Redirect after successful POST
         except Exception as e:
