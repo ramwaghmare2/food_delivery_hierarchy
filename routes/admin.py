@@ -1,4 +1,4 @@
-from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer
+from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.services import allowed_file, get_image
@@ -193,30 +193,6 @@ VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
 
 @admin_bp.route('/add_user/<role>', methods=['GET', 'POST'])
 @role_required('Admin')
-def add_user(role):
-    if role not in VALID_ROLES:
-        return jsonify({"error": "Invalid role"}), 400
-
-    if request.method == 'POST':
-        data = request.form
-        password = data.get('password')
-        confirm_password = data.get('confirm_password')
-        
-        if password != confirm_password:
-            return jsonify({"error": "Passwords do not match"}), 400
-
-        user = create_user(data, role)
-        if user:
-            return redirect(url_for('admin_bp.admin_dashboard'))
-        else:
-            return jsonify({"error": "User already exists or invalid role"}), 400
-
-    return render_template('admin/add_user.html', role=role)
-   
-"""
-################################## Route for displaying admin dashboard ##################################
-@admin_bp.route('/admin', methods=['GET'])
-@role_required('Admin')
 def admin_dashboard():
     # Fetch session data
     user_name = session.get('user_name', 'User')
@@ -230,7 +206,7 @@ def admin_dashboard():
     kitchen_count = 0
     total_sales_amount = 0
     total_orders_count = 0
-
+    quantity_sold = 0
     try:
         # Fetch data from database
         managers = Manager.query.all()
@@ -245,13 +221,17 @@ def admin_dashboard():
         kitchens = Kitchen.query.all()
         kitchen_count = len(kitchens)
 
-        query = Sales.query
+        query = Order.query
         #total_sales = Sales.query.all()
-        total_sales_amount = query.with_entities(db.func.sum(Sales.total_price)).scalar() or 0
+        total_sales_amount = query.with_entities(db.func.sum(Order.total_amount)).scalar() or 0
 
-        total_orders = Sales.query.all()
+        total_orders = OrderItem.query.all()
         total_orders_count = len(total_orders)
-        total_orders = query.with_entities(db.func.sum(Sales.quantity)).scalar() or 0
+        total_orders = query.with_entities(db.func.sum(OrderItem.quantity)).scalar() or 0
+
+        quantity_sold = Sales.query.all()
+        quantity = len(quantity_sold)
+        quantity_sold = query.with_entities(db.func.sum(OrderItem.quantity)).scalar() or 0
 
 
         print(f"Managers: {manager_count}, Super Distributors: {super_distributor_count}, Distributors: {distributor_count}, Kitchens: {kitchen_count}")
@@ -269,6 +249,80 @@ def admin_dashboard():
         kitchen_count=kitchen_count,
         total_sales_amount=total_sales_amount,
         total_orders_count=total_orders_count,
+        quantity_sold=quantity_sold,
+        user_name=user_name,
+        role=role,
+    )
+   
+"""
+################################## Route for displaying admin dashboard ##################################
+@admin_bp.route('/admin', methods=['GET'])
+@role_required('Admin')
+def admin_dashboard():
+    # Fetch session data
+    user_name = session.get('user_name', 'User')
+    role = session.get('role')
+    user_id = session.get('user_id')
+
+    # Initialize counts, totals, and sales data
+    manager_count = 0
+    super_distributor_count = 0
+    distributor_count = 0
+    kitchen_count = 0
+    total_sales_amount = 0
+    total_orders_count = 0
+    quantity_sold = 0
+    sales_data = []
+
+    try:
+        # Fetch data from database
+        managers = Manager.query.all()
+        manager_count = len(managers)
+
+        super_distributors = SuperDistributor.query.all()
+        super_distributor_count = len(super_distributors)
+
+        distributors = Distributor.query.all()
+        distributor_count = len(distributors)
+
+        kitchens = Kitchen.query.all()
+        kitchen_count = len(kitchens)
+
+        total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
+        total_orders_count = OrderItem.query.count()
+
+        quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
+
+        # Fetch sales data
+        sales_data = db.session.query(
+            Sales.sale_id,
+            Sales.datetime,
+            FoodItem.item_name,
+            OrderItem.price,
+            OrderItem.quantity
+        ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
+        .join(FoodItem, Sales.item_id == FoodItem.id)\
+        .order_by(Sales.datetime.desc())\
+        .all()
+
+        print(f"Managers: {manager_count}, Super Distributors: {super_distributor_count}, Distributors: {distributor_count}, Kitchens: {kitchen_count}")
+        print(f"Total Sales Amount: {total_sales_amount}, Total Orders Count: {total_orders_count}")
+        print(f"Sales Data: {sales_data}")
+
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+
+    # Render the admin dashboard template
+    return render_template(
+        'admin/admin_index.html',
+        manager_count=manager_count,
+        super_distributor_count=super_distributor_count,
+        distributor_count=distributor_count,
+        kitchen_count=kitchen_count,
+        total_sales_amount=total_sales_amount,
+        total_orders_count=total_orders_count,
+        quantity_sold=quantity_sold,
+        sales_data=sales_data,
         user_name=user_name,
         role=role,
     )
@@ -287,7 +341,10 @@ def sales_report():
     # Apply the filter if provided
     today = datetime.today()
     start_time, end_time = None, None
-
+    total_sales_amount = 0
+    total_orders_count = 0
+    quantity_sold = 0
+    
     if filter_param == 'today':
         start_time = datetime.combine(today, datetime.min.time())
         end_time = datetime.combine(today + timedelta(days=1), datetime.min.time())
@@ -307,16 +364,23 @@ def sales_report():
         query = query.filter(Sales.datetime >= start_time, Sales.datetime < end_time)
 
     # Aggregate total sales and quantity sold
-    total_sales_amount = query.with_entities(db.func.sum(Sales.total_price)).scalar() or 0
-    quantity_sold = query.with_entities(db.func.sum(Sales.quantity)).scalar() or 0
-    
-    # Total orders count
-    total_orders_count = Sales.query.count()
+    total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
+    total_orders_count = OrderItem.query.count()    
+    quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
+
+    # Get sales data for the table: Join OrderItem and FoodItem
+    sales_data = db.session.query(
+        Sales.sale_id.label('sale_id'),
+        Sales.datetime,
+        FoodItem.item_name,
+        OrderItem.price,
+        OrderItem.quantity,
+    ).join(OrderItem, FoodItem.id == OrderItem.item_id).all()
 
     # Get sales data for the line chart (sales by date)
     sales_by_date = db.session.query(
         func.date(Sales.datetime).label('sale_date'),
-        func.sum(Sales.total_price).label('total_sales')
+        func.sum(Order.total_amount).label('total_sales')
     ).filter(Sales.datetime >= start_time, Sales.datetime < end_time).group_by(func.date(Sales.datetime)).all()
 
     # Process sales data into a dictionary
@@ -327,8 +391,6 @@ def sales_report():
     # Convert the sales data (for table and chart)
     dates = [str(date) for date in sales_by_date_dict.keys()] if sales_by_date_dict else ["No Data"]
     sales = list(sales_by_date_dict.values()) if sales_by_date_dict else [0]
-
-    sales_data = query.all()
 
     return render_template(
         'admin/sales_report.html',
@@ -341,38 +403,6 @@ def sales_report():
         sales=sales,
     )
 
-    
-################################## Orders data visualization API ##################################
-orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
-"""
-@orders_bp.route('/list', methods=['GET'])
-def order_list():
-    page = request.args.get('page', 1, type=int)
-    search_query = request.args.get('search', '', type=str)
-
-    query = Order.query.options(
-        joinedload(Order.customer),
-        joinedload(Order.order_items).joinedload(OrderItem.food_item)
-    )
-
-    if search_query:
-        orders = Order.query.join(Customer).filter(
-            (Order.order_id.like(f'%{search_query}%')) |
-            (Customer.name.like(f'%{search_query}%'))
-        ).paginate(page=page, per_page=10)
-    else:
-        orders = Order.query.paginate(page=page, per_page=10)
-
-    for order in orders.items:
-        print(f"Order ID: {order.order_id}")
-        if order.order_items:
-            for item in order.order_items:
-                print(f" - Food Item: {item.food_item.item_name}, Quantity: {item.quantity}")
-            else:
-                print(" - No order items found")
-
-    return render_template('admin/order_list.html', orders=orders)
-"""
 ################################## Orders data visualization API ##################################
 orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
 

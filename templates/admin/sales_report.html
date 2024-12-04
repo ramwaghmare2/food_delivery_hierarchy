@@ -1,13 +1,13 @@
 {% extends 'admin/admin_base.html' %}
 
 {% block content %}
-<div class="container-fluid" style="background-color: #2e2e2e; color: white; min-height: 100vh; padding: 20px;">
-    <h1 class="h3 mb-4 text-gray-100">Sales Report</h1>
+<div class="container-fluid" style="background-color: rgb(93, 172, 228); color: white; min-height: 100vh; padding: 20px;">
+    <h1 class="h3 mb-4 text-gray-100">SALES REPORT</h1>
 
     <!-- Totals Table -->
     <div class="card shadow mb-4" style="background-color: #3e3e3e;">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+            <h6 class="m-0 font-weight-bold text-primary" style="font-size: 1.5rem;">Summary</h6>
         </div>
         <div class="card-body">
             <table class="table table-bordered table-hover text-white">
@@ -49,23 +49,23 @@
         <div class="card-header py-3">
             <h3 class="m-0 font-weight-bold text-primary">Sales Visualization</h3>
         </div>
-        <div class="card-body">
+        <div class="table-container">
             <canvas id="sales-chart"></canvas>
         </div>
     </div>
 
     <!-- Sales Data Table -->
-    <div class="card shadow" style="background-color: #3e3e3e;">
+    <div class="card shadow" style="background-color: #03183b;">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
+            <h3 class="m-0 font-weight-bold text-primary">Sales Data Table</h3>
         </div>
-        <div class="card-body">
+        <div class="table-container">
             <div class="table-responsive">
                 <table class="table table-hover table-bordered text-white">
                     <thead class="thead-light">
                         <tr>
                             <th>Sale ID</th>
-                            <th>Product Name</th>
+                            <th>Item Name</th>
                             <th>Price (₹)</th>
                             <th>Quantity</th>
                             <th>Sale Date</th>
@@ -73,21 +73,21 @@
                     </thead>
                     <tbody>
                         {% if sales_data %}
-                        {% for sale in sales_data %}
-                        <tr>
-                            <td>{{ sale.sale_id }}</td>
-                            <td>{{ sale.item_name }}</td>
-                            <td>${{ sale.price }}</td>
-                            <td>{{ sale.quantity }}</td>
-                            <td>{{ sale.datetime.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                        </tr>
-                        {% endfor %}
+                            {% for sale_id, datetime, item_name, price, quantity in sales_data %}
+                            <tr>
+                                <td>{{ sale_id }}</td>
+                                <td>{{ item_name }}</td>
+                                <td>₹ {{ price }}</td>
+                                <td>{{ quantity }}</td>
+                                <td>{{ datetime.strftime('%Y-%m-%d %H:%M:%S') if datetime else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
                         {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center">No sales data available</td>
-                        </tr>
+                            <tr>
+                                <td colspan="5" class="text-center">No sales data available</td>
+                            </tr>
                         {% endif %}
-                    </tbody>
+                    </tbody>                    
                 </table>
             </div>
         </div>
@@ -219,5 +219,40 @@
         background-color: #4b4b4b;
         color: #fff;
     }
+
+.table-container {
+    max-height: 300px; /* Adjust as needed to show approximately 10 rows */
+    overflow-y: auto;
+    position: relative;
+}
+
+.sales-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sales-table th, .sales-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* Make the header sticky */
+.sales-table th {
+    background-color: #f4f4f4; /* Header color */
+    position: sticky;
+    top: 0;
+    z-index: 2; /* Higher than tbody rows to stay above */
+}
+
+/* Optional: Style for the table rows */
+.sales-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.sales-table tr:hover {
+    background-color: #f1f1f1;
+}
+
 </style>
 {% endblock %}
