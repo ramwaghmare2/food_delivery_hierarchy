@@ -11506,3 +11506,112 @@ body {
   font-weight: bold;
   color: #333;
 }
+
+
+
+/* Add animation for sidebar links */
+.nav-link {
+transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: #007bff;
+    transform: translateX(5px);
+    color: white;
+}
+
+/* Animation for the sidebar collapse button */
+.sb-sidenav-collapse-arrow {
+    transition: transform 0.3s ease;
+}
+
+.sb-sidenav-collapse-arrow:hover {
+    transform: rotate(180deg);
+}
+
+/* Animation for profile image */
+.profile-image {
+    transition: transform 0.3s ease;
+}
+
+.profile-image:hover {
+    transform: scale(1.1);
+}
+
+/* Add bounce effect to menu items */
+.nav-link, .sb-nav-link-icon {
+    animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Add subtle fade-in effect on page load */
+body {
+    animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.chart-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chart-container canvas {
+  width: 300px;
+  height: 400px;
+  border: 1px solid rgb(126, 120, 120); /* Border */
+  border-radius: 5px; /* Optional: Adds rounded corners */
+  padding: 10px; /* Optional: Adds spacing inside the border */
+}
+
+.chart-wrapper {
+  flex: 1;
+  margin: 10px;
+}
+
+
+  .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  @keyframes bounceIn {
+  0% {
+      transform: translateY(1000px);
+      opacity: 0;
+  }
+  60% {
+      transform: translateY(-30px);
+      opacity: 1;
+  }
+  80% {
+      transform: translateY(10px);
+  }
+  100% {
+      transform: translateY(0);
+  }
+}
+
+.chart-container canvas {
+  animation: bounceIn 1s ease-out;
+}

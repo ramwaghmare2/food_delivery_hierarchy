@@ -20,62 +20,6 @@
                 display: inline-block;
             }
 
-            /* Add animation for sidebar links */
-            .nav-link {
-                transition: background-color 0.3s ease, transform 0.3s ease;
-            }
-
-            .nav-link:hover {
-                background-color: #007bff;
-                transform: translateX(5px);
-                color: white;
-            }
-
-            /* Animation for the sidebar collapse button */
-            .sb-sidenav-collapse-arrow {
-                transition: transform 0.3s ease;
-            }
-
-            .sb-sidenav-collapse-arrow:hover {
-                transform: rotate(180deg);
-            }
-
-            /* Animation for profile image */
-            .profile-image {
-                transition: transform 0.3s ease;
-            }
-
-            .profile-image:hover {
-                transform: scale(1.1);
-            }
-
-            /* Add bounce effect to menu items */
-            .nav-link, .sb-nav-link-icon {
-                animation: fadeIn 1s ease-out;
-            }
-
-            @keyframes fadeIn {
-                0% {
-                    opacity: 0;
-                }
-                100% {
-                    opacity: 1;
-                }
-            }
-
-            /* Add subtle fade-in effect on page load */
-            body {
-                animation: fadeIn 1s ease-out;
-            }
-
-            @keyframes fadeIn {
-                0% {
-                    opacity: 0;
-                }
-                100% {
-                    opacity: 1;
-                }
-            }
         </style>
     </head>
     <body class="sb-nav-fixed">
@@ -142,7 +86,7 @@
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseOrder" aria-expanded="false" aria-controls="collapsePages">
-                                <div class="sb-nav-link-icon"><i class="fas fa-box"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
                                 Orders
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
