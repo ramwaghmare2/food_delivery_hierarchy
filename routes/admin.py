@@ -294,7 +294,6 @@ def logout():
 @role_required('Admin')
 def admin_dashboard():
     # Fetch session data
-    user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
 
@@ -509,29 +508,61 @@ def order_list():
     return render_template('admin/order_list.html', orders=orders, exception_message=None)
 
 ################################## Get All Manager Profile ##################################
-@admin_bp.route('/admin/<int:admin_id>', methods=['GET'])
-def get_admin_profile(admin_id):
+@admin_bp.route('/profile', methods=['GET'])
+def get_profile():
     role = session.get('role')
+    user_id = session.get('user_id')
+    # user_name = session.get('user_name')
 
-    # Query the admin by id
-    admin = Admin.query.get_or_404(admin_id)
+    role_model_map = {
+                "Admin": Admin,
+                "Manager": Manager,
+                "SuperDistributor": SuperDistributor,
+                "Distributor": Distributor,
+                "Kitchen": Kitchen
+            }
+            
+    model = role_model_map.get(role)
+    
+    user = model.query.filter_by(id=user_id).first()
 
     # Encode the image to Base64 for rendering in HTML
     encoded_image = None
-    if admin.image:
-        encoded_image = b64encode(admin.image).decode('utf-8')
+    if user.image:
+        encoded_image = b64encode(user.image).decode('utf-8')
 
-    return render_template('admin/admin_profile.html', admin=admin, role=role, encoded_image=encoded_image)
+
+
+    return render_template('admin/user_profile.html', 
+                           user=user, 
+                           role=role, 
+                           encoded_image=encoded_image,
+                           user_name=user.name,
+                           user_id=user_id,
+                           )
 
 ################################## Edit Admin ##################################
-@admin_bp.route('/edit/<int:admin_id>', methods=['GET', 'POST'])
-def edit_admin(admin_id):
-    admin = Admin.query.get_or_404(admin_id)
+@admin_bp.route('/profile-edit', methods=['GET', 'POST'])
+def edit_profile():
 
+    user_id = session.get('user_id')
     role = session.get('role')
     user_name = session.get('user_name')
 
-    image_data= get_image(role, admin_id)
+    role_model_map = {
+                "Admin": Admin,
+                "Manager": Manager,
+                "SuperDistributor": SuperDistributor,
+                "Distributor": Distributor,
+                "Kitchen": Kitchen
+            }
+            
+    model = role_model_map.get(role)
+    
+    user = model.query.filter_by(id=user_id).first()
+    
+
+    image_data= get_image(role, user_id)
 
     if isinstance(role, bytes):
         role = role.decode('utf-8')
@@ -546,41 +577,45 @@ def edit_admin(admin_id):
         image = request.files.get('image')  # Get the image from the form if provided
 
         # Validate if email already exists (excluding the current manager)
-        existing_admin_email = Admin.query.filter(Admin.email == email, admin.id != admin.id).first()
-        if existing_admin_email:
-            flash("The email is already in use by another admin.", "danger")
-            return render_template('admin/edit_admin.html',admin=admin, role=role, user_name=user_name)
+        existing_email = model.query.filter(model.email == email, model.id != user.id).first()
+        if existing_email:
+            flash(f"The email is already in use by another {role}.", "danger")
+            return redirect(url_for('admin_bp.edit_profile'))
 
         # Validate if contact already exists (excluding the current manager)
-        existing_admin_contact = Admin.query.filter(Admin.contact == contact, Admin.id != admin.id).first()
-        if existing_admin_contact:
-            flash("The contact number is already in use by another admin.", "danger")
-            return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
+        existing_contact = model.query.filter(model.contact == contact, model.id != user.id).first()
+        if existing_contact:
+            flash(f"The contact number is already in use by another {role}.", "danger")
+            return redirect(url_for('admin_bp.edit_profile'))
 
         # Update manager details
-        admin.name = name
-        admin.email = email
-        admin.contact = contact
+        user.name = name
+        user.email = email
+        user.contact = contact
 
         # If password is provided, hash and update it
         if password:
-            admin.password = bcrypt.generate_password_hash(password).decode('utf-8')
+            user.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
         # Handle image update if a new image is uploaded
         if image and allowed_file(image.filename):
             # Convert the image to binary data
             image_binary = image.read()
-            admin.image = image_binary
+            user.image = image_binary
 
         try:
             db.session.commit()
-            flash("Admin updated successfully!", "success")
-            return redirect(url_for('admin_bp.admin_dashboard'))
+            flash(f"{role} updated successfully!", "success")
+            return redirect(url_for('admin_bp.get_profile'))
         except Exception as e:
             db.session.rollback()
-            flash(f"Error updating admin: {str(e)}", "danger")
+            flash(f"Error updating {role}: {str(e)}", "danger")
+            return redirect(url_for('admin_bp.edit_profile'))
 
-        return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name ,encoded_image=image_data)
-
-    return render_template('admin/edit_admin.html', admin=admin, role=role, user_name=user_name)
+    return render_template('admin/edit_profile.html', 
+                           user=user, 
+                           role=role, 
+                           user_name=user_name,
+                           user_id=user_id,
+                           )
 

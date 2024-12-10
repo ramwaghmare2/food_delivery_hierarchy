@@ -140,14 +140,13 @@ def distributor_home():
                 kitchen_sales_total[kitchen.name] += float(order.total_amount)  # Sum up the total sales amount
 
         # Get user data (name, role, etc.)
-        user_name = session.get('user_name', 'User')
         role = session.get('role')
         image_data = get_image(role, distributor_id)
-
+        user = get_user_query(role, distributor_id)
         # Render the distributor home page with table and chart data
         return render_template(
             'd_index.html', 
-            user_name=user_name,
+            user_name=user.name,
             role=role, 
             encoded_image=image_data,
             kitchen_count=kitchen_count,
@@ -174,9 +173,12 @@ def distributor_home():
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
-    user_name = session.get('user_name')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
+    counts = get_model_counts()
+    user = get_user_query(role, user_id)
+    # Get filter status from request parameters
+    filter_status = request.args.get('status', 'all').lower()
     if role == 'Admin':
         # Admin sees all distributors
         all_distributors = Distributor.query.all()
@@ -188,23 +190,46 @@ def all_distributor():
         super_distributor_ids = [sd.id for sd in super_distributors]
         print("Super Distributor IDs:", super_distributor_ids)
         all_distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+
+
+    # Fetch managers based on filter
+    if filter_status == 'activated':
+        all_distributor = Distributor.query.filter_by(status='activated').all()
+        print(all_distributor)
+    elif filter_status == 'deactivated':
+        all_distributor = Distributor.query.filter_by(status='deactivated').all()
+    else:  # 'all' or no filter
+        all_distributor = Distributor.query.all()
+
     # Convert images to Base64 format
-    for distributors in all_distributors:
-            if distributors.image:
-                distributors.image_base64 = f"data:image/jpeg;base64,{b64encode(distributors.image).decode('utf-8')}"
+    for distributor in all_distributor:
+            if distributor.image:
+                distributor.image_base64 = f"data:image/jpeg;base64,{b64encode(distributor.image).decode('utf-8')}"
             else:
-                distributors.image_base64 = None
-    return render_template('d_all_distributor.html', all_distributors=all_distributors,role=role,user_name=user_name, encoded_image=image_data)
+                distributor.image_base64 = None
+    return render_template('d_all_distributor.html', 
+                           **counts,
+                           total_distributors_count=len(all_distributors),
+                           all_distributors=all_distributor,
+                           role=role,
+                           user_name=user.name, 
+                           encoded_image=image_data,
+                           filter=filter_status,
+                           )
 
 
 ################################## Route to display all kitchens ##################################
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
     role = session.get('role')
-    user_name = session.get('user_name')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id)  # Assuming 'user_id' is stored in the session
+    user = get_user_query(role, user_id)
     counts = get_model_counts()
+
+    # Get filter status from request parameters
+    filter_status = request.args.get('status', 'all').lower()
+
     if role == 'Admin':
             # Admin sees all kitchens
             all_kitchens = Kitchen.query.all()   
@@ -221,7 +246,28 @@ def distrubutor_all_kitchens():
             distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
             distributor_ids = [dist.id for dist in distributors]
             all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
-    return render_template('kitchen/all_kitchens.html', all_kitchens=all_kitchens , role=role , user_name=user_name, **counts , encoded_image=image_data)
+
+    # Fetch managers based on filter
+    if filter_status == 'activated':
+        all_kitchens = Kitchen.query.filter_by(status='activated').all()
+    elif filter_status == 'deactivated':
+        all_kitchens = Kitchen.query.filter_by(status='deactivated').all()
+    else:  # 'all' or no filter
+        all_kitchens = Kitchen.query.all()
+
+    for kitchen in all_kitchens:
+            if kitchen.image:
+                kitchen.image_base64 = f"data:image/jpeg;base64,{b64encode(kitchen.image).decode('utf-8')}"
+            else:
+                kitchen.image_base64 = None
+    
+    return render_template('kitchen/all_kitchens.html', 
+                           all_kitchens=all_kitchens, 
+                           role=role, 
+                           user_name=user.name, 
+                           **counts, 
+                           encoded_image=image_data,
+                           filter=filter_status)
 
 ################################## Route to delete kitchen ##################################
 @distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['GET','POST'])
@@ -261,7 +307,7 @@ def edit_distributor(distributor_id):
     role = session.get('role')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
-
+    user = get_user_query(role, user_id)
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -302,20 +348,19 @@ def edit_distributor(distributor_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating Distributor: {str(e)}", "danger")
-            return render_template('edit_distributor.html', distributor=distributor, role=role , encoded_image = image_data)
+            return render_template('edit_distributor.html', distributor=distributor, role=role , encoded_image = image_data, user_name=user.name)
 
-    return render_template('edit_distributor.html', distributor=distributor, role=role , encoded_image = image_data)
+    return render_template('edit_distributor.html', distributor=distributor, role=role , encoded_image = image_data, user_name=user.name)
 
 ################################## Route for Display orders related to distributor ##################################
-from datetime import datetime, timedelta
-
 @distributor_bp.route('/distributor-orders', methods=['GET'])
 def distributor_orders():
     try:
         # Get the logged-in distributor's ID from the session
         distributor_id = session.get('user_id')
         role = session.get('role')
-        image_data= get_image(role, distributor_id) 
+        image_data= get_image(role, distributor_id)
+        user = get_user_query(role, distributor_id) 
         if not distributor_id:
             flash({'error': 'Unauthorized access'})
             return redirect(url_for('distributor.distributor_home'))

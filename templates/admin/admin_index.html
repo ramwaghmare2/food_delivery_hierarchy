@@ -1,5 +1,28 @@
 {% include 'admin/admin_header.html' %}
 
+<style>
+    .table-bordered th, .table-bordered td {
+        border: 1px solid #ffffff !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #eef154 !important;
+    }
+
+    .table-responsive {
+        margin-top: 15px;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+
+    .card-header {
+        background-color: #eef154;
+        color: #fff;
+    }
+</style>
+
 <div id="layoutSidenav_content">
     <main>
         <div class="container-fluid px-4">
@@ -7,60 +30,86 @@
             <ol class="breadcrumb mb-4">
                 <li class="breadcrumb-item active">Dashboard</li>
             </ol>
-
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <!-- Cards for counts in a single row -->
             <div class="row mb-4">
                 <!-- Manager Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-warning text-white fixed-card mb-4">
-                        <div class="card-body"><b>Managers</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ manager_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-user-tie"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('manager.get_managers') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-warning o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon-man">
+                          <i class="fas fa-user-tie"></i>
                         </div>
+                        <div class="mr-5"><b>{{ manager_count }} Managers</b></div>
+                      </div>
+                      <a class="card-footer text-white clearfix small z-1" href="{{ url_for('manager.get_managers') }}">
+                        <span class="float-left">View Details</span>
+                        <span class="float-right">
+                        </span>
+                      </a>
                     </div>
-                </div>
+                  </div>
 
                 <!-- Super Distributor Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-secondary text-white fixed-card mb-4">
-                        <div class="card-body"><b>Super Distributors</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ super_distributor_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-network-wired"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('super_distributor.all_super_distributor') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-secondary o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon">
+                          <i class="fas fa-network-wired"></i>
                         </div>
+                        <div class="mr-5"><strong>{{ super_distributor_count }}  Super Distributors</strong></div>
+                      </div>
+                      <a class="card-footer text-white clearfix small z-1" href="{{ url_for('super_distributor.all_super_distributor') }}">
+                        <span class="float-left">View Details</span>
+                        <span class="float-right">
+                        </span>
+                      </a>
                     </div>
-                </div>
-
+                  </div>
                 <!-- Distributor Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-success text-white fixed-card mb-4">
-                        <div class="card-body"><b>Distributors</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ distributor_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-truck-loading"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('distributor.all_distributor') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-info o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon-dis">
+                          <i class="fas fa-truck-loading"></i>
                         </div>
-                    </div>
-                </div>
+                        <div class="mr-5"><strong>{{ distributor_count }}  Distributors</strong></div>
+                      </div>
+                        <a class="card-footer text-white clearfix small z-1" href="{{ url_for('distributor.all_distributor') }}">
+                          <span class="float-left">View Details</span>
+                          <span class="float-right">
+                          </span>
+                        </a>
+                      </div>
+                  </div>
 
                 <!-- Kitchen Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-info text-white fixed-card mb-4">
-                        <div class="card-body"><b>Kitchens</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ kitchen_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-utensils"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-secondary o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon-kit">
+                          <i class="fas fa-utensils"></i>
                         </div>
+                        <div class="mr-5"><strong>{{ kitchen_count }}  Kitchens</strong></div>
+                      </div>
+                      <a class="card-footer text-white clearfix small z-1" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
+                        <span class="float-left">View Details</span>
+                        <span class="float-right">
+                        </span>
+                      </a>
                     </div>
-                </div>
+                  </div>
             </div>
 
             <!-- Sales and Order Data -->

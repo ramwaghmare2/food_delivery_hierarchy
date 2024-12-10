@@ -1,71 +1,439 @@
 {% include 'sd_header.html' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-            <div id="layoutSidenav_content">
-                <main>
-                    <div class="container-fluid px-4">
-                        <h1 class="mt-4">Super Distributor</h1>
-                        <ol class="breadcrumb mb-4">
-                            <li class="breadcrumb-item active">Dashboard</li>
-                        </ol>
-                        <div class="row">
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-primary text-white mb-4">
-                                    <div class="card-body">Today's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-secondary text-white mb-4">
-                                    <div class="card-body">Yesterday's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-success text-white mb-4">
-                                    <div class="card-body">Current Month's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-info text-white mb-4">
-                                    <div class="card-body">Current Year's Report</div>
-                                    <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#">View Details</a>
-                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-area me-1"></i>
-                                        Area Chart Example
-                                    </div>
-                                    <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
-                                </div>
-                            </div>
-                            <div class="col-xl-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <i class="fas fa-chart-bar me-1"></i>
-                                        Bar Chart Example
-                                    </div>
-                                    <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
-                                </div>
-                            </div>
-                        </div>
+<style>
+    .table-bordered th, .table-bordered td {
+        border: 1px solid #ffffff !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #eef154 !important;
+    }
+
+    .table-responsive {
+        margin-top: 15px;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+
+    .card-header {
+        background-color: #eef154;
+        color: #fff;
+    }
+
+    .chart-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chart-container canvas {
+        width: 400px;
+        height: 400px;
+        border: 1px solid rgb(126, 120, 120); /* Border */
+        border-radius: 5px; /* Optional: Adds rounded corners */
+        padding: 10px; /* Optional: Adds spacing inside the border */
+    }
+
+    .chart-wrapper {
+        flex: 1;
+        margin: 10px;
+    }
+
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes bounceIn {
+        0% {
+            transform: translateY(1000px);
+            opacity: 0;
+        }
+        60% {
+            transform: translateY(-30px);
+            opacity: 1;
+        }
+        80% {
+            transform: translateY(10px);
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    .chart-container canvas {
+        animation: bounceIn 1s ease-out;
+    }
+</style>
+
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">Super Distributor</h1>
+            <ol class="breadcrumb mb-4">
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+
+            <!-- Display flash messages for success or error -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                </main>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
 
-{% include 'sd_footer.html' %}
+            <div class="row">
+                <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-info o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon-dis">
+                          <i class="fas fa-truck-loading"></i>
+                        </div>
+                        <div class="mr-5"><strong>{{ distributor_count }}  Distributors</strong></div>
+                      </div>
+                        <a class="card-footer text-white clearfix small z-1" href="{{ url_for('distributor.all_distributor') }}">
+                          <span class="float-left">View Details</span>
+                          <span class="float-right">
+                            <i class="fa fa-angle-right"></i>
+                          </span>
+                        </a>
+                      </div>
+                  </div>
+                  <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-secondary o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon-kit">
+                          <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="mr-5"><strong>{{ kitchen_count }}  Kitchens</strong></div>
+                      </div>
+                      <a class="card-footer text-white clearfix small z-1" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
+                        <span class="float-left">View Details</span>
+                        <span class="float-right">
+                          <i class="fa fa-angle-right"></i>
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+                  <div class="col-xl-3 col-sm-6 mb-3">
+                      <div class="card text-white bg-success o-hidden h-100">
+                        <div class="card-body">
+                          <div class="card-body-icon">
+                            <i class="fa fa-fw fa-shopping-cart"></i>
+                          </div>
+                          <div class="mr-5"><b>{{ total_orders_count }} Total Orders</b></div>
+                        </div>
+                        <a class="card-footer text-white clearfix small z-1" href="{{ url_for('order.kitchen_orders') }}">
+                          <span class="float-left">View Details</span>
+                          <span class="float-right">
+                            <i class="fa fa-angle-right"></i>
+                          </span>
+                        </a>
+                      </div>
+                  </div>
+                  <div class="col-xl-3 col-sm-6 mb-3">
+                      <div class="card text-white bg-primary o-hidden h-100">
+                        <div class="card-body">
+                          <div class="card-body-icon">
+                            <i class="fa fa-fw fa-list"></i>
+                          </div>
+                          <div class="mr-5"><b>₹{{ total_sales_amount }} Total Sales</b></div>
+                        </div>
+                        <a class="card-footer text-white clearfix small z-1" href="#">
+                          <span class="float-left">View Details</span>
+                          <span class="float-right">
+                            <i class="fa fa-angle-right"></i>
+                          </span>
+                        </a>
+                      </div>
+                  </div>
+            </div>
+            <br>
+            <!-- Totals Table -->
+            <div class="card shadow mb-4" style="background-color: #252424;">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-hover text-white">
+                        <thead>
+                            <tr class="thead-light">
+                                <th>Total Sales (₹)</th>
+                                <th>Quantity Sold</th>
+                                <th>Total Orders</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>₹ {{ total_sales_amount }}</td>
+                                <td>{{ total_quantity_sold }}</td>
+                                <td>{{ total_orders_count }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <br>
+            <!-- Sales Data Table -->
+            <div class="card shadow" style="background-color: #252424;">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered text-white">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Sale ID</th>
+                                    <th>Product Name</th>
+                                    <th>Price (₹)</th>
+                                    <th>Quantity</th>
+                                    <th>Sale Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if sales %}
+                                    {% for sale in sales %}
+                                        {% for item in sale.orders.order_items %}
+                                            <tr>
+                                                <td>{{ sale.sale_id }}</td>
+                                                <td>{{ item.food_items.item_name }}</td>
+                                                <td>₹ {{ item.price }}</td>
+                                                <td>{{ item.quantity }}</td>
+                                                <td>{{ sale.datetime.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No sales data available</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <br>    
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="barChartOrders"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="barChartSales"></canvas>
+                </div>
+            </div>
+            <br>
+            <script>
+                const orderDates = {{ order_dates | safe }};
+                const orderCountPerDate = {{ order_count_per_date | safe }};
+                const salesPerDate = {{ sales_per_date | safe }};
+            
+                // Create gradient color
+                function createGradient(ctx, canvas) {
+                    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                    gradient.addColorStop(0, '#6a11cb');   // Starting color (purple)
+                    gradient.addColorStop(1, '#2575fc');   // Ending color (blue)
+                    return gradient;
+                }
+            
+                // Bar Chart for Order Count Trend (Daily) - Modern Design
+                const barChartOrdersCtx = document.getElementById('barChartOrders').getContext('2d');
+                const orderCanvas = document.getElementById('barChartOrders');
+                const orderGradient = createGradient(barChartOrdersCtx, orderCanvas);
+                
+                new Chart(barChartOrdersCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: orderDates,
+                        datasets: [{
+                            label: 'Order Count Over Time',
+                            data: orderCountPerDate,
+                            backgroundColor: orderGradient,
+                            borderColor: '#3e95cd',
+                            borderWidth: 2,
+                            hoverBackgroundColor: '#2e5d9b',
+                            hoverBorderColor: '#2e5d9b'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#333',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#fff',
+                                borderWidth: 1,
+                                titleFont: {
+                                    size: 18, 
+                                    weight: 'bold',
+                                },
+                                bodyFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                labels: {
+                                    fontColor: '#fff',
+                                    font: {
+                                        size: 18,  // Increase the size of the legend labels
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: { 
+                                    display: true, 
+                                    text: 'Date',
+                                    font: {
+                                        size: 20,
+                                        weight: 'bold'
+                                    }
+                                },
+                                grid: {
+                                    color: '#2e2e2e'
+                                }
+                            },
+                            y: {
+                                title: { 
+                                    display: true, 
+                                    text: 'Number of Orders',
+                                    font: {
+                                        size: 20,
+                                        weight: 'bold'
+                                    }
+                                },
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#2e2e2e'
+                                },
+                                ticks: {
+                                    color: '#fff',
+                                    font: {
+                                        size: 16,  // Increase the size of y-axis ticks
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutBounce'
+                        }
+                    }
+                });
+            
+                // Bar Chart for Sales Trend (Daily) - Modern Design
+                const barChartSalesCtx = document.getElementById('barChartSales').getContext('2d');
+                const salesCanvas = document.getElementById('barChartSales');
+                const salesGradient = createGradient(barChartSalesCtx, salesCanvas);
+                
+                new Chart(barChartSalesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: orderDates,
+                        datasets: [{
+                            label: 'Sales Over Time (₹)',
+                            data: salesPerDate,
+                            backgroundColor: salesGradient,
+                            borderColor: '#ff6f61',
+                            borderWidth: 2,
+                            hoverBackgroundColor: '#ff4b39',
+                            hoverBorderColor: '#ff4b39'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#333',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#fff',
+                                borderWidth: 1,
+                                titleFont: {
+                                    size: 18, 
+                                    weight: 'bold',
+                                },
+                                bodyFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                labels: {
+                                    fontColor: '#fff',
+                                    font: {
+                                        size: 18,  // Increase the size of the legend labels
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: { 
+                                    display: true, 
+                                    text: 'Date',
+                                    font: {
+                                        size: 20,
+                                        weight: 'bold'
+                                    }
+                                },
+                                grid: {
+                                    color: '#2e2e2e'
+                                }
+                            },
+                            y: {
+                                title: { 
+                                    display: true, 
+                                    text: 'Sales (₹)',
+                                    font: {
+                                        size: 20,
+                                        weight: 'bold'
+                                    }
+                                },
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#2e2e2e'
+                                },
+                                ticks: {
+                                    color: '#fff',
+                                    font: {
+                                        size: 16,  // Increase the size of y-axis ticks
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutBounce'
+                        }
+                    }
+                });
+            </script>            
+        </div>
+    </main>
+    <br>
+
+{% include 'admin/admin_footer.html' %}

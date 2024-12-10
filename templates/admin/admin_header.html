@@ -41,9 +41,9 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        
+                        <li><a class="dropdown-item" href="{{ url_for('admin_bp.get_profile') }}">Profile<i class="fas fa-user-tie" style="margin-left:56% ;"></i></a></li>
                         <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item" href="{{ url_for('admin_bp.logout') }}">Logout <i class="fa fa-sign-out" style="margin-left:30px ;"></i></a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_bp.logout') }}">Logout <i class="fa fa-sign-out" style="margin-left:50% ;"></i></a></li>
                     </ul>
                 </li>
             </ul>
@@ -56,14 +56,7 @@
                             <p class="text-center">
                                 {% if encoded_image %}
                                 <div>
-                            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
-                                </div>
-                                {% endif %}
-                            <p class="text-center">
-                            <p class="text-center">
-                                {% if encoded_image %}
-                                <div>
-                            <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
+                                    <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
                                 </div>
                                 {% endif %}
                             </p>
@@ -156,4 +149,3 @@
                     </div>
                 </nav>
             </div>
-            

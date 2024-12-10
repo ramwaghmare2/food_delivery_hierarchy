@@ -1,15 +1,17 @@
 # food_delivery_app/app/routes/order.py
 
 from flask import Blueprint, request, jsonify, session, redirect, render_template, url_for, flash
+from sqlalchemy import or_
 # from models import Order, OrderItem, MenuItem, User
-from models import Order, FoodItem, OrderItem, Sales
+from models import Order, FoodItem, OrderItem, Sales, SuperDistributor, Distributor, Kitchen
 from models.order import db
 from werkzeug.exceptions import NotFound
+from datetime import datetime, timedelta
 from decimal import Decimal
 from models import Customer, FoodItem, Order
 from base64 import b64encode
 
-order_bp = Blueprint('order', __name__)
+order_bp = Blueprint('order', __name__, static_folder='../static')
 
 # Method to place new order
 
@@ -369,26 +371,82 @@ def order_cart():
 
 
     
-@order_bp.route('/kitchen-order/<int:kitchen_id>', methods=['GET', 'POST'])
-def kitchen_orders(kitchen_id):
+@order_bp.route('/kitchen-order', methods=['GET', 'POST'])
+def kitchen_orders( ):
     try:
+        # Get the logged-in user's details
         user_id = session.get('user_id')
         role = session.get('role')
         user_name = session.get('user_name')
+        if not user_id or not role:
+            flash('Unauthorized access', 'error')
+            return redirect(url_for('auth.login'))  # Redirect to the login page
 
-        # Get filter order status from request parameters
-        order_status = request.args.get('status', 'all')
-        # Fetch order based on filter
-        if order_status == 'Completed':
-            orders = Order.query.filter_by(kitchen_id=kitchen_id, order_status='Completed')
-        elif order_status == 'Cancelled':
-            orders = Order.query.filter_by(kitchen_id=kitchen_id, order_status='Cancelled')
-        elif order_status == 'Processing':
-            orders = Order.query.filter_by(kitchen_id=kitchen_id, order_status='Processing')
-        elif order_status == 'Pending':
-            orders = Order.query.filter_by(kitchen_id=kitchen_id, order_status='Pending')
-        else:  # 'all' or no filter
-            orders = Order.query.filter_by(kitchen_id=kitchen_id)
+        # Initialize query based on role
+        if role == 'Distributor':
+            distributor = Distributor.query.filter_by(user_id=user_id).first()
+            if not distributor:
+                flash('Unauthorized access', 'error')
+                return redirect(url_for('auth.login'))
+            kitchen_ids = [kitchen.id for kitchen in distributor.kitchens]
+        
+        elif role == 'SuperDistributor':
+            super_distributor = SuperDistributor.query.filter_by(id=user_id).first()
+            if not super_distributor:
+                flash('Unauthorized access', 'error')
+                return redirect(url_for('auth.login'))
+            distributor_ids = [distributor.id for distributor in super_distributor.distributors]
+            kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
+            kitchen_ids = [kitchen.id for kitchen in kitchens]
+
+        elif role == 'Kitchen':
+            kitchen_ids = [session.get('kitchen_id')]  # Assuming the kitchen ID is stored in the session
+        
+        else:
+            flash('Invalid role', 'error')
+            return redirect(url_for('auth.login'))
+        
+        # Build the base query
+        query = Order.query.filter(Order.kitchen_id.in_(kitchen_ids))
+
+        # Apply filters based on query parameters
+        order_status = request.args.get('status', 'All')
+        if order_status and order_status != 'All':
+            query = query.filter(Order.order_status == order_status)
+
+        selected_kitchen_id = request.args.get('kitchen_id')
+        if selected_kitchen_id and selected_kitchen_id != 'All':
+            query = query.filter(Order.kitchen_id == int(selected_kitchen_id))
+        
+        date_filter = request.args.get('date', 'All')
+        today = datetime.now()
+
+        if date_filter == 'Today':
+            start_date = today.replace(hour=0, minute=0, second=0, microsecond=0)
+            query = query.filter(Order.created_at >= start_date)
+        
+        elif date_filter == 'Yesterday':
+            start_date = (today - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = today.replace(hour=0, minute=0, second=0, microsecond=0)
+            query = query.filter(Order.created_at >= start_date, Order.created_at < end_date)
+        
+        elif date_filter == 'Weekly':
+            start_date = today - timedelta(days=today.weekday())
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            query = query.filter(Order.created_at >= start_date)
+        
+        elif date_filter == 'Monthly':
+            start_date = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            query = query.filter(Order.created_at >= start_date)
+        
+        elif date_filter == 'Yearly':
+            start_date = today.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            query = query.filter(Order.created_at >= start_date)
+
+        # Fetch the filtered orders
+        orders = query.all()
+        # return {"orders": [order.to_dict() for order in orders]}  # Assuming to_dict() is implemented
+        # Prepare orders data for display
         orders_data = [
             {
                 'order_id': order.order_id,
@@ -396,11 +454,13 @@ def kitchen_orders(kitchen_id):
                 'kitchen_name': order.kitchen.name,
                 'total_amount': order.total_amount,
                 'status': order.order_status,
+                'customer_name': f"{order.customer.name}",
                 'created_at': order.created_at,
                 'updated_at': order.updated_at,
                 'items': [
                     {
-                        'item_id': item.food_item.item_name,
+                        'item_id': item.item_id,
+                        'item_name':item.food_items.item_name,
                         'quantity': item.quantity,
                         'price': item.food_item.price,
                         'item_total_price': item.price,
@@ -417,11 +477,17 @@ def kitchen_orders(kitchen_id):
                                orders_data=orders_data, 
                                user_name=user_name, 
                                role=role,
+                               date_filter=date_filter,
+                               kitchens=kitchens,
+                               selected_kitchen_id=selected_kitchen_id,
                                order_status=order_status)
     
     except Exception as e:
         flash({'error': str(e)})
-        return redirect(url_for('kitchen.kitchen_dashboard'))
+        if role == 'SuperDistributor':
+            return redirect(url_for('super_distributor.super_distributor'))
+        else:
+            return redirect(url_for('kitchen.kitchen_dashboard'))
     
 
 @order_bp.route('/update-status/<int:order_id>', methods=['GET'])

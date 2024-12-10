@@ -20,7 +20,7 @@
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
             <h2 class="sd-form">Add Distributor</h2>
-            <form action="{{ url_for('super_distributor.add_distributor') }}" method="post" class="sd-form">
+            <form action="{{ url_for('super_distributor.add_distributor') }}" method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="name" type="text" placeholder="Full Name*" required>
                 </div>

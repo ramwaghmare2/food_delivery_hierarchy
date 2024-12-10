@@ -44,3 +44,20 @@ def get_image(role,user_id):
         
     
     return encoded_image
+
+
+def get_user_query(role, user_id):
+    
+    role_model_map = {
+                "Admin": Admin,
+                "Manager": Manager,
+                "SuperDistributor": SuperDistributor,
+                "Distributor": Distributor,
+                "Kitchen": Kitchen
+            }
+            
+    model = role_model_map.get(role)
+    
+    user = model.query.filter_by(id=user_id).first()
+
+    return user
