@@ -178,7 +178,7 @@
                                         {% for item in sale.orders.order_items %}
                                             <tr>
                                                 <td>{{ sale.sale_id }}</td>
-                                                <td>{{ item.food_items.item_name }}</td>
+                                                <td>{{ item.food_item.item_name }}</td>
                                                 <td>₹ {{ item.price }}</td>
                                                 <td>{{ item.quantity }}</td>
                                                 <td>{{ sale.datetime.strftime('%Y-%m-%d %H:%M:%S') }}</td>

@@ -174,48 +174,54 @@ def distributor_home():
 def all_distributor():
     role = session.get('role')
     user_id = session.get('user_id')
-    image_data= get_image(role, user_id) 
+    image_data = get_image(role, user_id)
     counts = get_model_counts()
     user = get_user_query(role, user_id)
+
     # Get filter status from request parameters
     filter_status = request.args.get('status', 'all').lower()
+
+    # Base query initialization
+    query = Distributor.query
+
     if role == 'Admin':
         # Admin sees all distributors
-        all_distributors = Distributor.query.all()
+        pass  # No additional filters for Admin
     elif role == 'SuperDistributor':
-        all_distributors = Distributor.query.filter_by(super_distributor=user_id).all()
+        # SuperDistributor sees their own distributors
+        query = query.filter_by(super_distributor=user_id)
     else:
-        # Non-admin sees distributors linked to their super distributors
+        # Other roles see distributors linked to their super distributors
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
         super_distributor_ids = [sd.id for sd in super_distributors]
-        print("Super Distributor IDs:", super_distributor_ids)
-        all_distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+        query = query.filter(Distributor.super_distributor.in_(super_distributor_ids))
 
-
-    # Fetch managers based on filter
+    # Apply status filter
     if filter_status == 'activated':
-        all_distributor = Distributor.query.filter_by(status='activated').all()
-        print(all_distributor)
+        query = query.filter_by(status='activated')
     elif filter_status == 'deactivated':
-        all_distributor = Distributor.query.filter_by(status='deactivated').all()
-    else:  # 'all' or no filter
-        all_distributor = Distributor.query.all()
+        query = query.filter_by(status='deactivated')
+
+    # Execute the final query
+    all_distributors = query.all()
 
     # Convert images to Base64 format
-    for distributor in all_distributor:
-            if distributor.image:
-                distributor.image_base64 = f"data:image/jpeg;base64,{b64encode(distributor.image).decode('utf-8')}"
-            else:
-                distributor.image_base64 = None
-    return render_template('d_all_distributor.html', 
-                           **counts,
-                           total_distributors_count=len(all_distributors),
-                           all_distributors=all_distributor,
-                           role=role,
-                           user_name=user.name, 
-                           encoded_image=image_data,
-                           filter=filter_status,
-                           )
+    for distributor in all_distributors:
+        if distributor.image:
+            distributor.image_base64 = f"data:image/jpeg;base64,{b64encode(distributor.image).decode('utf-8')}"
+        else:
+            distributor.image_base64 = None
+
+    return render_template(
+        'd_all_distributor.html',
+        total_distributors_count=len(all_distributors),
+        all_distributors=all_distributors,
+        role=role,
+        user_name=user.name,
+        encoded_image=image_data,
+        filter=filter_status,
+    )
+
 
 
 ################################## Route to display all kitchens ##################################
@@ -223,51 +229,62 @@ def all_distributor():
 def distrubutor_all_kitchens():
     role = session.get('role')
     user_id = session.get('user_id')
-    image_data= get_image(role, user_id)  # Assuming 'user_id' is stored in the session
+    image_data = get_image(role, user_id)
     user = get_user_query(role, user_id)
     counts = get_model_counts()
 
     # Get filter status from request parameters
     filter_status = request.args.get('status', 'all').lower()
 
+    # Base query initialization
+    query = Kitchen.query
+
     if role == 'Admin':
-            # Admin sees all kitchens
-            all_kitchens = Kitchen.query.all()   
+        # Admin sees all kitchens
+        pass  # No additional filters for Admin
     elif role == 'SuperDistributor':
-            distributors = Distributor.query.filter_by(super_distributor=user_id).all()
-            distributor_ids = [dist.id for dist in distributors]
-            all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
+        # SuperDistributor sees kitchens of their distributors
+        distributors = Distributor.query.filter_by(super_distributor=user_id).all()
+        distributor_ids = [dist.id for dist in distributors]
+        query = query.filter(Kitchen.distributor_id.in_(distributor_ids))
     elif role == 'Distributor':
-            all_kitchens = Kitchen.query.filter_by(distributor_id=user_id).all()
+        # Distributor sees their own kitchens
+        query = query.filter_by(distributor_id=user_id)
     else:
-            # Non-admin sees kitchens linked to their distributors
-            super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
-            super_distributor_ids = [sd.id for sd in super_distributors]
-            distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
-            distributor_ids = [dist.id for dist in distributors]
-            all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
+        # Other roles see kitchens linked to their distributors via super distributors
+        super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
+        super_distributor_ids = [sd.id for sd in super_distributors]
+        distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+        distributor_ids = [dist.id for dist in distributors]
+        query = query.filter(Kitchen.distributor_id.in_(distributor_ids))
 
-    # Fetch managers based on filter
+    # Apply status filter
     if filter_status == 'activated':
-        all_kitchens = Kitchen.query.filter_by(status='activated').all()
+        query = query.filter_by(status='activated')
     elif filter_status == 'deactivated':
-        all_kitchens = Kitchen.query.filter_by(status='deactivated').all()
-    else:  # 'all' or no filter
-        all_kitchens = Kitchen.query.all()
+        query = query.filter_by(status='deactivated')
 
+    # Execute the final query
+    all_kitchens = query.all()
+    kitchens_count = len(all_kitchens)
+    # Convert images to Base64 format
     for kitchen in all_kitchens:
-            if kitchen.image:
-                kitchen.image_base64 = f"data:image/jpeg;base64,{b64encode(kitchen.image).decode('utf-8')}"
-            else:
-                kitchen.image_base64 = None
-    
-    return render_template('kitchen/all_kitchens.html', 
-                           all_kitchens=all_kitchens, 
-                           role=role, 
-                           user_name=user.name, 
-                           **counts, 
-                           encoded_image=image_data,
-                           filter=filter_status)
+        if kitchen.image:
+            kitchen.image_base64 = f"data:image/jpeg;base64,{b64encode(kitchen.image).decode('utf-8')}"
+        else:
+            kitchen.image_base64 = None
+
+    return render_template(
+        'kitchen/all_kitchens.html',
+        all_kitchens=all_kitchens,
+        role=role,
+        user_name=user.name,
+        **counts,
+        encoded_image=image_data,
+        kitchens_count=kitchens_count,
+        filter=filter_status,
+    )
+
 
 ################################## Route to delete kitchen ##################################
 @distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['GET','POST'])
@@ -423,7 +440,7 @@ def distributor_orders():
                 'items': [
                     {
                         'item_id': item.item_id,
-                        'item_name':item.food_items.item_name,
+                        'item_name':item.food_item.item_name,
                         'quantity': item.quantity,
                         'price': item.price,
                         'total_price': item.price * item.quantity

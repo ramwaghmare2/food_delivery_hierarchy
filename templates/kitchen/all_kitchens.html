@@ -16,9 +16,9 @@
             <!-- Debugging Content -->
             <h2 class="text-center mb-4">Kitchens List</h2>
             {% if role == 'Admin' %}
-                <p><b>Total Kitchens - {{ kitchen_count }}</b></p>
+                <p><b>Total Kitchens - {{ kitchens_count }}</b></p>
             {% else %}
-                <p><strong>Kitchen Count: {{ kitchen_count }}</strong></p> <!-- Debugging Line -->
+                <p><strong>Kitchen Count: {{ kitchens_count }}</strong></p> <!-- Debugging Line -->
             {% endif %}
 
             <!-- Display flash messages for success or error -->
