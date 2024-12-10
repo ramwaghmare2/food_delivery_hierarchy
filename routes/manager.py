@@ -1,26 +1,14 @@
-from flask import Blueprint
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash,current_app, session
-from werkzeug.security import generate_password_hash, check_password_hash
-from models.manager import Manager, db
-from datetime import datetime
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
-from extensions import bcrypt
-from werkzeug.utils import secure_filename
-import os
+from flask import Blueprint, request, render_template, redirect, url_for, flash, session
+from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem
 from utils.services import get_model_counts ,allowed_file ,get_image
+from werkzeug.security import generate_password_hash
+from models.manager import db, Manager
+from extensions import bcrypt
 from base64 import b64encode
+from flask import Blueprint
 
 
 manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')
-
-# Route to display Manager's Dashboard
-@manager_bp.route('/', methods=['GET', 'POST'])
-def manager_dashboard():
-    user_name = session.get('user_name', 'User')
-    role = session.get('role')
-    user_id = session.get('user_id')
-    image_data= get_image(role, user_id)
-    return render_template('manager_index.html', user_name=user_name,role=role , encoded_image = image_data)
 
 # Route to Add a new manager
 @manager_bp.route('/add', methods=['GET', 'POST'])
@@ -71,66 +59,7 @@ def add_manager():
     
     return render_template('add_manager.html', role=role,user_name=user_name, encoded_image = image_data)
 
-"""
-# Route for get all Managers
-@manager_bp.route('/managers', methods=['GET'])
-def get_managers():
-    role = session.get('role')
-    user_name = session.get('user_name')
-    user_id = session.get('user_id')
-    image_data= get_image(role, user_id) 
-    counts = get_model_counts()
-    try:
-        role = role.decode('utf-8') if isinstance(role, bytes) else role
-        user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
 
-        managers = Manager.query.all()
-        
-        # Convert images to Base64 format
-        for manager in managers:
-            if manager.image:
-                manager.image_base64 = f"data:image/jpeg;base64,{b64encode(manager.image).decode('utf-8')}"
-            else:
-                manager.image_base64 = None
-
-        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts ,encoded_image=image_data)
-    except Exception as e:
-        flash(f"Error retrieving managers: {str(e)}", "danger")
-        return render_template('managers.html', managers=[], role=role, user_name=user_name,encoded_image=image_data)
-
-"""
-
-"""
-@manager_bp.route('/managers', methods=['GET'])
-def get_managers():
-    role = session.get('role')
-    user_name = session.get('user_name')
-    user_id = session.get('user_id')
-    image_data = get_image(role, user_id)
-    counts = get_model_counts()
-
-    try:
-        role = role.decode('utf-8') if isinstance(role, bytes) else role
-        user_name = user_name.decode('utf-8') if isinstance(user_name, bytes) else user_name
-
-        managers = Manager.query.all()
-        active_managers = [manager for manager in managers if manager.status == 'activated']
-
-        # Convert images to Base64 format
-        for manager in managers:
-            if manager.image:
-                manager.image_base64 = f"data:image/jpeg;base64,{b64encode(manager.image).decode('utf-8')}"
-            else:
-                manager.image_base64 = None
-
-        return render_template('managers.html', managers=managers, role=role, user_name=user_name, **counts, encoded_image=image_data)
-    except Exception as e:
-        flash(f"Error retrieving managers: {str(e)}", "danger")
-        # return render_template('managers.html', managers=[], role=role, user_name=user_name, encoded_image=image_data)
-        return render_template('managers.html', managers=active_managers, manager_count=len(active_managers), role=role, user_name=user_name, **counts, encoded_image=image_data)
-
-
-"""
 @manager_bp.route('/managers', methods=['GET'])
 def get_managers():
     role = session.get('role')
@@ -272,3 +201,98 @@ def get_manager_profile(manager_id):
     except Exception as e:
         flash(f"Error retrieving manager profile: {str(e)}", "danger")
         return redirect(url_for('manager.get_managers'))
+
+
+@manager_bp.route('/', methods=['GET', 'POST'], endpoint='manager_dashboard')
+def manager_dashboard():
+    # Fetch session data
+    user_name = session.get('user_name', 'User')
+    role = session.get('role')
+    user_id = session.get('user_id')
+
+    # Initialize counts, totals, and sales data
+    super_distributor_count = 0
+    distributor_count = 0
+    kitchen_count = 0
+    total_sales_amount = 0
+    total_orders_count = 0
+    quantity_sold = 0
+    sales_data = []
+    monthly_sales = 0
+
+    # chart data initial values
+    months = []
+    total_sales = []
+
+    barChartData = {
+        "labels": ["January", "February", "March", "April"],
+        "values": [10, 20, 15, 30],
+    }
+
+    try:
+        super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
+        super_distributor_count = len(super_distributors)
+
+        distributors = Distributor.query.filter_by(manager_id=user_id).all()
+        distributor_count = len(distributors)
+        print("distributor_count", distributor_count)
+
+        kitchens = Kitchen.query.filter_by(manager_id=user_id).all()
+        kitchen_count = len(kitchens)
+
+        total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).filter(Order.manager_id == user_id).scalar() or 0
+
+        total_orders_count = db.session.query(OrderItem).join(Order).filter(Order.manager_id == user_id).count()
+
+        quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).join(Order).filter(Order.manager_id == user_id).scalar() or 0
+
+        sales_data = (
+            db.session.query(
+                Sales.sale_id,
+                Sales.datetime,
+                FoodItem.item_name,
+                db.func.sum(OrderItem.price).label("total_price"),
+                db.func.sum(OrderItem.quantity).label("total_quantity"),
+            )
+            .join(OrderItem, Sales.item_id == OrderItem.item_id)
+            .join(FoodItem, OrderItem.item_id == FoodItem.id)
+            .join(Order, OrderItem.order_id == Order.id)
+            .filter(Order.manager_id == user_id)
+            .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)
+            .order_by(Sales.datetime.desc())
+            .all()
+        )
+
+        monthly_sales = (
+            db.session.query(
+                db.func.date_format(Sales.datetime, '%Y-%m').label('month'),
+                db.func.sum(Order.total_amount).label('total_sales'),
+            )
+            .join(Order, Sales.sale_id == Order.order_id)
+            .filter(Order.manager_id == user_id)
+            .group_by(db.func.date_format(Sales.datetime, '%Y-%m'))
+            .order_by(db.func.date_format(Sales.datetime, '%Y-%m'))
+            .all()
+        )
+
+        months = [month for month, _ in monthly_sales]
+        total_sales = [float(total) for _, total in monthly_sales]
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+
+    # Render the manager dashboard template
+    return render_template(
+        'manager/manager_index.html',
+        super_distributor_count=super_distributor_count,
+        distributor_count=distributor_count,
+        kitchen_count=kitchen_count,
+        total_sales_amount=total_sales_amount,
+        total_orders_count=total_orders_count,
+        quantity_sold=quantity_sold,
+        sales_data=sales_data,
+        user_name=user_name,
+        role=role,
+        months=months,
+        total_sales=total_sales,
+        barChartData=barChartData,
+    )

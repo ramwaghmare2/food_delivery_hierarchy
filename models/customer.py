@@ -1,5 +1,5 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Customer(db.Model):
     __tablename__ = 'customers'
@@ -11,8 +11,8 @@ class Customer(db.Model):
     password = db.Column(db.String(255), nullable=False)
     address = db.Column(db.String(255), nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     def __repr__(self):
         return f'<Customer {self.name}>'

@@ -1,5 +1,5 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Order(db.Model):
     __tablename__ = 'orders'
@@ -9,8 +9,8 @@ class Order(db.Model):
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     order_status = db.Column(db.Enum('Pending', 'Processing', 'Completed', 'Cancelled'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     sales = db.relationship('Sales', backref='orders', lazy=True)
@@ -32,9 +32,7 @@ class OrderItem(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
 
     # Relationships
-    
-    # order = db.relationship('Order', back_populates='order_items')  # Bidirectional link with Order
-    food_item = db.relationship('FoodItem', backref='order_items')  # Bidirectional link with FoodItem
+    food_item = db.relationship('FoodItem', back_populates='order_items')  # Bidirectional link with FoodItem
     
     def __repr__(self):
         return f'<OrderItem {self.order_item_id}>'

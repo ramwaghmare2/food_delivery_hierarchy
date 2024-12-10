@@ -1,5 +1,5 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 
 class SuperDistributor(db.Model):
@@ -13,8 +13,8 @@ class SuperDistributor(db.Model):
     manager_id = db.Column(db.Integer, db.ForeignKey('managers.id'), nullable=True)
     #distributor_id = db.Column(db.Integer, db.ForeignKey('distributors.id'), nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     image = db.Column(LONGBLOB,nullable=True)
     online_status = db.Column(db.Boolean, nullable=True, default=False)
 
