@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template ,flash ,redirect,url_for,session
 from models import db, FoodItem ,Cuisine
 from utils.services import allowed_file
+from base64 import b64encode
 
 food_item_bp = Blueprint('food_item', __name__)
 
@@ -67,6 +68,12 @@ def get_food_items_by_kitchen(kitchen_id):
     user_name = session.get('user_name')
     # Query to get food items for the given kitchen_id
     food_items = FoodItem.query.filter_by(kitchen_id=kitchen_id).all()
+    # Convert images to Base64 format
+    for food in food_items:
+            if food.image:
+                food.image_base64 = f"data:image/jpeg;base64,{b64encode(food.image).decode('utf-8')}"
+            else:
+                food.image_base64 = None
     # Render the template with the food items
     return render_template('food_item.html', food_items=food_items, kitchen_id=kitchen_id, user_id=user_id,user_name=user_name)
 

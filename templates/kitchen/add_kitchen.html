@@ -65,9 +65,12 @@
                 <div class="sd-row">
                     
                     <input type="text"  placeholder="{{user_name}}" name="username" hidden>
-                    
                 </div>
                 {% else %}
+                <div class="sd-row">
+                    <label for="image" class="form-label">Profile Image (Optional)</label>
+                    <input type="file" class="form-control-file" id="image" name="image">
+                </div>
                 <div class="sd-row">
                     <label for="distributor">Select Distributor:</label>
                     <select name="distributor" id="distributor" required>
@@ -85,5 +88,5 @@
         </div>
         <!-- End of Add Doctor Form Content -->
     </main>
-
+<br>
 {% include 'sd_footer.html' %}  

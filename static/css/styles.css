@@ -62,7 +62,7 @@
   --bs-body-font-weight: 400;
   --bs-body-line-height: 1.5;
   --bs-body-color: #212529;
-  --bs-body-bg: #fff;
+  --bs-body-bg: #ffffff;
   --bs-border-width: 1px;
   --bs-border-style: solid;
   --bs-border-color: #dee2e6;
@@ -11450,14 +11450,6 @@ body {
   height: 100%;
 }
 
-.profile-card {
-  max-width: 450px;
-  margin: 2rem auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
 .profile-image {
   width: 120px;
   height: 120px;
@@ -11614,4 +11606,46 @@ body {
 
 .chart-container canvas {
   animation: bounceIn 1s ease-out;
+}
+
+
+.card-body-icon {
+  position: absolute;
+  z-index: 0;
+  top: -11px;
+  right: -20px;
+  font-size: 5rem;
+  -webkit-transform: rotate(15deg);
+  -ms-transform: rotate(15deg);
+  transform: rotate(15deg);
+}
+
+.card-body-icon-dis {
+  position: absolute;
+  z-index: 0;
+  top: -20px;
+  right: -5px;
+  font-size: 5rem;
+  -webkit-transform: rotate(15deg);
+  -ms-transform: rotate(15deg);
+  transform: rotate(15deg);
+}
+
+.card-body-icon-kit {
+  position: absolute;
+  z-index: 0;
+  top: -18px;
+  right: -1px;
+  font-size: 5rem;
+  -webkit-transform: rotate(15deg);
+  -ms-transform: rotate(15deg);
+  transform: rotate(15deg);
+}
+
+.card-body-icon-man {
+  position: absolute;
+  z-index: 0;
+  top: -16px;
+  left: 75%;
+  font-size: 5rem;
 }

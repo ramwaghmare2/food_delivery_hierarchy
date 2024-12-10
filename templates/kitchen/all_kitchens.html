@@ -15,10 +15,10 @@
         <div class="container-fluid px-4">
             <!-- Debugging Content -->
             <h2 class="text-center mb-4">Kitchens List</h2>
-            <p>Kitchen Count: {{ kitchen_count }}</p> <!-- Debugging Line -->
-            
             {% if role == 'Admin' %}
                 <p><b>Total Kitchens - {{ kitchen_count }}</b></p>
+            {% else %}
+                <p><strong>Kitchen Count: {{ kitchen_count }}</strong></p> <!-- Debugging Line -->
             {% endif %}
 
             <!-- Display flash messages for success or error -->
@@ -34,15 +34,25 @@
                 {% endfor %}
             {% endif %}
             {% endwith %}
-
+            <!-- Filters -->
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <form method="GET" action="{{ url_for('distributor.distrubutor_all_kitchens') }}">
+                        <label for="filter">Filter by Status:</label>
+                        <select name="status" id="filter" class="form-select" onchange="this.form.submit()">
+                            <option value="all" {% if filter == 'all' %}selected{% endif %}>All</option>
+                            <option value="activated" {% if filter == 'activated' %}selected{% endif %}>Activated</option>
+                            <option value="deactivated" {% if filter == 'deactivated' %}selected{% endif %}>Deactivated</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
             <!-- Kitchen Cards -->
             <div class="row">
                 {% for kitchen in all_kitchens %}
-                {% if kitchen.status == 'activated' %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <!-- Status Indicator -->
+                    <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
+                        <div class="card manager-card">
+                            <div class="card-body manager-card-body">
                                 <div class="status-dot-container">
                                     {% if kitchen.online_status %}
                                         <span class="green-dot"></span> <span class="status-text">Online</span>
@@ -50,30 +60,41 @@
                                         <span class="red-dot"></span> <span class="status-text">Offline</span>
                                     {% endif %}
                                 </div>
+                                <!-- Manager Image -->
+                                {% if kitchen.image_base64 %}
+                                <img src="{{ kitchen.image_base64 }}" alt="Kitchen Image" class="manager-image" width="120" height="120">
+                                {% else %}
+                                No Image
+                                {% endif %}
+                                <div class="manager-info mt-3">
+                                    <h5 class="card-title">{{ kitchen.name }}</h5>
+                                    <p class="card-text"><strong>Email:</strong> {{ kitchen.email }}</p>
+                                    <p class="card-text"><strong>Contact:</strong> {{ kitchen.contact }}</p>
+                                    <p class="card-text">
+                                        <strong>Status:</strong> 
+                                        <span class="badge 
+                                            {% if kitchen.status == 'activated' %}
+                                                bg-success
+                                            {% else %}
+                                                bg-secondary
+                                            {% endif %}">
+                                            {{ kitchen.status | capitalize }}
+                                        </span>
+                                    </p>
 
-                                <!-- Kitchen Info -->
-                                <h5 class="card-title">{{ kitchen.name }}</h5>
-                                <p class="card-text"><strong>Email:</strong> {{ kitchen.email }}</p>
-                                <p class="card-text"><strong>Contact:</strong> {{ kitchen.contact }}</p>
-                                <p class="card-text"><strong>Address:</strong> {{ kitchen.address }}</p>
-
-                                <!-- Action Buttons -->
-                                <div class="action-buttons mt-3">
-                                    <a href="{{ url_for('kitchen.edit_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-warning btn-sm" data-toggle="tooltip" data-placement="top" title="Edit Kitchen">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <a href="{{ url_for('kitchen.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this kitchen?')" data-toggle="tooltip" data-placement="top" title="Delete Kitchen">
-                                        <i class="fas fa-trash-alt"></i> Delete
-                                    </a>
+                                    <!-- Action Buttons -->
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('kitchen.edit_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit"></i> Edit</a>
+                                        <a href="{{ url_for('kitchen.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this kitchen?')">
+                                            <i class="fas fa-trash-alt"></i> Delete</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                {% endif %}
                 {% endfor %}
             </div>
-        </div>
-
         <!-- Inline Styles for debugging purposes -->
         <style>
             .status-dot-container {
@@ -120,8 +141,8 @@
                 padding: 20px;
             }
         </style>
-
+        </div>
     </main>
 
     {% include 'admin/admin_footer.html' %}
-</div>
+

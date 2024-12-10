@@ -95,28 +95,7 @@
                 {% endfor %}
             {% endif %}
             {% endwith %}
-
             <div class="row">
-                <!-- <div class="col-xl-3 col-md-6">
-                    <div class="card bg-primary text-white mb-4">
-                        <div class="card-body">Today's Report</div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0"></h4>
-                            <a class="small text-white stretched-link" href="#">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
-                </div> -->
-                <!-- <div class="col-xl-3 col-md-6">
-                    <div class="card bg-secondary text-white mb-4">
-                        <div class="card-body"><b>Total Orders</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0"></h4>
-                            <div class="small text-white"><i class="fas fa-box"></i></div>
-                            <a class="small text-white stretched-link" href="">View Details</a>
-                        </div>
-                    </div>
-                </div> -->
                 <div class="col-xl-3 col-sm-6 mb-3">
                     <div class="card text-white bg-success o-hidden h-100">
                       <div class="card-body">
@@ -133,15 +112,6 @@
                       </a>
                     </div>
                   </div>
-                <!-- <div class="col-xl-3 col-md-6">
-                    <div class="card bg-success text-white mb-4">
-                        <div class="card-body"><b>Total Sales</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">₹{{ total_price }}</h4>
-                            <div class="small text-white"><i class=""></i></div>
-                        </div>
-                    </div>
-                </div> -->
                 <div class="col-xl-3 col-sm-6 mb-3">
                     <div class="card text-white bg-primary o-hidden h-100">
                       <div class="card-body">
@@ -159,7 +129,7 @@
                     </div>
                 </div>
             </div>
-
+            <br>
             <!-- Totals Table -->
             <div class="card shadow mb-4" style="background-color: #252424;">
                 <div class="card-header py-3">
@@ -184,7 +154,7 @@
                     </table>
                 </div>
             </div>
-
+            <br>
             <!-- Sales Data Table -->
             <div class="card shadow" style="background-color: #252424;">
                 <div class="card-header py-3">
@@ -225,7 +195,7 @@
                     </div>
                 </div>
             </div>
-            <br>    
+            <br>  
             <div class="chart-container">
                 <div class="chart-wrapper">
                     <canvas id="barChartOrders"></canvas>
@@ -234,7 +204,7 @@
                     <canvas id="barChartSales"></canvas>
                 </div>
             </div>
-
+            <br>
             <script>
                 const orderDates = {{ order_dates | safe }};
                 const orderCountPerDate = {{ order_count_per_date | safe }};
