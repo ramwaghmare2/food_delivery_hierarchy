@@ -1,20 +1,22 @@
 from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
-from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash
+from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_socketio import emit
 from utils.services import allowed_file, get_image
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta
 from utils.helpers import handle_error 
-from sqlalchemy.orm import joinedload
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 from models.order import OrderItem
 from extensions import bcrypt
 from base64 import b64encode
 from functools import wraps
 from sqlalchemy import func
-# from app import app
+from app import socketio
+
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 
+# Sessions permanent with a timeput
 ################################## Helper function to create a user based on role ##################################
 def create_user(data, role):
     from models import db  
@@ -82,8 +84,103 @@ def signup():
 
     return render_template("admin/signup.html")
 
+################################## globally defined role_model_map ##################################
+
+ROLE_MODEL_MAP = {
+    "Admin": Admin,
+    "Manager": Manager,
+    "SuperDistributor": SuperDistributor,
+    "Distributor": Distributor,
+    "Kitchen": Kitchen,
+}
+
+def get_model_by_role(role):
+    return ROLE_MODEL_MAP.get(role)
+
+################################## Handel Connect Disconnect ##################################
+@socketio.on('connect')
+def handle_connect():
+    try:
+        user_id = session.get('user_id')
+        role = session.get('role')
+
+        if user_id and role:
+            # The globally defined role_model_map
+            model = ROLE_MODEL_MAP(role)
+            if model:
+                user = model.query.get(user_id)
+                if user:
+                    user.online_status = True
+                    user.last_seen = datetime.now(timezone.utc)
+                    db.session.commit()
+
+                    # Notify all connected clients
+                    socketio.emit(
+                        'status_update',
+                        {'user_id': user.id, 
+                         'status': 'online', 
+                         'role': role,
+                         'laste_seen': user.last_seen.isoformat()
+                         },
+                        broadcast=True
+                    )
+    except Exception as e:
+        print(f"Error in handle_connect: {str(e)}")
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    reasone = request.args.get('reason', 'unknown')
+    print(f"User disconnected due to:{reasone}")
+    try:
+        user_id = session.get('user_id')
+        role = session.get('role')
+
+        if user_id and role:
+            model = ROLE_MODEL_MAP(role)
+            if model:
+                user = model.query.get(user_id)
+                if user:
+                    user.online_status = False
+                    user.last_seen = datetime.now(timezone.utc)
+                    db.session.commit()
+
+                    socketio.emit(
+                        'status_update',
+                        {'user_id': user.id, 
+                         'status': 'offline', 
+                         'role': role,
+                         'laste_seen': user.last_seen.isoformat()
+                         },
+                        broadcast=True
+                    )
+        else:
+            print("Session data missing on disconnect.")
+    except Exception as e:
+        print(f"Error in handle_disconnect: {str(e)}")
+
+@admin_bp.route('/update-status', methods=['POST'])
+def update_status():
+    try:
+        data = request.get_json()
+        status = data.get('status')
+        user_id = session.get('user_id')
+        role = session.get('role')
+
+        if user_id and role and status:
+            model = ROLE_MODEL_MAP(role)
+            if model:
+                user = model.query.get(user_id)
+                if user:
+                    user.online_status = (status == 'online')
+                    user.last_seen = datetime.now(timezone.utc)
+                    db.session.commit()
+        return jsonify({"message": "Status updated"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 ################################## Route for Login ##################################
+
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     try:
@@ -97,15 +194,7 @@ def login():
             if not email or not password:
                 return jsonify({"error": "Email and password are required"}), 400
             
-            role_model_map = {
-                "Admin": Admin,
-                "Manager": Manager,
-                "SuperDistributor": SuperDistributor,
-                "Distributor": Distributor,
-                "Kitchen": Kitchen
-            }
-            
-            model = role_model_map.get(role)
+            model = ROLE_MODEL_MAP.get(role)
             if not model:
                 return jsonify({"error": "Invalid role"}), 400
             
@@ -128,9 +217,19 @@ def login():
             session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
             print(user.name)
             # print(session)
-            if user:
-                user.online_status = True
-                db.session.commit()
+            user.online_status = True
+            user.last_seen = datetime.now(timezone.utc)
+            db.session.commit()
+
+            current_app.socketio.emit(
+                'status_update',
+                {'user_id': user.id, 
+                 'status': 'online', 
+                 'role': role,
+                 'laste_seen': user.last_seen.isoformat()
+                 },
+                to='*/'  # Broadcast to all connected clients
+            )
 
             dashboard_routes = {
                 "Admin": "admin_bp.admin_dashboard",
@@ -160,101 +259,36 @@ def logout():
         user_id = session.get('user_id')
         role = session.get('role')
 
-        # Map roles to their respective models
-        role_model_map = {
-            "Admin": Admin,
-            "Manager": Manager,
-            "SuperDistributor": SuperDistributor,
-            "Distributor": Distributor,
-            "Kitchen": Kitchen
-        }
-
-        model = role_model_map.get(role)
+        model = ROLE_MODEL_MAP.get(role)
 
         # If the role and user_id are valid, update online_status
         if model and user_id:
             user = model.query.get(user_id)
             if user:
                 user.online_status = False
+                user.last_seen = datetime.now(timezone.utc)
                 db.session.commit()
 
+                # Emit status_update event for logout using socketio
+                current_app.socketio.emit(
+                    'status_update',
+                    {'user_id': user.id, 
+                     'status': 'offline', 
+                     'role': role,
+                     'laste_seen': user.last_seen.isoformat()
+                     },
+                    to='*/' 
+                )
+
         # Clear the session
-        session.pop('user_id', None)
-        session.pop('role', None)
+        session.clear()
 
         return redirect(url_for('admin_bp.login'))
     except Exception as e:
         flash(f"Error during logout: {str(e)}", "danger")
         return redirect(url_for('admin_bp.login'))
+    
 
-"""    
-################################## Add User Role ##################################
-VALID_ROLES = ["Admin", "Manager", "SuperDistributor", "Distributor", "Kitchen"]
-
-@admin_bp.route('/add_user/<role>', methods=['GET', 'POST'])
-@role_required('Admin')
-def admin_dashboard():
-    # Fetch session data
-    user_name = session.get('user_name', 'User')
-    role = session.get('role')
-    user_id = session.get('user_id')
-
-    # Initialize counts and totals
-    manager_count = 0
-    super_distributor_count = 0
-    distributor_count = 0
-    kitchen_count = 0
-    total_sales_amount = 0
-    total_orders_count = 0
-    quantity_sold = 0
-    try:
-        # Fetch data from database
-        managers = Manager.query.all()
-        manager_count = len(managers)
-
-        super_distributors = SuperDistributor.query.all()
-        super_distributor_count = len(super_distributors)
-
-        distributors = Distributor.query.all()
-        distributor_count = len(distributors)
-
-        kitchens = Kitchen.query.all()
-        kitchen_count = len(kitchens)
-
-        query = Order.query
-        #total_sales = Sales.query.all()
-        total_sales_amount = query.with_entities(db.func.sum(Order.total_amount)).scalar() or 0
-
-        total_orders = OrderItem.query.all()
-        total_orders_count = len(total_orders)
-        total_orders = query.with_entities(db.func.sum(OrderItem.quantity)).scalar() or 0
-
-        quantity_sold = Sales.query.all()
-        quantity = len(quantity_sold)
-        quantity_sold = query.with_entities(db.func.sum(OrderItem.quantity)).scalar() or 0
-
-
-        print(f"Managers: {manager_count}, Super Distributors: {super_distributor_count}, Distributors: {distributor_count}, Kitchens: {kitchen_count}")
-        print(f"Total Sales Amount: {total_sales_amount}, Total Orders Count: {total_orders_count}")
-
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-
-    # Render the admin dashboard template
-    return render_template(
-        'admin/admin_index.html',
-        manager_count=manager_count,
-        super_distributor_count=super_distributor_count,
-        distributor_count=distributor_count,
-        kitchen_count=kitchen_count,
-        total_sales_amount=total_sales_amount,
-        total_orders_count=total_orders_count,
-        quantity_sold=quantity_sold,
-        user_name=user_name,
-        role=role,
-    )
-   
-"""
 ################################## Route for displaying admin dashboard ##################################
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
@@ -273,6 +307,16 @@ def admin_dashboard():
     total_orders_count = 0
     quantity_sold = 0
     sales_data = []
+    monthly_sales = 0
+
+    # chart data initial values
+    months = []
+    total_sales = []
+
+    barChartData = {
+        "labels": ["January", "February", "March", "April"],
+        "values": [10, 20, 15, 30],
+    }
 
     try:
         # Fetch data from database
@@ -284,7 +328,7 @@ def admin_dashboard():
 
         distributors = Distributor.query.all()
         distributor_count = len(distributors)
-
+        
         kitchens = Kitchen.query.all()
         kitchen_count = len(kitchens)
 
@@ -293,21 +337,28 @@ def admin_dashboard():
 
         quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
 
-        # Fetch sales data
         sales_data = db.session.query(
             Sales.sale_id,
             Sales.datetime,
             FoodItem.item_name,
-            OrderItem.price,
-            OrderItem.quantity
+            db.func.sum(OrderItem.price).label("total_price"),
+            db.func.sum(OrderItem.quantity).label("total_quantity")
         ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
-        .join(FoodItem, Sales.item_id == FoodItem.id)\
+        .join(FoodItem, OrderItem.item_id == FoodItem.id)\
+        .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
         .order_by(Sales.datetime.desc())\
         .all()
 
-        print(f"Managers: {manager_count}, Super Distributors: {super_distributor_count}, Distributors: {distributor_count}, Kitchens: {kitchen_count}")
-        print(f"Total Sales Amount: {total_sales_amount}, Total Orders Count: {total_orders_count}")
-        print(f"Sales Data: {sales_data}")
+        monthly_sales = db.session.query(
+            func.date_trunc('month', Sales.datetime).label('month'),
+            func.sum(Order.total_amount).label('total_sales')
+        ).join(Order, Sales.sale_id == Order.order_id).group_by(func.date_trunc('month', Sales.datetime)).order_by(func.date_trunc('month', Sales.datetime)).all()
+        
+        if not barChartData or not isinstance(barChartData, dict):
+            barChartData = {}
+
+        months = [month.strftime('%Y-%m') for month, total_sales in monthly_sales]
+        total_sales = [float(total_sales) for _, total_sales in monthly_sales]
 
     except Exception as e:
         print(f"Error fetching data: {e}")
@@ -325,6 +376,9 @@ def admin_dashboard():
         sales_data=sales_data,
         user_name=user_name,
         role=role,
+        months=months,
+        total_sales=total_sales,
+        barChartData=barChartData,
     )
 
 
@@ -370,12 +424,16 @@ def sales_report():
 
     # Get sales data for the table: Join OrderItem and FoodItem
     sales_data = db.session.query(
-        Sales.sale_id.label('sale_id'),
+        Sales.sale_id,
         Sales.datetime,
         FoodItem.item_name,
-        OrderItem.price,
-        OrderItem.quantity,
-    ).join(OrderItem, FoodItem.id == OrderItem.item_id).all()
+        db.func.sum(OrderItem.price).label("total_price"),
+        db.func.sum(OrderItem.quantity).label("total_quantity")
+    ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
+    .join(FoodItem, OrderItem.item_id == FoodItem.id)\
+    .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
+    .order_by(Sales.datetime.desc())\
+    .all()
 
     # Get sales data for the line chart (sales by date)
     sales_by_date = db.session.query(
@@ -449,53 +507,6 @@ def order_list():
         return render_template('admin/order_list.html', orders=None, exception_message=exception_message)
     
     return render_template('admin/order_list.html', orders=orders, exception_message=None)
-
-################################## Manager Dashboard ##################################
-@admin_bp.route('/manager', methods=['GET'])
-@role_required('Manager')  
-def manager_dashboard():
-    from models import SuperDistributor, Distributor, Kitchen
-    super_distributors = SuperDistributor.query.all()
-    distributors = Distributor.query.all()
-    kitchens = Kitchen.query.all()
-
-    return render_template('admin/manager_dashboard.html', 
-                           super_distributors=super_distributors, 
-                           distributors=distributors, 
-                           kitchens=kitchens)
-
-
-################################## Super Distributor Bashboard ##################################
-@admin_bp.route('/super_distributor', methods=['GET'])
-@role_required('SuperDistributor')  
-def super_distributor_dashboard():
-    from models import Distributor, Kitchen
-    distributors = Distributor.query.all()
-    kitchens = Kitchen.query.all()
-
-    return render_template('admin/super_distributor_dashboard.html', 
-                           distributors=distributors, 
-                           kitchens=kitchens)
-
-################################## Distributor Dashboard ##################################
-@admin_bp.route('/distributor', methods=['GET'])
-@role_required('Distributor')  
-def distributor_dashboard():
-    from models import Kitchen
-    kitchens = Kitchen.query.all()
-
-    return render_template('admin/distributor_dashboard.html', 
-                           kitchens=kitchens)
-
-################################## Kitchen Dashboard ##################################
-@admin_bp.route('/kitchen', methods=['GET'])
-@role_required('Kitchen')  
-def kitchen_dashboard():
-    from models import Kitchen
-    kitchens = Kitchen.query.filter_by(id=session['user_id']).all()  
-
-    return render_template('admin/kitchen_dashboard.html', kitchens=kitchens)
-
 
 ################################## Get All Manager Profile ##################################
 @admin_bp.route('/admin/<int:admin_id>', methods=['GET'])

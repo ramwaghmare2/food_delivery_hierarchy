@@ -1,5 +1,5 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 
 class FoodItem(db.Model):
@@ -12,17 +12,14 @@ class FoodItem(db.Model):
     available = db.Column(db.Boolean, default=True)
     cuisine_id = db.Column(db.Integer, db.ForeignKey('cuisines.id'), nullable=False)
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     image = db.Column(LONGBLOB, nullable=True)
-    status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
+    status = db.Column(db.Enum('activated', 'deactivated'), default='activated', server_default='activated')
 
     # Relationships
-    order_item = db.relationship('OrderItem', backref='food_items', lazy=True)
+    order_items = db.relationship('OrderItem', back_populates='food_item', lazy='dynamic')
     sales = db.relationship('Sales', backref='food_items', lazy=True)
-    # kitchen = db.relationship('Kitchen', backref='food_items')
-    # orders = db.relationship('Order', secondary='order_items', back_populates='food_items')  # Many-to-Many via OrderItem
-    # order_items = db.relationship('OrderItem', back_populates='food_item')  # Bidirectional link with OrderItem
-
+   
     def __repr__(self):
         return f'<FoodItem {self.item_name}>'

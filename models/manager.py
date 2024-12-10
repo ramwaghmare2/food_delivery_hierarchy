@@ -1,5 +1,5 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 from extensions import bcrypt
 from sqlalchemy.dialects.mysql import LONGBLOB
 
@@ -11,13 +11,13 @@ class Manager(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     contact = db.Column(db.String(20), nullable=True)
-    #super_distributor_id = db.Column(db.Integer, db.ForeignKey('super_distributors.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    #image = db.Column(db.String(255), nullable=True)  
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     online_status = db.Column(db.Boolean, nullable=True, default=False)
+
+    distributors = db.relationship('Distributor', backref='manager', lazy=True)
 
     # Method to hash password
     def set_password(self, password):
@@ -29,5 +29,4 @@ class Manager(db.Model):
 
     def __repr__(self):
         return f'<Manager {self.name}>'
-    
     

@@ -1,7 +1,7 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
-
+import uuid
 class Admin(db.Model):
     __tablename__ = 'admins'
     
@@ -14,10 +14,15 @@ class Admin(db.Model):
     #super_distributor_id = db.Column(db.Integer, db.ForeignKey('super_distributors.id'), nullable=True)
     #distributor_id = db.Column(db.Integer, db.ForeignKey('distributors.id'), nullable=True)
     #kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Boolean, nullable=True, default=False)
+    online_status = db.Column(db.Boolean, default=False)
+    last_seen = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     def __repr__(self):
         return f'<Admin {self.name}>'
+    
+    def generate_session_token():
+        return str(uuid.uuid4())
