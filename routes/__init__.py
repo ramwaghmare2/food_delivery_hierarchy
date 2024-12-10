@@ -21,4 +21,3 @@ def create_app_routes(app):
     app.register_blueprint(food_item_bp, url_prefix='/fooditem')
     app.register_blueprint(sales_bp, url_prefix='/admin/sales')  # Updated prefix
     app.register_blueprint(orders_bp, url_prefix='/admin/orders')  # Updated prefix
-

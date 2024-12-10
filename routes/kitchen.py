@@ -25,6 +25,17 @@ def create_kitchen():
         else:
             distributor_id = request.form.get('distributor')
             
+        existing_kitchen = Kitchen.query.filter_by(email=data.get('email')).first()
+        if existing_kitchen:
+            flash("A kitchen with this email already exists. Please use a different email.")
+            return render_template(
+                'kitchen/add_kitchen.html',
+                role=role,
+                distributors=distributors,
+                user_name=user_name,
+                encoded_image=image_data
+            )
+
         hashed_password = generate_password_hash(data.get('password'))
         new_kitchen = Kitchen(
             name=data.get('name'),
@@ -38,12 +49,26 @@ def create_kitchen():
             address=data.get('address'),
             distributor_id=distributor_id
         )
+        
         db.session.add(new_kitchen)
         db.session.commit()
         flash('Kitchen Added Successfully.')
-        return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name ,encoded_image = image_data)
-        # return jsonify({'message': 'Kitchen created successfully', 'kitchen_id': new_kitchen.id}), 201
-    return render_template('kitchen/add_kitchen.html', role=role,distributors=distributors,user_name=user_name ,encoded_image = image_data)
+        return render_template(
+            'kitchen/add_kitchen.html',
+            role=role,
+            distributors=distributors,
+            user_name=user_name,
+            encoded_image=image_data
+        )
+
+    return render_template(
+        'kitchen/add_kitchen.html',
+        role=role,
+        distributors=distributors,
+        user_name=user_name,
+        encoded_image=image_data
+    )
+
 
 ################################## Route to Get a list of all Kitchens ##################################
 @kitchen_bp.route('/all-kitchens', methods=['GET'])

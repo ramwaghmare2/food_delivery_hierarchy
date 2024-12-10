@@ -40,7 +40,7 @@
             <!-- Navbar-->
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <!--   <li><a class="dropdown-item" href="#!">Settings</a></li>
                         <li><a class="dropdown-item" href="#!">Activity Log</a></li> --> 
@@ -128,7 +128,7 @@
                                 </a>
                                 <!--    <a class="nav-link collapsed" href="#">
                                     List Cuisine
-                                </a>-->
+                                </a>-->3
                             </nav>
                         </div>
 
@@ -139,3 +139,56 @@
                 </nav>
             </div>
             
+<script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    const socket = io(window.location.origin, { transports: ["websocket"] });
+    
+    // Emit the status update to the server
+    function updateStatus(status) {
+        if (navigator.onLine) {
+            socket.emit('status_update', { status });
+        } else {
+            console.error("Offline: Unable to update status.");
+        }
+    }
+    
+    // Handle tab closure and send an offline status
+    window.onbeforeunload = () => {
+        navigator.sendBeacon('/update-status', JSON.stringify({ status: 'offline' }));
+    };
+    
+    // Monitor network connectivity
+    window.addEventListener('online', () => updateStatus('online'));
+    window.addEventListener('offline', () => updateStatus('offline'));
+    
+    // Detect tab restoration or focus
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateStatus('online');
+        }
+    });
+    
+    // Heartbeat mechanism
+    setInterval(() => {
+        if (navigator.onLine) {
+            updateStatus('online'); // Sends a ping to confirm active status
+        }
+    }, 5000); // Ping every 5 seconds
+    
+    // Listen for updates from the server
+    socket.on('broadcast_status', (data) => {
+        console.log('Broadcast Update:', data);
+        // Update UI dynamically, e.g., change the green dot for other users
+        if (data.userId && data.status) {
+            const userElement = document.querySelector(`#user-${data.userId}`);
+            if (userElement) {
+                userElement.classList.toggle('online', data.status === 'online');
+                userElement.classList.toggle('offline', data.status === 'offline');
+            }
+        }
+    });
+    </script>
+                

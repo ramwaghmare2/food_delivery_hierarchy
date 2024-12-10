@@ -1,5 +1,5 @@
 from . import db
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 
 class Distributor(db.Model):
@@ -11,10 +11,11 @@ class Distributor(db.Model):
     password = db.Column(db.String(255), nullable=False)
     contact = db.Column(db.String(20), nullable=True)
     super_distributor = db.Column(db.Integer, db.ForeignKey('super_distributors.id'), nullable =True)
+    manager_id = db.Column(db.Integer, db.ForeignKey('managers.id'), nullable=True)  # New column
     #kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     image = db.Column(LONGBLOB,nullable=True)
     online_status = db.Column(db.Boolean, nullable=True, default=False)
 

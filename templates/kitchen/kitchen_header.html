@@ -161,3 +161,68 @@
                 </nav>
             </div>
             
+<script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    // Connect to the Socket.IO server
+    const socket = io.connect(window.location.origin);
+
+    // Function to update the online status on the server
+    function updateStatus(status) {
+        socket.emit('status_update', { status: status });
+    }
+
+    // Listen for 'status_update' event
+    socket.on('status_update', function(data) {
+        if (data.status === 'online') {
+            console.log(data.user + ' is online');
+            // Logic to update the status display (e.g., green dot)
+        } else if (data.status === 'offline') {
+            console.log(data.user + ' is offline');
+            // Logic to update the status display (e.g., red dot)
+        }
+    });
+
+    // Check if the user was previously online
+    if (localStorage.getItem('userStatus') === 'online') {
+        // Notify the server that the user is online when the page loads
+        window.onload = function() {
+            updateStatus('online');
+            localStorage.setItem('userStatus', 'online'); // Ensure the status is stored as online
+        };
+    } else {
+        window.onload = function() {
+            updateStatus('offline');
+            localStorage.setItem('userStatus', 'offline');
+        };
+    }
+
+    // Notify the server when the user switches to the tab (gains focus)
+    window.onfocus = function() {
+        if (localStorage.getItem('userStatus') !== 'online') {
+            updateStatus('online');
+            localStorage.setItem('userStatus', 'online');
+        }
+    };
+
+    // Notify the server when the user switches away from the tab (loses focus)
+    window.onblur = function() {
+        updateStatus('offline');
+        localStorage.setItem('userStatus', 'offline');
+    };
+
+    // Periodically send a heartbeat to the server to keep the status as online
+    setInterval(() => {
+        if (localStorage.getItem('userStatus') === 'online') {
+            updateStatus('online');
+        }
+    }, 60000); // Sends every 60 seconds
+
+    // Handle socket connection error
+    socket.on('connect_error', () => {
+        console.error('Connection to server failed!');
+    });
+</script>
+            
