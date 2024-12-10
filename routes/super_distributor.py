@@ -96,43 +96,45 @@ def super_distributor():
 def all_super_distributor():
     role = session.get('role')
     user_id = session.get('user_id')
-    image_data= get_image(role, user_id) 
-    counts = get_model_counts() 
+    image_data = get_image(role, user_id)
+    counts = get_model_counts()
     user = get_user_query(role, user_id)
-    if role == 'Admin':
-        # Admin sees all super distributors
-        all_super_distributors = SuperDistributor.query.all()
-    else:
-        # Non-admin sees only their related super distributors
-        all_super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
 
     # Get filter status from request parameters
     filter_status = request.args.get('status', 'all').lower()
-    # Fetch managers based on filter
 
+    # Base query
+    if role == 'Admin':
+        query = SuperDistributor.query
+    else:
+        query = SuperDistributor.query.filter_by(manager_id=user_id)
+
+    # Apply filter based on status
     if filter_status == 'activated':
-        all_super_distributors = SuperDistributor.query.filter_by(status='activated').all()
+        query = query.filter_by(status='activated')
     elif filter_status == 'deactivated':
-        all_super_distributors = SuperDistributor.query.filter_by(status='deactivated').all()
-    else:  # 'all' or no filter
-        all_super_distributors = SuperDistributor.query.all()
+        query = query.filter_by(status='deactivated')
+
+    # Fetch the filtered super distributors
+    all_super_distributors = query.all()
 
     # Convert images to Base64 format
     for sd in all_super_distributors:
-            if sd.image:
-                sd.image_base64 = f"data:image/jpeg;base64,{b64encode(sd.image).decode('utf-8')}"
-            else:
-                sd.image_base64 = None
-    
-    return render_template('sd_all_distributor.html', 
-                           all_super_distributors=all_super_distributors, 
-                           role=role, 
-                           user_name=user.name, 
-                           **counts,
-                           encoded_image=image_data,
-                           filter=filter_status,
-                           )
+        if sd.image:
+            sd.image_base64 = f"data:image/jpeg;base64,{b64encode(sd.image).decode('utf-8')}"
+        else:
+            sd.image_base64 = None
 
+    return render_template(
+        'sd_all_distributor.html',
+        all_super_distributors=all_super_distributors,
+        role=role,
+        user_name=user.name,
+        **counts,
+        encoded_image=image_data,
+        filter=filter_status,
+    )
+    
 ################################## Route for Ass Distributor ##################################
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
 def add_distributor():

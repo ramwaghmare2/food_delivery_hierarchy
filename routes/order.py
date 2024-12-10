@@ -400,7 +400,7 @@ def kitchen_orders( ):
             kitchen_ids = [kitchen.id for kitchen in kitchens]
 
         elif role == 'Kitchen':
-            kitchen_ids = [session.get('kitchen_id')]  # Assuming the kitchen ID is stored in the session
+            kitchen_ids = [session.get('user_id')]  # Assuming the kitchen ID is stored in the session
         
         else:
             flash('Invalid role', 'error')
@@ -447,6 +447,7 @@ def kitchen_orders( ):
         orders = query.all()
         # return {"orders": [order.to_dict() for order in orders]}  # Assuming to_dict() is implemented
         # Prepare orders data for display
+        print(orders)
         orders_data = [
             {
                 'order_id': order.order_id,
@@ -460,7 +461,7 @@ def kitchen_orders( ):
                 'items': [
                     {
                         'item_id': item.item_id,
-                        'item_name':item.food_items.item_name,
+                        'item_name':item.food_item.item_name,
                         'quantity': item.quantity,
                         'price': item.food_item.price,
                         'item_total_price': item.price,
@@ -478,7 +479,6 @@ def kitchen_orders( ):
                                user_name=user_name, 
                                role=role,
                                date_filter=date_filter,
-                               kitchens=kitchens,
                                selected_kitchen_id=selected_kitchen_id,
                                order_status=order_status)
     
