@@ -2,7 +2,7 @@ from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, S
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_socketio import emit
-from utils.services import allowed_file, get_image
+from utils.services import allowed_file, get_image, get_user_query
 from sqlalchemy.exc import IntegrityError
 from utils.helpers import handle_error 
 from datetime import datetime, timedelta, timezone
@@ -296,7 +296,8 @@ def admin_dashboard():
     # Fetch session data
     role = session.get('role')
     user_id = session.get('user_id')
-
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
     # Initialize counts, totals, and sales data
     manager_count = 0
     super_distributor_count = 0
@@ -373,11 +374,12 @@ def admin_dashboard():
         total_orders_count=total_orders_count,
         quantity_sold=quantity_sold,
         sales_data=sales_data,
-        user_name=user_name,
+        user_name=user.name,
         role=role,
         months=months,
         total_sales=total_sales,
         barChartData=barChartData,
+        encoded_image=encoded_image,
     )
 
 
@@ -547,8 +549,8 @@ def edit_profile():
 
     user_id = session.get('user_id')
     role = session.get('role')
-    user_name = session.get('user_name')
-
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
     role_model_map = {
                 "Admin": Admin,
                 "Manager": Manager,
@@ -566,8 +568,6 @@ def edit_profile():
 
     if isinstance(role, bytes):
         role = role.decode('utf-8')
-    if isinstance(user_name, bytes):
-        user_name = user_name.decode('utf-8')
 
     if request.method == 'POST':
         name = request.form['name']
@@ -615,7 +615,8 @@ def edit_profile():
     return render_template('admin/edit_profile.html', 
                            user=user, 
                            role=role, 
-                           user_name=user_name,
+                           user_name=user.name,
                            user_id=user_id,
+                           encoded_image=encoded_image
                            )
 

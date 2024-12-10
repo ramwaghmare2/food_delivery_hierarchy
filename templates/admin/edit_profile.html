@@ -31,13 +31,6 @@
                     <input type="password" class="form-control" id="password" name="password">
                 </div>
                 <div class="sd-row">
-                    <p class="text-center">
-                        {% if encoded_image %}
-                        <div>
-                    <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
-                        </div>
-                        {% endif %}
-                    </p>
                     <label for="image" class="form-label">Profile Image (Optional)</label>
                     <input type="file" class="form-control-file" id="image" name="image">
                 </div>
