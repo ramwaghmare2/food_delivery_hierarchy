@@ -4,7 +4,7 @@ from models.distributor import Distributor
 from models import db, SuperDistributor  ,Order ,OrderItem ,Sales, FoodItem
 import bcrypt
 import json
-from utils.services import get_model_counts, allowed_file ,get_image
+from utils.services import get_model_counts, allowed_file ,get_image, get_user_query
 from base64 import b64encode
 from sqlalchemy import func
 

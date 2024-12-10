@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session
 from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem
-from utils.services import get_model_counts ,allowed_file ,get_image
+from utils.services import get_model_counts ,allowed_file ,get_image, get_user_query
 from werkzeug.security import generate_password_hash
 from models.manager import db, Manager
 from extensions import bcrypt
@@ -231,20 +231,22 @@ def manager_dashboard():
 
     try:
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
+        super_distributor_ids = [sd.id for sd in super_distributors]
         super_distributor_count = len(super_distributors)
 
-        distributors = Distributor.query.filter_by(manager_id=user_id).all()
-        distributor_count = len(distributors)
-        print("distributor_count", distributor_count)
+        distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+        distributor_ids = [dist.id for dist in distributors]
+        distributor_count = len(distributor_ids)
 
-        kitchens = Kitchen.query.filter_by(manager_id=user_id).all()
-        kitchen_count = len(kitchens)
+        all_kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
+        kitchen_ids = [kitchen.id for kitchen in all_kitchens]
+        kitchen_count = len(all_kitchens)
 
-        total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).filter(Order.manager_id == user_id).scalar() or 0
+        total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).filter(Order.kitchen_id == user_id).scalar() or 0
 
-        total_orders_count = db.session.query(OrderItem).join(Order).filter(Order.manager_id == user_id).count()
+        total_orders_count = db.session.query(OrderItem).join(Order).filter(Order.kitchen_id == user_id).count()
 
-        quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).join(Order).filter(Order.manager_id == user_id).scalar() or 0
+        quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).join(Order).filter(Order.kitchen_id == user_id).scalar() or 0
 
         sales_data = (
             db.session.query(
