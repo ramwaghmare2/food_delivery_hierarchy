@@ -52,7 +52,7 @@
             <tr>
                 <td style="border: 1px solid white;">{{ order.order_id }}</td>
                 <td style="border: 1px solid white;">{{ order.user_id }}</td>
-                <td style="border: 1px solid white;">${{ order.total_amount }}</td>
+                <td style="border: 1px solid white;">₹ {{ order.total_amount }}</td>
                 <td style="border: 1px solid white;">{{ order.order_status }}</td>
                 <td style="border: 1px solid white;">{{ order.created_at }}</td>
                 <td style="border: 1px solid white;">{{ order.updated_at }}</td>

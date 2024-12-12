@@ -24,5 +24,9 @@ class Admin(db.Model):
     def __repr__(self):
         return f'<Admin {self.name}>'
     
+    @staticmethod
     def generate_session_token():
         return str(uuid.uuid4())
+    
+    def update_last_seen(self):
+        self.last_seen = datetime.now(timezone.utc)

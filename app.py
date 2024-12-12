@@ -13,7 +13,8 @@ def create_app():
     app.config.from_object('config.Config')
     app.secret_key = os.environ.get("SECRET_KEY", "default_secret_key")
 
-    app.permanent_session_lifetime = timedelta(minutes=30)
+
+    #app.permanent_session_lifetime = timedelta(minutes=30)
 
     socketio.init_app(app)
     app.socketio = socketio

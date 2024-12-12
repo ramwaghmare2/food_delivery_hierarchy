@@ -40,3 +40,6 @@ class Kitchen(db.Model):
     def __repr__(self):
         return f'<kitchens {self.name}>'
     
+    @staticmethod
+    def validate_pin_code(pin_code):
+        return len(pin_code) == 6 and pin_code.isdigit()
