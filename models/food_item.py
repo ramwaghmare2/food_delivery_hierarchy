@@ -23,3 +23,7 @@ class FoodItem(db.Model):
    
     def __repr__(self):
         return f'<FoodItem {self.item_name}>'
+    
+    @staticmethod
+    def validate_price(price):
+        return price >= 0

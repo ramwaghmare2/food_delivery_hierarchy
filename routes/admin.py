@@ -181,6 +181,9 @@ def update_status():
 
 ################################## Route for Login ##################################
 
+from werkzeug.security import check_password_hash, generate_password_hash
+import bcrypt
+
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     try:
@@ -200,34 +203,50 @@ def login():
             
             user = model.query.filter_by(email=email).first()
 
-            if role == 'Admin':
-                pass
-            elif user.status == 'deactivated' or user.status == '':
+            if not user:
+                return jsonify({"error": f"No {role} found with this email."}), 404
+
+            if role != 'Admin' and (user.status == 'deactivated' or user.status == ''):
                 flash('User is not Active', 'danger')
                 return redirect(url_for('admin_bp.login'))
 
-            if not user:
-                return jsonify({"error": f"No {role} found with this email."}), 404
-            
-            if not check_password_hash(user.password, password):
+            # Identify hash type and validate accordingly
+            password_valid = False
+            if user.password.startswith('pbkdf2:sha256'):
+                # Validate pbkdf2:sha256 hash
+                password_valid = check_password_hash(user.password, password)
+            elif user.password.startswith('$2b$') or user.password.startswith('$2a$'):
+                # Validate bcrypt hash
+                password_valid = bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8'))
+            elif user.password.startswith('scrypt:'):
+                # Validate scrypt hash
+                password_valid = check_password_hash(user.password, password)
+            else:
+                return jsonify({"error": "Unsupported hash format"}), 500
+
+            if not password_valid:
                 return jsonify({"error": f"Incorrect password for {role}."}), 401
-            
+
+            # Re-hash the password to unify it to pbkdf2:sha256 if necessary
+            if not user.password.startswith('pbkdf2:sha256'):
+                user.password = generate_password_hash(password)  # Update hash to pbkdf2:sha256
+                db.session.commit()
+                
             session['user_id'] = user.id
             session['role'] = role
             session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
-            print(user.name)
-            # print(session)
             user.online_status = True
             user.last_seen = datetime.now(timezone.utc)
             db.session.commit()
 
             current_app.socketio.emit(
                 'status_update',
-                {'user_id': user.id, 
-                 'status': 'online', 
-                 'role': role,
-                 'laste_seen': user.last_seen.isoformat()
-                 },
+                {
+                    'user_id': user.id,
+                    'status': 'online',
+                    'role': role,
+                    'last_seen': user.last_seen.isoformat()
+                },
                 to='*/'  # Broadcast to all connected clients
             )
 

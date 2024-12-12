@@ -130,7 +130,7 @@ def all_super_distributor():
         all_super_distributors=all_super_distributors,
         role=role,
         user_name=user.name,
-        **counts,
+        all_super_distributors_count = len(all_super_distributors),
         encoded_image=image_data,
         filter=filter_status,
     )

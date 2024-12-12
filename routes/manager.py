@@ -6,7 +6,7 @@ from models.manager import db, Manager
 from extensions import bcrypt
 from base64 import b64encode
 from flask import Blueprint
-
+import logging
 
 manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')
 
@@ -210,26 +210,14 @@ def manager_dashboard():
     role = session.get('role')
     user_id = session.get('user_id')
 
-    # Initialize counts, totals, and sales data
-    super_distributor_count = 0
-    distributor_count = 0
-    kitchen_count = 0
-    total_sales_amount = 0
-    total_orders_count = 0
-    quantity_sold = 0
-    sales_data = []
-    monthly_sales = 0
-
-    # chart data initial values
-    months = []
-    total_sales = []
-
-    barChartData = {
-        "labels": ["January", "February", "March", "April"],
-        "values": [10, 20, 15, 30],
-    }
+    # Initialize variables
+    super_distributor_count, distributor_count, kitchen_count = 0, 0, 0
+    total_sales_amount, total_orders_count, quantity_sold = 0, 0, 0
+    sales_data, monthly_sales = [], []
+    months, total_sales = [], []
 
     try:
+        # Fetch data
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
         super_distributor_ids = [sd.id for sd in super_distributors]
         super_distributor_count = len(super_distributors)
@@ -242,11 +230,33 @@ def manager_dashboard():
         kitchen_ids = [kitchen.id for kitchen in all_kitchens]
         kitchen_count = len(all_kitchens)
 
-        total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).filter(Order.kitchen_id == user_id).scalar() or 0
+        total_sales_amount = (
+            db.session.query(db.func.sum(Order.total_amount))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0 
+        )
 
-        total_orders_count = db.session.query(OrderItem).join(Order).filter(Order.kitchen_id == user_id).count()
+        total_orders_count = (
+            db.session.query(db.func.count(Order.order_id))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id) 
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id) 
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0  
+        )
 
-        quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).join(Order).filter(Order.kitchen_id == user_id).scalar() or 0
+        quantity_sold = (
+            db.session.query(db.func.sum(OrderItem.quantity))
+            .join(Order, OrderItem.order_id == Order.order_id)  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0  
+        )
 
         sales_data = (
             db.session.query(
@@ -256,33 +266,43 @@ def manager_dashboard():
                 db.func.sum(OrderItem.price).label("total_price"),
                 db.func.sum(OrderItem.quantity).label("total_quantity"),
             )
-            .join(OrderItem, Sales.item_id == OrderItem.item_id)
+            .join(Order, Sales.order_id == Order.order_id) 
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
             .join(FoodItem, OrderItem.item_id == FoodItem.id)
-            .join(Order, OrderItem.order_id == Order.id)
-            .filter(Order.manager_id == user_id)
-            .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)
-            .order_by(Sales.datetime.desc())
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .join(Manager, SuperDistributor.manager_id == Manager.id)
+            .filter(Manager.id == user_id)
+            .group_by(Sales.sale_id, Sales.datetime, FoodItem.item_name)
             .all()
         )
+
+        print("Sales Data: ", sales_data)
+
+        print(f"user_id: {user_id}")
 
         monthly_sales = (
             db.session.query(
                 db.func.date_format(Sales.datetime, '%Y-%m').label('month'),
                 db.func.sum(Order.total_amount).label('total_sales'),
             )
-            .join(Order, Sales.sale_id == Order.order_id)
-            .filter(Order.manager_id == user_id)
+            .join(Order, Sales.order_id == Order.order_id)
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .filter(Kitchen.manager_id == user_id)
             .group_by(db.func.date_format(Sales.datetime, '%Y-%m'))
             .order_by(db.func.date_format(Sales.datetime, '%Y-%m'))
             .all()
         )
+        print("monthly_sales: ", monthly_sales)
 
         months = [month for month, _ in monthly_sales]
         total_sales = [float(total) for _, total in monthly_sales]
-    except Exception as e:
-        print(f"Error fetching data: {e}")
 
-    # Render the manager dashboard template
+    except Exception as e:
+        logging.error(f"Error fetching data: {e}")
+
+    # Render template
     return render_template(
         'manager/manager_index.html',
         super_distributor_count=super_distributor_count,
@@ -296,5 +316,5 @@ def manager_dashboard():
         role=role,
         months=months,
         total_sales=total_sales,
-        barChartData=barChartData,
+        barChartData={"labels": months, "values": total_sales},
     )
