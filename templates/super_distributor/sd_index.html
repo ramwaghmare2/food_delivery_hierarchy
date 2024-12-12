@@ -113,7 +113,7 @@
                       </div>
                   </div>
                   <div class="col-xl-3 col-sm-6 mb-3">
-                    <div class="card text-white bg-secondary o-hidden h-100">
+                    <div class="card text-white bg-success o-hidden h-100">
                       <div class="card-body">
                         <div class="card-body-icon-kit">
                           <i class="fas fa-utensils"></i>
@@ -129,7 +129,7 @@
                     </div>
                   </div>
                   <div class="col-xl-3 col-sm-6 mb-3">
-                      <div class="card text-white bg-success o-hidden h-100">
+                      <div class="card text-white bg-primary o-hidden h-100">
                         <div class="card-body">
                           <div class="card-body-icon">
                             <i class="fa fa-fw fa-shopping-cart"></i>
@@ -145,7 +145,7 @@
                       </div>
                   </div>
                   <div class="col-xl-3 col-sm-6 mb-3">
-                      <div class="card text-white bg-primary o-hidden h-100">
+                      <div class="card text-white bg-secondary o-hidden h-100">
                         <div class="card-body">
                           <div class="card-body-icon">
                             <i class="fa fa-fw fa-list"></i>
@@ -227,211 +227,106 @@
                     </div>
                 </div>
             </div>
-            <br>    
-            <div class="chart-container">
-                <div class="chart-wrapper">
-                    <canvas id="barChartOrders"></canvas>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas id="barChartSales"></canvas>
-                </div>
-            </div>
+             <ol class="breadcrumb mt-5 mb-2">
+        <li class="breadcrumb-item active">Statistics</li>
+    </ol>
+    <div class="chart-container mt-2 mb-4">
+        <div class="chart-wrapper same-size">
+            <canvas id="barChart"></canvas>
+        </div>
+        <div class="chart-wrapper same-size">
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>                   
             <br>
-            <script>
-                const orderDates = {{ order_dates | safe }};
-                const orderCountPerDate = {{ order_count_per_date | safe }};
-                const salesPerDate = {{ sales_per_date | safe }};
-            
-                // Create gradient color
-                function createGradient(ctx, canvas) {
-                    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                    gradient.addColorStop(0, '#6a11cb');   // Starting color (purple)
-                    gradient.addColorStop(1, '#2575fc');   // Ending color (blue)
-                    return gradient;
+            <style>
+                .chart-container {
+                    display: flex;
+                    justify-content: space-between; /* Ensures charts are aligned horizontally */
+                    gap: 10px; /* Adds spacing between charts */
                 }
-            
-                // Bar Chart for Order Count Trend (Daily) - Modern Design
-                const barChartOrdersCtx = document.getElementById('barChartOrders').getContext('2d');
-                const orderCanvas = document.getElementById('barChartOrders');
-                const orderGradient = createGradient(barChartOrdersCtx, orderCanvas);
                 
-                new Chart(barChartOrdersCtx, {
+                .chart-wrapper {
+                    flex: 1; /* Makes each chart wrapper take equal space */
+                    max-width: 500px; /* Optional, set a max width for the chart */
+                    height: 500px; /* Set a fixed height for the chart */
+                }
+                
+                .same-size {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid #ccc; /* Optional: adds a border for visual clarity */
+                    box-sizing: border-box;
+                }
+                
+                canvas {
+                    width: 100% !important; /* Ensure canvas takes the full width of the wrapper */
+                    height: 100% !important; /* Ensure canvas takes the full height of the wrapper */
+                }
+                </style>    
+            <script>
+                const kitchenNames = {{ kitchen_names | safe }};
+                const orderCounts = {{ order_counts | safe }};
+                const pieChartLabels = {{ pie_chart_labels | safe }};
+                const pieChartData = {{ pie_chart_data | safe }};
+                const barWidth = kitchenNames.length > 5 ? 0.5 : 0.6;
+            
+                // Bar Chart
+                const barCtx = document.getElementById('barChart').getContext('2d');
+                const barChart = new Chart(barCtx, {
                     type: 'bar',
                     data: {
-                        labels: orderDates,
+                        labels: kitchenNames,
                         datasets: [{
-                            label: 'Order Count Over Time',
-                            data: orderCountPerDate,
-                            backgroundColor: orderGradient,
-                            borderColor: '#3e95cd',
-                            borderWidth: 2,
-                            hoverBackgroundColor: '#2e5d9b',
-                            hoverBorderColor: '#2e5d9b'
+                            label: 'Number of Orders',
+                            data: orderCounts,
+                            backgroundColor: 'rgba(135, 206, 250, 0.6)', // Skyblue
+                            borderColor: 'rgba(135, 206, 250, 1)',
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true },
+                            title: { display: true, text: 'Kitchen Orders Count' }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Kitchens' }, barPercentage: barWidth },
+                            y: { title: { display: true, text: 'Number of Orders' }, beginAtZero: true }
+                        }
+                    }
+                });
+            
+                // Pie Chart
+                const pieCtx = document.getElementById('pieChart').getContext('2d');
+                const pieChart = new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: pieChartLabels,
+                        datasets: [{
+                            data: pieChartData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ]
                         }]
                     },
                     options: {
                         responsive: true,
                         plugins: {
-                            tooltip: {
-                                enabled: true,
-                                backgroundColor: '#333',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                titleFont: {
-                                    size: 18, 
-                                    weight: 'bold',
-                                },
-                                bodyFont: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            legend: {
-                                labels: {
-                                    fontColor: '#fff',
-                                    font: {
-                                        size: 18,  // Increase the size of the legend labels
-                                        weight: 'bold'
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Date',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                grid: {
-                                    color: '#2e2e2e'
-                                }
-                            },
-                            y: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Number of Orders',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                beginAtZero: true,
-                                grid: {
-                                    color: '#2e2e2e'
-                                },
-                                ticks: {
-                                    color: '#fff',
-                                    font: {
-                                        size: 16,  // Increase the size of y-axis ticks
-                                        weight: 'bold'
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            duration: 1000,
-                            easing: 'easeOutBounce'
+                            legend: { display: true, position: 'top' },
+                            title: { display: true, text: 'Sales by Kitchen' }
                         }
                     }
                 });
-            
-                // Bar Chart for Sales Trend (Daily) - Modern Design
-                const barChartSalesCtx = document.getElementById('barChartSales').getContext('2d');
-                const salesCanvas = document.getElementById('barChartSales');
-                const salesGradient = createGradient(barChartSalesCtx, salesCanvas);
-                
-                new Chart(barChartSalesCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: orderDates,
-                        datasets: [{
-                            label: 'Sales Over Time (₹)',
-                            data: salesPerDate,
-                            backgroundColor: salesGradient,
-                            borderColor: '#ff6f61',
-                            borderWidth: 2,
-                            hoverBackgroundColor: '#ff4b39',
-                            hoverBorderColor: '#ff4b39'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            tooltip: {
-                                enabled: true,
-                                backgroundColor: '#333',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                titleFont: {
-                                    size: 18, 
-                                    weight: 'bold',
-                                },
-                                bodyFont: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            legend: {
-                                labels: {
-                                    fontColor: '#fff',
-                                    font: {
-                                        size: 18,  // Increase the size of the legend labels
-                                        weight: 'bold'
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Date',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                grid: {
-                                    color: '#2e2e2e'
-                                }
-                            },
-                            y: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Sales (₹)',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                beginAtZero: true,
-                                grid: {
-                                    color: '#2e2e2e'
-                                },
-                                ticks: {
-                                    color: '#fff',
-                                    font: {
-                                        size: 16,  // Increase the size of y-axis ticks
-                                        weight: 'bold'
-                                    }
-                                }
-                            }
-                        },
-                        animation: {
-                            duration: 1000,
-                            easing: 'easeOutBounce'
-                        }
-                    }
-                });
-            </script>            
+            </script>
         </div>
     </main>
     <br>

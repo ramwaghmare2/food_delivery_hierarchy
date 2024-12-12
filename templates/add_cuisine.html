@@ -4,18 +4,21 @@
     {% include 'manager/manager_header.html' %}
 {% endif %}
 <div id="layoutSidenav_content">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
+    <br>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+    </div>
     <main>
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container" style="margin-top: 10px;">
@@ -39,9 +42,9 @@
         </div>
         {% if cuisines %}
         <!-- List of Cuisines -->
-        <div class="container mt-5">
+        <div class="sd-container mt-5">
             <h2 class="mb-4">Cuisine List</h2>
-            <div class="table-responsive">
+            <div class="table-responsive" >
                 <table class="table table-bordered table-hover">
                     <thead class="thead-dark">
                         <tr>
@@ -78,5 +81,6 @@
         </div>
         {% endif %}
     </main>
+    <br>
 
 {% include 'sd_footer.html' %}

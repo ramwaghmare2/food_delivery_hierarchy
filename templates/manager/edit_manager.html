@@ -3,22 +3,23 @@
 {% endif %}
 <body>
 <div id="layoutSidenav_content">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+    <br>
     <main>
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
             <h2 class="sd-form">Edit Manager</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <form method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="name" type="text" value="{{ manager.name }}" required>
@@ -37,24 +38,7 @@
                     <label for="image" class="form-label">Profile Image (Optional)</label>
                     <input type="file" class="form-control-file" id="image" name="image">
                 </div>
-                <!-- <div class="sd-row">
-                    <input type="text" placeholder="Designation">
-                    <select required>
-                        <option value="" disabled selected>Select Department*</option>
-                        <option value="cardiology">Cardiology</option>
-                        <option value="neurology">Neurology</option> -->
-                        <!-- Add more options as needed -->
-                    <!-- </select>
-                </div> -->
-                <!-- <textarea class="sd-textarea" placeholder="Address"></textarea> -->
-                <!-- <div class="sd-upload">
-                    <label>Upload</label>
-                    <input type="file">
-                </div> -->
-                <!--<div class="form-group">
-                <label for="super_distributor_id">Super Distributor ID</label>
-                <input type="number" class="form-control" id="super_distributor_id" name="super_distributor_id" placeholder="Enter super distributor ID">
-                </div>-->
+                
                 <br>
                 <div class="sd-buttons">
                     <button type="submit" class="sd-submit">Save Changes</button>
@@ -64,5 +48,6 @@
         <!-- End of Add Doctor Form Content -->
     </main>
 </body>
+<br>
 
 {% include 'sd_footer.html' %}

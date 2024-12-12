@@ -454,6 +454,7 @@ def distributor_orders():
         # Render the distributor's order page
         return render_template(
             'distributor/d_orders.html',
+            role=role,
             distributor_id=distributor_id,
             kitchens=kitchens,
             orders_data=orders_data,

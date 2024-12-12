@@ -209,6 +209,7 @@ def manager_dashboard():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
+    image_data = get_image(role, user_id)
 
     # Initialize counts, totals, and sales data
     super_distributor_count = 0
@@ -228,6 +229,12 @@ def manager_dashboard():
         "labels": ["January", "February", "March", "April"],
         "values": [10, 20, 15, 30],
     }
+
+    pieChartData = {
+    "labels": ["Kitchen A", "Kitchen B", "Kitchen C"],
+    "values": [40, 30, 30],  # Example distribution
+    }
+
 
     try:
         super_distributors = SuperDistributor.query.filter_by(manager_id=user_id).all()
@@ -297,4 +304,6 @@ def manager_dashboard():
         months=months,
         total_sales=total_sales,
         barChartData=barChartData,
+        pieChartData =pieChartData,
+        encoded_image=image_data
     )

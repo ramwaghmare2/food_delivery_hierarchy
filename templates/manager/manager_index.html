@@ -1,282 +1,316 @@
 {% include 'manager_header.html' %}
 
+<style>
+   .table-bordered th, .table-bordered td {
+   border: 1px solid #ffffff !important;
+   }
+   .table-hover tbody tr:hover {
+   background-color: #eef154 !important;
+   }
+   .table-responsive {
+   margin-top: 15px;
+   }
+   .card {
+   border-radius: 10px;
+   margin: 10px 0;
+   }
+   .card-header {
+   background-color: #eef154;
+   color: #fff;
+   }
+   .table-container {
+   max-height: 300px; /* Adjust as needed to show approximately 10 rows */
+   overflow-y: auto;
+   position: relative;
+   margin-bottom: 20px;
+   }
+   .sales-table {
+   width: 100%;
+   border-collapse: collapse;
+   }
+   .sales-table th, .sales-table td {
+   border: 1px solid #ddd;
+   padding: 8px;
+   text-align: left;
+   }
+   /* Make the header sticky */
+   .sales-table th {
+   background-color: #f4f4f4; /* Header color */
+   position: sticky;
+   top: 0;
+   z-index: 2; /* Higher than tbody rows to stay above */
+   }
+   /* Optional: Style for the table rows */
+   .sales-table tr:nth-child(even) {
+   background-color: #f9f9f9;
+   }
+   .sales-table tr:hover {
+   background-color: #f1f1f1;
+   }
+</style>
+
 <div id="layoutSidenav_content">
     <main>
-        <div class="container-fluid px-4">
-            <h1 class="mt-4">Manager</h1>
-            <ol class="breadcrumb mb-4">
-                <li class="breadcrumb-item active">Dashboard</li>
-            </ol>
-
-            <!-- Cards for counts in a single row -->
-            <div class="row mb-4">
-                <!-- Super Distributor Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-secondary text-white fixed-card mb-4">
-                        <div class="card-body"><b>Super Distributors</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ super_distributor_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-network-wired"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('super_distributor.all_super_distributor') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
+       <div class="container-fluid px-4">
+       <h1 class="mt-4">Manager</h1>
+       <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item active">Dashboard</li>
+       </ol>
+       <!-- Cards for counts in a single row -->
+       <div class="row mb-4">
+          <!-- Super Distributor Count -->
+          <div class="col-xl-3 col-sm-6 mb-3">
+             <div class="card text-white bg-secondary o-hidden h-100">
+                <div class="card-body">
+                   <div class="card-body-icon">
+                      <i class="fas fa-network-wired"></i>
+                   </div>
+                   <div class="mr-5"><b>{{ super_distributor_count }} Super Distributors</b></div>
                 </div>
-
-                <!-- Distributor Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-success text-white fixed-card mb-4">
-                        <div class="card-body"><b>Distributors</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ distributor_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-truck-loading"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('distributor.all_distributor') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
+                <a class="card-footer text-white clearfix small z-1" href="{{ url_for('super_distributor.all_super_distributor') }}">
+                <span class="float-left">View Details </span>
+                </a>
+             </div>
+          </div>
+          <!-- Distributor Count -->
+          <div class="col-xl-3 col-sm-6 mb-3">
+             <div class="card text-white bg-info o-hidden h-100">
+                <div class="card-body">
+                   <div class="card-body-icon-dis">
+                      <i class="fas fa-truck-loading"></i>
+                   </div>
+                   <div class="mr-5"><b>{{ distributor_count }} Distributors</b></div>
                 </div>
-
-                <!-- Kitchen Count -->
-                <div class="col-lg-3 col-md-6">
-                    <div class="card bg-info text-white fixed-card mb-4">
-                        <div class="card-body"><b>Kitchens</b></div>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">{{ kitchen_count }}</h4>
-                            <div class="small text-white"><i class="fas fa-utensils"></i></div>
-                            <a class="small text-white stretched-link" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">View Details</a>
-                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                        </div>
-                    </div>
+                <a class="card-footer text-white clearfix small z-1" href="{{ url_for('distributor.all_distributor') }}">
+                <span class="float-left">View Details </span>
+                </a>
+             </div>
+          </div>
+          <!-- Kitchen Count -->
+          <div class="col-xl-3 col-sm-6 mb-3">
+             <div class="card text-white bg-success o-hidden h-100">
+                <div class="card-body">
+                   <div class="card-body-icon-kit">
+                      <i class="fas fa-utensils"></i>
+                   </div>
+                   <div class="mr-5"><b>{{ kitchen_count }} Kitchens</b></div>
                 </div>
-
-                <!-- Sales and Order Data -->
-                <div class="row mb-4">
-                    <!-- Total Sales -->
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card bg-primary text-white fixed-card mb-4">
-                            <div class="card-body"><b>Total Sales</b></div>
-                            <div class="card-footer d-flex align-items-center justify-content-between">
-                                <h4 class="mb-0">₹ {{ total_sales_amount }}</h4>
-                                <div class="small text-white"><i class="fas fa-rupee-sign"></i></div>
-                                <a class="small text-white stretched-link" href="{{ url_for('sales.sales_report') }}">View Details</a>
-                                <div class="small text-white"><i class="fas fa-angle-right" ></i></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Total Orders -->
-                    <div class="col-lg-3 col-md-6">
-                        <div class="card bg-secondary text-white fixed-card mb-4">
-                            <div class="card-body"><b>Total Orders</b></div>
-                            <div class="card-footer d-flex align-items-center justify-content-between">
-                                <h4 class="mb-0">{{ total_orders_count }}</h4>
-                                <div class="small text-white"><i class="fas fa-box"></i></div>
-                                <a class="small text-white stretched-link" href="{{ url_for('orders.order_list') }}">View Details</a>
-                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
-                            </div>
-                        </div>
-                    </div>
+                <a class="card-footer text-white clearfix small z-1" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
+                <span class="float-left">View Details</span>
+                </a>
+             </div>
+          </div>
+          <!-- Sales and Order Data -->
+          <div class="row mb-4">
+             <!-- Total Sales -->
+             <div class="col-lg-3 col-md-6">
+                <div class="card bg-primary text-white fixed-card mb-4">
+                   <div class="card-body"><b>Total Sales</b></div>
+                   <div class="card-footer d-flex align-items-center justify-content-between">
+                      <h4 class="mb-0">₹ {{ total_sales_amount }}</h4>
+                      <div class="small text-white"><i class="fas fa-rupee-sign"></i></div>
+                      <a class="small text-white stretched-link" href="{{ url_for('sales.sales_report') }}">View Details</a>
+                      <div class="small text-white"><i class="fas fa-angle-right" ></i></div>
+                   </div>
                 </div>
-
-                <!-- Totals Table -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-bordered table-hover text-black">
-                            <thead>
-                                <tr class="thead-light">
-                                    <th>Total Sales (₹)</th>
-                                    <th>Quantity Sold</th>
-                                    <th>Total Orders</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-
-                                    <td>₹ {{ total_sales_amount }}</td>
-                                    <td>{{ quantity_sold }}</td>
-                                    <td>{{ total_orders_count }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+             </div>
+             <!-- Total Orders -->
+             <div class="col-lg-3 col-md-6">
+                <div class="card bg-secondary text-white fixed-card mb-4">
+                   <div class="card-body"><b>Total Orders</b></div>
+                   <div class="card-footer d-flex align-items-center justify-content-between">
+                      <h4 class="mb-0">{{ total_orders_count }}</h4>
+                      <div class="small text-white"><i class="fas fa-box"></i></div>
+                      <a class="small text-white stretched-link" href="{{ url_for('orders.order_list') }}">View Details</a>
+                      <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                   </div>
                 </div>
-
-                <!-- Sales Data Table -->
-                <div class="card shadow" style="background-color: #3e3e3e;">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
-                    </div>
-                    <div class="table-container">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-bordered text-white">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Sale ID</th>
-                                        <th>Item Name</th>
-                                        <th>Price (₹)</th>
-                                        <th>Quantity</th>
-                                        <th>Sale Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if sales_data %}
-                                        {% for sale_id, datetime, item_name, price, quantity in sales_data %}
-                                        <tr>
-                                            <td>{{ sale_id }}</td>
-                                            <td>{{ item_name }}</td>
-                                            <td>₹ {{ price }}</td>
-                                            <td>{{ quantity }}</td>
-                                            <td>{{ datetime.strftime('%Y-%m-%d %H:%M:%S') if datetime else 'N/A' }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="5" class="text-center">No sales data available</td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+             </div>
+          </div>
+          <!-- Totals Table -->
+          <div class="card shadow mb-4">
+             <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+             </div>
+             <div class="card-body">
+                <table class="table table-bordered table-hover text-black">
+                   <thead>
+                      <tr class="thead-light">
+                         <th>Total Sales (₹)</th>
+                         <th>Quantity Sold</th>
+                         <th>Total Orders</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      <tr>
+                         <td>₹ {{ total_sales_amount }}</td>
+                         <td>{{ quantity_sold }}</td>
+                         <td>{{ total_orders_count }}</td>
+                      </tr>
+                   </tbody>
+                </table>
+             </div>
+          </div>
+          <!-- Sales Data Table -->
+          <div class="card shadow" style="background-color: #3e3e3e;">
+             <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sales Data Table</h6>
+             </div>
+             <div class="table-container">
+                <div class="table-responsive">
+                   <table class="table table-hover table-bordered text-white">
+                      <thead class="thead-light">
+                         <tr>
+                            <th>Sale ID</th>
+                            <th>Item Name</th>
+                            <th>Price (₹)</th>
+                            <th>Quantity</th>
+                            <th>Sale Date</th>
+                         </tr>
+                      </thead>
+                      <tbody>
+                         {% if sales_data %}
+                         {% for sale_id, datetime, item_name, price, quantity in sales_data %}
+                         <tr>
+                            <td>{{ sale_id }}</td>
+                            <td>{{ item_name }}</td>
+                            <td>₹ {{ price }}</td>
+                            <td>{{ quantity }}</td>
+                            <td>{{ datetime.strftime('%Y-%m-%d %H:%M:%S') if datetime else 'N/A' }}</td>
+                         </tr>
+                         {% endfor %}
+                         {% else %}
+                         <tr>
+                            <td colspan="5" class="text-center">No sales data available</td>
+                         </tr>
+                         {% endif %}
+                      </tbody>
+                   </table>
                 </div>
-
-                <div class="row">
-                    <div class="col-xl-6">
-                        <div class="card shadow mb-4" style="background-color: #3e3e3e; margin-bottom: 20px;">
-                            <div class="card-header">
-                                <i class="fas fa-chart-bar me-1"></i>
-                                Sales by Month - Bar Chart
-                            </div>
-                            <div class="card-body">
-                                <canvas id="myBarChart" width="100%" height="40"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-chart-line me-1"></i>
-                                Sales by Month - Line Chart
-                            </div>
-                            <div class="card-body">
-                                <canvas id="myLineChart" width="100%" height="40"></canvas>
-                            </div>
-                        </div>
-                    </div>
+             </div>
+          </div>
+          <div class="row">
+             <div class="chart-container mt-2 mb-4">
+                <div class="chart-wrapper">
+                   <canvas id="barChart"></canvas>
                 </div>
-
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script>
-                // Bar Chart Data
-                var barCtx = document.getElementById('myBarChart').getContext('2d');
-                var myBarChart = new Chart(barCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: {{ months|tojson }},
-                        datasets: [{
-                            label: 'Total Sales (₹)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            var barChartData = {{ barChartData|default({})|tojson }};
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: { beginAtZero: true },
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });
-
-                // Line Chart Data
-                var lineCtx = document.getElementById('myLineChart').getContext('2d');
-                var myLineChart = new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: {{ months|tojson }},
-                        datasets: [{
-                            label: 'Total Sales (₹)',
-                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                            borderColor: 'rgba(153, 102, 255, 1)',
-                            var barChartData = {{ barChartData|default({})|tojson }};
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: { beginAtZero: true },
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });    
-                </script>
-                    
-                    </main>
-                    {% include 'admin/admin_footer.html' %}
+                <div class="chart-wrapper">
+                   <canvas id="pieChart"></canvas>
                 </div>
-                <style>
-                    .table-bordered th, .table-bordered td {
-                        border: 1px solid #ffffff !important;
-                    }
-
-                    .table-hover tbody tr:hover {
-                        background-color: #eef154 !important;
-                    }
-
-                    .table-responsive {
-                        margin-top: 15px;
-                    }
-
-                    .card {
-                        border-radius: 10px;
-                        margin: 10px 0;
-                    }
-
-                    .card-header {
-                        background-color: #eef154;
-                        color: #fff;
-                    }
-
-                    .table-container {
-                    max-height: 300px; /* Adjust as needed to show approximately 10 rows */
-                    overflow-y: auto;
-                    position: relative;
-                    margin-bottom: 20px;
-                }
-
-                .sales-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-
-                .sales-table th, .sales-table td {
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
-                }
-
-                /* Make the header sticky */
-                .sales-table th {
-                    background-color: #f4f4f4; /* Header color */
-                    position: sticky;
-                    top: 0;
-                    z-index: 2; /* Higher than tbody rows to stay above */
-                }
-
-                /* Optional: Style for the table rows */
-                .sales-table tr:nth-child(even) {
-                    background-color: #f9f9f9;
-                }
-
-                .sales-table tr:hover {
-                    background-color: #f1f1f1;
-                }
-
-                </style>
-                {% include 'sd_footer.html' %}
+             </div>
+          </div>
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script>
+             const barChartData = {{ barChartData | safe }};
+             const barWidth = barChartData.labels.length > 5 ? 0.5 : 0.6;
+             
+             // Bar Chart
+             const barCtx = document.getElementById('barChart').getContext('2d');
+             const barChart = new Chart(barCtx, {
+                 type: 'bar',
+                 data: {
+                     labels: barChartData.labels,
+                     datasets: [{
+                         label: 'Sales Data',
+                         data: barChartData.values,
+                         backgroundColor: 'rgba(135, 206, 250, 0.6)', // Skyblue
+                         borderColor: 'rgba(135, 206, 250, 1)',
+                         borderWidth: 1,
+                     }]
+                 },
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     plugins: {
+                         legend: { display: true },
+                         title: { display: true, text: 'Monthly Sales Data' }
+                     },
+                     scales: {              
+                         x: {
+                             title: { display: true, text: 'Months' },
+                             ticks: { maxRotation: 90, minRotation: 45 },
+                             barPercentage: barWidth,
+                             categoryPercentage: barWidth
+                         },
+                         y: {
+                             title: { display: true, text: 'Sales Amount' },
+                             beginAtZero: true
+                         }
+                     },
+                     animation: {
+                         duration: 1500,
+                         easing: 'easeOutBounce',
+                     },
+                     hover: {
+                         mode: 'nearest',
+                         intersect: true,
+                         onHover: function(event, chartElement) {
+                             if (chartElement.length > 0) {
+                                 const index = chartElement[0].index;
+                                 barChart.data.datasets[0].backgroundColor[index] = 'rgba(0, 191, 255, 1)'; // Highlight color
+                                 barChart.update('none');
+                             }
+                         },
+                         onLeave: function(event, chartElement) {
+                             if (chartElement.length > 0) {
+                                 const index = chartElement[0].index;
+                                 barChart.data.datasets[0].backgroundColor[index] = 'rgba(135, 206, 250, 0.6)'; // Reset color
+                                 barChart.update('none');
+                             }
+                         }
+                     }
+                 }
+             });
+             
+             const pieChartData = {{ pieChartData | safe }};
+             
+             // Pie Chart
+             const pieCtx = document.getElementById('pieChart').getContext('2d');
+             const pieChart = new Chart(pieCtx, {
+                 type: 'pie',
+                 data: {
+                     labels: pieChartData.labels, // e.g., ["Kitchen A", "Kitchen B", "Kitchen C"]
+                     datasets: [{
+                         label: 'Sales Distribution',
+                         data: pieChartData.values, // e.g., [40, 30, 30]
+                         backgroundColor: [
+                             'rgba(255, 99, 132, 0.6)',  // Red
+                             'rgba(54, 162, 235, 0.6)',  // Blue
+                             'rgba(255, 206, 86, 0.6)',  // Yellow
+                             'rgba(75, 192, 192, 0.6)',  // Green
+                             'rgba(153, 102, 255, 0.6)', // Purple
+                             'rgba(255, 159, 64, 0.6)',  // Orange
+                         ],
+                         borderColor: [
+                             'rgba(255, 99, 132, 1)',
+                             'rgba(54, 162, 235, 1)',
+                             'rgba(255, 206, 86, 1)',
+                             'rgba(75, 192, 192, 1)',
+                             'rgba(153, 102, 255, 1)',
+                             'rgba(255, 159, 64, 1)',
+                         ],
+                         borderWidth: 1,
+                     }]
+                 },
+                 options: {
+                     responsive: true,
+                     plugins: {
+                         legend: {
+                             position: 'top',
+                         },
+                         title: {
+                             display: true,
+                             text: 'Sales Distribution by Kitchen'
+                         }
+                     },
+                     animation: {
+                         duration: 1500,
+                         easing: 'easeOutBounce',
+                     },
+                 }
+             });
+          </script>
+        </div>
+    </main>
+{% include 'admin/admin_footer.html' %}  
+</div>

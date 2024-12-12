@@ -20,8 +20,8 @@ def add_cuisine():
         # Check if the cuisine already exists
         existing_cuisine = Cuisine.query.filter_by(name=name).first()
         if existing_cuisine:
-            flash('Cuisine already exists!','info')
-            return redirect(url_for('cuisine.add_cuisine'),role=role, user_name=user.name)
+            flash('Cuisine already exists!','danger')
+            return redirect(url_for('cuisine.add_cuisine'))
         
         # Create a new Cuisine object
         new_cuisine = Cuisine(name=name,description=description)

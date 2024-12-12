@@ -61,12 +61,11 @@
                                 {% endif %}
                             </p>
                             <p class="text-center">
-                                <b>Welcome !<br> {{ user_name }}</b><br>
+                                <b>{{ user_name }}</b><br>
                                 {% if role == 'SuperDistributor' %}
                                     <span class="green-dot"></span>
                                 {% endif %}
                             </p> 
-                            <div class="sb-sidenav-menu-heading">Core</div>
                             <a class="nav-link" href="{{ url_for('super_distributor.super_distributor')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Dashboard
@@ -78,8 +77,8 @@
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="{{ url_for('distributor.all_distributor') }}">All Distributors</a>
-                                        <a class="nav-link" href="{{ url_for('super_distributor.add_distributor') }}">Add Distributor</a>
+                                    <a class="nav-link" href="{{ url_for('distributor.all_distributor') }}">List</a>
+                                        <a class="nav-link" href="{{ url_for('super_distributor.add_distributor') }}">Add</a>
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
@@ -90,10 +89,10 @@
                             <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
                                     <a class="nav-link collapsed" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
-                                        All Kitchens
+                                        List
                                     </a>
                                     <a class="nav-link collapsed" href="{{ url_for('kitchen.create_kitchen') }}">
-                                        Add Kitchen
+                                        Add
                                     </a>
                                 </nav>
                             </div>
