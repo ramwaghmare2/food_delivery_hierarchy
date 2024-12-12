@@ -122,6 +122,7 @@ def all_super_distributor():
         sd_count = len(all_super_distributors),
         role=role,
         user_name=user.name,
+        all_super_distributors_count = len(all_super_distributors),
         encoded_image=image_data,
         filter=filter_status,
     )

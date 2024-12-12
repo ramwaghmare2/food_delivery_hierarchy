@@ -3,7 +3,7 @@
 from flask import Blueprint, request, jsonify, session, redirect, render_template, url_for, flash
 from sqlalchemy import or_
 # from models import Order, OrderItem, MenuItem, User
-from models import Order, FoodItem, OrderItem, Sales, SuperDistributor, Distributor, Kitchen
+from models import Order, FoodItem, OrderItem, Sales, SuperDistributor, Distributor, Kitchen, Manager
 from models.order import db
 from werkzeug.exceptions import NotFound
 from datetime import datetime, timedelta
@@ -399,6 +399,17 @@ def kitchen_orders( ):
             kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
             kitchen_ids = [kitchen.id for kitchen in kitchens]
 
+        elif role == 'Manager':
+            manager = Manager.query.filter_by(id=user_id).first()
+            if not manager:
+                flash('Unauthorized access', 'error')
+                return redirect(url_for('auth.login'))
+            super_distributor_ids = [sd.id for sd in manager.super_distributors]
+            distributors = Distributor.query.filter(Distributor.super_distributor.in_(super_distributor_ids)).all()
+            distributor_ids = [distributor.id for distributor in distributors]
+            kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
+            kitchen_ids = [kitchen.id for kitchen in kitchens]
+                           
         elif role == 'Kitchen':
             kitchen_ids = [session.get('user_id')]  # Assuming the kitchen ID is stored in the session
         
@@ -506,7 +517,7 @@ def update_status(order_id):
         db.session.add(sales)
         db.session.commit()
 
-        flash('Order Status updated Successfully!')
+        flash('Order Status updated Successfully!', 'success')
         return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
     except Exception as e:
         flash(f'Error: {str(e)}')

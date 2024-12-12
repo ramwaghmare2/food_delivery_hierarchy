@@ -19,17 +19,23 @@ def allowed_file(filename):
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
+################################## globally defined role_model_map ##################################
+
+ROLE_MODEL_MAP = {
+    "Admin": Admin,
+    "Manager": Manager,
+    "SuperDistributor": SuperDistributor,
+    "Distributor": Distributor,
+    "Kitchen": Kitchen,
+}
+
+def get_model_by_role(role):
+    return ROLE_MODEL_MAP.get(role)
+
+
 def get_image(role,user_id):
 
-    role_model_map = {
-            "Admin": Admin,
-            "Manager": Manager,
-            "SuperDistributor": SuperDistributor,
-            "Distributor": Distributor,
-            "Kitchen": Kitchen
-        }
-
-    user_model = role_model_map.get(role)
+    user_model = ROLE_MODEL_MAP.get(role)
     if not user_model:
         return {'error': 'Invalid role provided'}
 
@@ -42,22 +48,16 @@ def get_image(role,user_id):
     if user_instance.image:
         encoded_image = b64encode(user_instance.image).decode('utf-8')
         
-    
     return encoded_image
 
 
 def get_user_query(role, user_id):
+       
+    model = ROLE_MODEL_MAP.get(role)
     
-    role_model_map = {
-                "Admin": Admin,
-                "Manager": Manager,
-                "SuperDistributor": SuperDistributor,
-                "Distributor": Distributor,
-                "Kitchen": Kitchen
-            }
-            
-    model = role_model_map.get(role)
-    
+    if not model:
+        raise ValueError(f"Invalid role: {role}. Please check the role and try again.")
+
     user = model.query.filter_by(id=user_id).first()
 
     return user
