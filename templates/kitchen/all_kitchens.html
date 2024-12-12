@@ -12,7 +12,7 @@
 
 <div id="layoutSidenav_content">
     <main>
-        <div class="container-fluid px-4">
+        <div class="container-fluid px-4 mt-3">
             <!-- Debugging Content -->
             <h2 class="text-center mb-4">Kitchens List</h2>
             {% if role == 'Admin' %}
@@ -83,12 +83,16 @@
                                     </p>
 
                                     <!-- Action Buttons -->
+                                    {% if kitchen.status == 'deactivated' %}
+                                 
+                                    {% else %}
                                     <div class="action-buttons">
                                         <a href="{{ url_for('kitchen.edit_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i> Edit</a>
                                         <a href="{{ url_for('kitchen.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this kitchen?')">
                                             <i class="fas fa-trash-alt"></i> Delete</a>
                                     </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

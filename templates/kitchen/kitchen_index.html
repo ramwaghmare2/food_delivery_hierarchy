@@ -196,210 +196,120 @@
                 </div>
             </div>
             <br>  
-            <div class="chart-container">
-                <div class="chart-wrapper">
-                    <canvas id="barChartOrders"></canvas>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas id="barChartSales"></canvas>
-                </div>
-            </div>
+            <ol class="breadcrumb mt-5 mb-2">
+                <li class="breadcrumb-item active">Statistics</li>
+            </ol>
+                    <div class="chart-container mt-2 mb-4">
+                        <div class="chart-wrapper">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
             <br>
             <script>
+                // Data from the backend route
                 const orderDates = {{ order_dates | safe }};
-                const orderCountPerDate = {{ order_count_per_date | safe }};
+                const orderCountsPerDate = {{ order_count_per_date | safe }};
                 const salesPerDate = {{ sales_per_date | safe }};
             
-                // Create gradient color
-                function createGradient(ctx, canvas) {
-                    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                    gradient.addColorStop(0, '#6a11cb');   // Starting color (purple)
-                    gradient.addColorStop(1, '#2575fc');   // Ending color (blue)
-                    return gradient;
-                }
-            
-                // Bar Chart for Order Count Trend (Daily) - Modern Design
-                const barChartOrdersCtx = document.getElementById('barChartOrders').getContext('2d');
-                const orderCanvas = document.getElementById('barChartOrders');
-                const orderGradient = createGradient(barChartOrdersCtx, orderCanvas);
-                
-                new Chart(barChartOrdersCtx, {
+                // Bar Chart for Orders by Date (Last 30 Days)
+                const barCtx = document.getElementById('barChart').getContext('2d');
+                const barChart = new Chart(barCtx, {
                     type: 'bar',
                     data: {
                         labels: orderDates,
                         datasets: [{
-                            label: 'Order Count Over Time',
-                            data: orderCountPerDate,
-                            backgroundColor: orderGradient,
-                            borderColor: '#3e95cd',
-                            borderWidth: 2,
-                            hoverBackgroundColor: '#2e5d9b',
-                            hoverBorderColor: '#2e5d9b'
+                            label: 'Number of Orders',
+                            data: orderCountsPerDate,
+                            backgroundColor: 'rgba(135, 206, 250, 0.6)', // Skyblue
+                            borderColor: 'rgba(135, 206, 250, 1)',
+                            borderWidth: 1,
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
-                            tooltip: {
-                                enabled: true,
-                                backgroundColor: '#333',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                titleFont: {
-                                    size: 18, 
-                                    weight: 'bold',
-                                },
-                                bodyFont: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            legend: {
-                                labels: {
-                                    fontColor: '#fff',
-                                    font: {
-                                        size: 18,  // Increase the size of the legend labels
-                                        weight: 'bold'
-                                    }
-                                }
-                            }
+                            legend: { display: true },
+                            title: { display: true, text: 'Orders by Date (Last 30 Days)' }
                         },
                         scales: {
                             x: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Date',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                grid: {
-                                    color: '#2e2e2e'
-                                }
+                                title: { display: true, text: 'Date' },
+                                ticks: { maxRotation: 90, minRotation: 45 },
+                                barPercentage: 0.8,
+                                categoryPercentage: 0.8
                             },
                             y: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Number of Orders',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                beginAtZero: true,
-                                grid: {
-                                    color: '#2e2e2e'
-                                },
-                                ticks: {
-                                    color: '#fff',
-                                    font: {
-                                        size: 16,  // Increase the size of y-axis ticks
-                                        weight: 'bold'
-                                    }
-                                }
+                                title: { display: true, text: 'Number of Orders' },
+                                beginAtZero: true
                             }
                         },
                         animation: {
-                            duration: 1000,
-                            easing: 'easeOutBounce'
+                            duration: 1500,
+                            easing: 'easeOutBounce',
                         }
                     }
                 });
             
-                // Bar Chart for Sales Trend (Daily) - Modern Design
-                const barChartSalesCtx = document.getElementById('barChartSales').getContext('2d');
-                const salesCanvas = document.getElementById('barChartSales');
-                const salesGradient = createGradient(barChartSalesCtx, salesCanvas);
-                
-                new Chart(barChartSalesCtx, {
-                    type: 'bar',
+                // Pie Chart for Sales by Date (Last 30 Days)
+                const pieCtx = document.getElementById('pieChart').getContext('2d');
+                const pieChart = new Chart(pieCtx, {
+                    type: 'pie',
                     data: {
                         labels: orderDates,
                         datasets: [{
-                            label: 'Sales Over Time (₹)',
+                            label: 'Sales Amount',
                             data: salesPerDate,
-                            backgroundColor: salesGradient,
-                            borderColor: '#ff6f61',
-                            borderWidth: 2,
-                            hoverBackgroundColor: '#ff4b39',
-                            hoverBorderColor: '#ff4b39'
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',   // Pink
+                                'rgba(54, 162, 235, 0.6)',   // Blue
+                                'rgba(255, 206, 86, 0.6)',   // Yellow
+                                'rgba(75, 192, 192, 0.6)',   // Green
+                                'rgba(153, 102, 255, 0.6)',  // Purple
+                                'rgba(255, 159, 64, 0.6)',   // Orange
+                                'rgba(255, 105, 180, 0.6)',  // Hotpink
+                                'rgba(0, 255, 255, 0.6)',    // Cyan
+                                'rgba(240, 128, 128, 0.6)',  // Lightcoral
+                                'rgba(128, 128, 128, 0.6)'   // Gray
+                            ],
+                            hoverBackgroundColor: [
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(255, 206, 86, 0.8)',
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(153, 102, 255, 0.8)',
+                                'rgba(255, 159, 64, 0.8)',
+                                'rgba(255, 105, 180, 0.8)',
+                                'rgba(0, 255, 255, 0.8)',
+                                'rgba(240, 128, 128, 0.8)',
+                                'rgba(128, 128, 128, 0.8)'
+                            ],
+                            borderWidth: 1,
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
-                            tooltip: {
-                                enabled: true,
-                                backgroundColor: '#333',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                titleFont: {
-                                    size: 18, 
-                                    weight: 'bold',
-                                },
-                                bodyFont: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
+                            legend: { 
+                                display: true, 
+                                position: 'top' 
                             },
-                            legend: {
-                                labels: {
-                                    fontColor: '#fff',
-                                    font: {
-                                        size: 18,  // Increase the size of the legend labels
-                                        weight: 'bold'
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Date',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                grid: {
-                                    color: '#2e2e2e'
-                                }
-                            },
-                            y: {
-                                title: { 
-                                    display: true, 
-                                    text: 'Sales (₹)',
-                                    font: {
-                                        size: 20,
-                                        weight: 'bold'
-                                    }
-                                },
-                                beginAtZero: true,
-                                grid: {
-                                    color: '#2e2e2e'
-                                },
-                                ticks: {
-                                    color: '#fff',
-                                    font: {
-                                        size: 16,  // Increase the size of y-axis ticks
-                                        weight: 'bold'
-                                    }
-                                }
+                            title: { 
+                                display: true, 
+                                text: 'Sales Amount by Date (Last 30 Days)' 
                             }
                         },
                         animation: {
-                            duration: 1000,
-                            easing: 'easeOutBounce'
+                            duration: 1500,
+                            easing: 'easeOutCubic',
                         }
                     }
                 });
-            </script>            
+            </script>
         </div>
     </main>
 {% include 'sd_footer.html' %}

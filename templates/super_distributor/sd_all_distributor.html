@@ -8,9 +8,9 @@
 
 <div id="layoutSidenav_content">
     <main>
-        <div class="container-fluid px-4">
+        <div class="container-fluid px-4 mt-3">
             <h2 class="text-center">Super Distributors List</h2>
-            <p><b>Total Distributors - {{super_distributor_count}}</b></p>
+            <p><b>Total Super Distributors - {{sd_count}}</b></p>
         <!-- Display flash messages for success or error -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -58,14 +58,6 @@
                                 No Image
                                 {% endif %}
                             </div>
-                            <!--<div class="status-dot mt-2">
-                                {% if sd.online_status %}
-                                    <span class="green-dot"></span> Online
-                                {% else %}
-                                    <span class="red-dot"></span> Offline
-                                {% endif %}
-                            </div> -->
-
                             <!-- Manager Info -->
                             <div class="manager-info mt-3">
                                 <h5 class="card-title">{{ sd.name }}</h5>
@@ -83,12 +75,16 @@
                                     </span>
                                 </p>
                                 <!-- Action Buttons -->
+                                 {% if sd.status == 'deactivated' %}
+                                 
+                                 {% else %}
                                 <div class="action-buttons">
                                     <a href="{{ url_for('super_distributor.edit_super_distributor', sd_id=sd.id ) }}" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i> Edit</a>
-                                    <a href="{{ url_for('super_distributor.delete_super_distributor', sd_id=sd.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this manager?')">
+                                    <a href="{{ url_for('super_distributor.delete_super_distributor', sd_id=sd.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Super Distributor?')">
                                         <i class="fas fa-trash-alt"></i> Delete</a>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

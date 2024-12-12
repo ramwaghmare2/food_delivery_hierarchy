@@ -5,22 +5,23 @@
 {% endif %}
 <body>
 <div id="layoutSidenav_content">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+    <br>
     <main>
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
             <h2 class="sd-form">Edit Super Distributor</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <form method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="name" type="text" value="{{ super_distributor.name }}" required>

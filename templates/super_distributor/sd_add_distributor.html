@@ -7,19 +7,24 @@
 {% endif %}
 
 <div id="layoutSidenav_content">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+    <br>
     <main>
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
             <h2 class="sd-form">Add Distributor</h2>
+            <!-- Display flash messages for success or error -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
             <form action="{{ url_for('super_distributor.add_distributor') }}" method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="name" type="text" placeholder="Full Name*" required>
@@ -62,6 +67,7 @@
             </form>
         </div>
     </main>
+    <br>
 
     
 {% include 'sd_footer.html' %}

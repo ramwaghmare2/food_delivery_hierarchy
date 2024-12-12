@@ -16,80 +16,72 @@ super_distributor_bp = Blueprint('super_distributor', __name__, template_folder=
 def super_distributor():
     role = session.get('role')
     user_id = session.get('user_id')
-    image_data= get_image(role, user_id) 
+    image_data = get_image(role, user_id) 
     user = get_user_query(role, user_id)
-    # Initialize counts and totals
+
     distributor_count = 0
     kitchen_count = 0
     total_sales_amount = 0
     total_orders_count = 0
+    kitchen_names = []
+    order_counts = []
+    pie_chart_labels = []
+    pie_chart_data = []
 
     try:
         distributors = Distributor.query.filter_by(super_distributor=user_id).all()
         distributor_count = len(distributors)
-
         distributor_ids = [distributor.id for distributor in distributors]
+
         kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
         kitchen_count = len(kitchens)
+        kitchen_ids = [kitchen.id for kitchen in kitchens]
+        kitchen_names = [kitchen.name for kitchen in kitchens]
 
-        orders = Order.query.filter(Order.kitchen_id.in_([kitchen.id for kitchen in kitchens])).all()
+        orders = Order.query.filter(Order.kitchen_id.in_(kitchen_ids)).all()
         total_orders_count = len(orders)
 
-        
         total_sales_amount = db.session.query(func.sum(Order.total_amount)).filter(
-                                Order.kitchen_id.in_([kitchen.id for kitchen in kitchens])
-                            ).scalar() or 0
-        
-        # Filter sales by kitchen_id
+            Order.kitchen_id.in_(kitchen_ids)
+        ).scalar() or 0
+
         sales = Sales.query.filter(Sales.kitchen_id.in_([kitchen.id for kitchen in kitchens])).all()
         # total_orders_count = len(sales)  # Total number of orders (sales records)
         total_quantity_sold = 0
 
         # Loop through each sale to calculate total sales amount and quantity sold
         for sale in sales:
-            # total_sales_amount += sale.orders.total_amount  # Assuming `total_amount` is the sale's total amount
+            #total_sales_amount += sale.orders.total_amount  # Assuming total_amount is the sale's total amount
             for item in sale.orders.order_items:  # Assuming there's an order_items relationship
-                total_quantity_sold += item.quantity
+                total_quantity_sold +=item.quantity
 
-        # Aggregate order counts and sales by date (daily)
-        order_dates = []
-        sales_per_date = []
-        order_count_per_date = []
+        # Aggregate data for charts
+        for kitchen in kitchens:
+            kitchen_orders = Order.query.filter_by(kitchen_id=kitchen.id).count()
+            order_counts.append(kitchen_orders)
 
-        # Aggregating data by day
-        for days_offset in range(30):  # For the last 30 days
-            date = datetime.now() - timedelta(days=days_offset)
-            formatted_date = date.strftime('%Y-%m-%d')
-            order_dates.append(formatted_date)
-            
-            # Count orders and sales for the specific date
-            orders_on_date = Order.query.filter(Order.kitchen_id == user_id, func.date(Order.created_at) == date.date()).all()
-            order_count_per_date.append(len(orders_on_date))
-
-            sales_on_date = db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id == user_id, func.date(Order.created_at) == date.date()).scalar()
-            sales_per_date.append(float(sales_on_date) if sales_on_date else 0)
-        
-
+            kitchen_sales = db.session.query(func.sum(Order.total_amount)).filter_by(kitchen_id=kitchen.id).scalar() or 0
+            pie_chart_labels.append(kitchen.name)
+            pie_chart_data.append(float(kitchen_sales))
 
     except Exception as e:
         print(f"Error fetching data: {e}")
 
-
     return render_template('sd_index.html',
+    total_quantity_sold=total_quantity_sold,
                            user_id=user_id,
                            user_name=user.name,
                            role=role,
-                           sales=sales,
-                           encoded_image = image_data,
+                           encoded_image=image_data,
                            distributor_count=distributor_count,
                            kitchen_count=kitchen_count,
                            total_sales_amount=total_sales_amount,
                            total_orders_count=total_orders_count,
-                           total_quantity_sold=total_quantity_sold,
-                           sales_per_date=sales_per_date,
-                           order_count_per_date=order_count_per_date,
-                           order_dates=order_dates,
-                           )
+                           kitchen_names=kitchen_names,
+                           order_counts=order_counts,
+                           pie_chart_labels=pie_chart_labels,
+                           pie_chart_data=pie_chart_data)
+
 
 ################################## Route for Get All Super Distributor's ##################################
 @super_distributor_bp.route('/all-super-distributor', methods=['GET'])
@@ -97,7 +89,6 @@ def all_super_distributor():
     role = session.get('role')
     user_id = session.get('user_id')
     image_data = get_image(role, user_id)
-    counts = get_model_counts()
     user = get_user_query(role, user_id)
 
     # Get filter status from request parameters
@@ -128,9 +119,9 @@ def all_super_distributor():
     return render_template(
         'sd_all_distributor.html',
         all_super_distributors=all_super_distributors,
+        sd_count = len(all_super_distributors),
         role=role,
         user_name=user.name,
-        **counts,
         encoded_image=image_data,
         filter=filter_status,
     )
@@ -160,7 +151,7 @@ def add_distributor():
                 image_binary = image.read()
 
             if Distributor.query.filter_by(email=request.form.get('email')).first() or Distributor.query.filter_by(contact=request.form.get('mobile_number')).first():
-                flash('Distributor with this email or mobile number already exists.')
+                flash('Distributor with this email or mobile number already exists.','danger')
                 return redirect(url_for('super_distributor.add_distributor'))
 
             hashed_password = generate_password_hash(request.form.get('password'))
@@ -176,7 +167,7 @@ def add_distributor():
 
             db.session.add(new_distributor)
             db.session.commit()
-            flash('Distributor Added Successfully.')
+            flash('Distributor Added Successfully.','success')
             return redirect(url_for('super_distributor.add_distributor'))
 
         return render_template('sd_add_distributor.html', 
@@ -187,7 +178,7 @@ def add_distributor():
                                )
 
     except Exception as e:
-        flash(f'Error: {e}')
+        flash(f'Error: {e}','danger')
         return redirect(url_for('super_distributor.add_distributor'))
 
 ################################## Add Super Distributor ##################################
@@ -215,7 +206,7 @@ def add_super_distributor():
                 manager_id = session.get('user_id')
 
             if SuperDistributor.query.filter_by(email=request.form.get('email')).first() or SuperDistributor.query.filter_by(contact=request.form.get('mobile_number')).first():
-                flash('Super Distributor with this email or mobile number already exists.')
+                flash('Super Distributor with this email or mobile number already exists.','danger')
                 return redirect(url_for('super_distributor.add_super_distributor'))
 
             hashed_password = generate_password_hash(request.form.get('password'))
@@ -231,13 +222,13 @@ def add_super_distributor():
 
             db.session.add(new_distributor)
             db.session.commit()
-            flash('Super Distributor Added Successfully.')
+            flash('Super Distributor Added Successfully.','success')
             return redirect(url_for('super_distributor.add_super_distributor'))
 
         return render_template('add_super_distributor.html', role=role,managers=managers, user_name=user.name, encoded_image = image_data)
 
     except Exception as e:
-        flash(f'Error: {e}')
+        flash(f'Error: {e}','danger')
         return redirect(url_for('super_distributor.add_distributor'))
 
 

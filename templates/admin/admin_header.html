@@ -61,12 +61,12 @@
                                 {% endif %}
                             </p>
                             <p class="text-center">
-                                <b>Welcome !<br> {{ user_name }}</b><br>
+                                <b>{{ user_name }}</b><br>
                                 {% if role == 'Admin' %}
                                     <span class="green-dot"></span>
                                 {% endif %}
                             </p>                            
-                            <div class="sb-sidenav-menu-heading">Core</div>
+                            
                                 <a class="nav-link" href="{{ url_for('admin_bp.admin_dashboard')}}">
                                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                     Dashboard
@@ -141,7 +141,7 @@
                                 </a>
                             </nav>
                         </div>
-
+</div>
                         <div class="sb-sidenav-footer">
                             <div class="small">Logged in as:</div>
                             {{ role }}

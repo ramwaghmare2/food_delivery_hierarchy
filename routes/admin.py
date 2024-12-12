@@ -80,7 +80,8 @@ def signup():
         if user:
             return render_template('admin/login.html')
         else:
-            return jsonify({"error": "User already exists or invalid role"}), 400
+            flash("User already exists or invalid role", "danger")
+            return redirect(url_for('admin_bp.signup'))
 
     return render_template("admin/signup.html")
 
@@ -192,11 +193,13 @@ def login():
             password = data.get('password')
             
             if not email or not password:
-                return jsonify({"error": "Email and password are required"}), 400
+                flash("Email and password are required", 'danger')
+                return redirect(url_for('admin_bp.login'))
             
             model = ROLE_MODEL_MAP.get(role)
             if not model:
-                return jsonify({"error": "Invalid role"}), 400
+                flash("Invalid Role", 'danger')
+                return redirect(url_for('admin_bp.login'))
             
             user = model.query.filter_by(email=email).first()
 
@@ -207,10 +210,13 @@ def login():
                 return redirect(url_for('admin_bp.login'))
 
             if not user:
-                return jsonify({"error": f"No {role} found with this email."}), 404
+                flash(f"No {role} found with this email", 'danger')
+                return redirect(url_for('admin_bp.login'))
             
             if not check_password_hash(user.password, password):
-                return jsonify({"error": f"Incorrect password for {role}."}), 401
+                flash(f"Incorrect password for {role}.", 'danger')
+                return redirect(url_for('admin_bp.login'))
+                
             
             session['user_id'] = user.id
             session['role'] = role
@@ -239,9 +245,6 @@ def login():
                 "Kitchen": "kitchen.kitchen_dashboard"
             }
             route_name = dashboard_routes.get(role)
-            
-            if not route_name:
-                return jsonify({"error": "Dashboard route not defined for this role"}), 500
             
             return redirect(url_for(route_name))
         
@@ -282,7 +285,7 @@ def logout():
 
         # Clear the session
         session.clear()
-
+        flash("You have logged out successfully!", "success")
         return redirect(url_for('admin_bp.login'))
     except Exception as e:
         flash(f"Error during logout: {str(e)}", "danger")
@@ -298,6 +301,7 @@ def admin_dashboard():
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
+
     # Initialize counts, totals, and sales data
     manager_count = 0
     super_distributor_count = 0
@@ -307,11 +311,15 @@ def admin_dashboard():
     total_orders_count = 0
     quantity_sold = 0
     sales_data = []
-    monthly_sales = 0
+    monthly_sales = []
 
-    # chart data initial values
+    # Chart data initial values
     months = []
     total_sales = []
+    kitchen_names = []
+    order_counts = []
+    pie_chart_labels = []
+    pie_chart_data = []
 
     barChartData = {
         "labels": ["January", "February", "March", "April"],
@@ -319,45 +327,62 @@ def admin_dashboard():
     }
 
     try:
-        # Fetch data from database
-        managers = Manager.query.all()
-        manager_count = len(managers)
+        # Fetch counts
+        manager_count = len(Manager.query.all())
+        super_distributor_count = len(SuperDistributor.query.all())
+        distributor_count = len(Distributor.query.all())
+        kitchen_count = len(Kitchen.query.all())
 
-        super_distributors = SuperDistributor.query.all()
-        super_distributor_count = len(super_distributors)
-
-        distributors = Distributor.query.all()
-        distributor_count = len(distributors)
-        
-        kitchens = Kitchen.query.all()
-        kitchen_count = len(kitchens)
-
-        total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
+        # Aggregate totals
+        total_sales_amount = db.session.query(func.sum(Order.total_amount)).scalar() or 0
         total_orders_count = OrderItem.query.count()
+        quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
 
-        quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
-
+        # Sales data
         sales_data = db.session.query(
             Sales.sale_id,
             Sales.datetime,
             FoodItem.item_name,
-            db.func.sum(OrderItem.price).label("total_price"),
-            db.func.sum(OrderItem.quantity).label("total_quantity")
+            func.sum(OrderItem.price).label("total_price"),
+            func.sum(OrderItem.quantity).label("total_quantity")
         ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
         .join(FoodItem, OrderItem.item_id == FoodItem.id)\
         .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
         .order_by(Sales.datetime.desc())\
         .all()
 
+        # Monthly sales
         monthly_sales = db.session.query(
-            func.date_trunc('month', Sales.datetime).label('month'),
+            func.date_format(Sales.datetime, '%Y-%m').label('month'),
             func.sum(Order.total_amount).label('total_sales')
-        ).join(Order, Sales.sale_id == Order.order_id).group_by(func.date_trunc('month', Sales.datetime)).order_by(func.date_trunc('month', Sales.datetime)).all()
-        
-        if not barChartData or not isinstance(barChartData, dict):
-            barChartData = {}
+        ).join(Order, Sales.sale_id == Order.order_id)\
+        .group_by(func.date_format(Sales.datetime, '%Y-%m'))\
+        .order_by(func.date_format(Sales.datetime, '%Y-%m'))\
+        .all()
 
-        months = [month.strftime('%Y-%m') for month, total_sales in monthly_sales]
+        # Prepare bar chart data (kitchen orders)
+        kitchens_data = db.session.query(
+            Kitchen.name,
+            func.count(OrderItem.order_item_id)
+        ).join(Order, Kitchen.id == Order.kitchen_id)\
+        .join(OrderItem, Order.order_id == OrderItem.order_id)\
+        .group_by(Kitchen.name).all()
+
+        kitchen_names = [kitchen[0] for kitchen in kitchens_data]
+        order_counts = [kitchen[1] for kitchen in kitchens_data]
+        print(order_counts)
+        # Prepare pie chart data (kitchen sales)
+        kitchen_sales_data = db.session.query(
+            Kitchen.name,
+            func.sum(Order.total_amount)
+        ).join(Order, Kitchen.id == Order.kitchen_id)\
+        .group_by(Kitchen.name).all()
+
+        pie_chart_labels = [kitchen[0] for kitchen in kitchen_sales_data]
+        pie_chart_data = [float(kitchen[1]) for kitchen in kitchen_sales_data]
+        print(pie_chart_data)
+        # Prepare months and total sales for chart
+        months = [month for month, total_sales in monthly_sales]
         total_sales = [float(total_sales) for _, total_sales in monthly_sales]
 
     except Exception as e:
@@ -380,6 +405,10 @@ def admin_dashboard():
         total_sales=total_sales,
         barChartData=barChartData,
         encoded_image=encoded_image,
+        kitchen_names=kitchen_names,
+        order_counts=order_counts,
+        pie_chart_labels=pie_chart_labels,
+        pie_chart_data=pie_chart_data
     )
 
 

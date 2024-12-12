@@ -30,7 +30,7 @@ def create_kitchen():
             
         existing_kitchen = Kitchen.query.filter_by(email=data.get('email')).first()
         if existing_kitchen:
-            flash("A kitchen with this email already exists. Please use a different email.")
+            flash("A kitchen with this email already exists. Please use a different email.",'danger')
             return render_template(
                 'kitchen/add_kitchen.html',
                 role=role,
@@ -62,7 +62,7 @@ def create_kitchen():
         
         db.session.add(new_kitchen)
         db.session.commit()
-        flash('Kitchen Added Successfully.')
+        flash('Kitchen Added Successfully.','success')
         return render_template(
             'kitchen/add_kitchen.html',
             role=role,
@@ -110,16 +110,16 @@ def edit_kitchen(kitchen_id):
         password = request.form['password']
 
         # Validate if email already exists (excluding the current kitchen)
-        existing_kitchen_email = Kitchen.query.filter(Kitchen.email == email, Kitchen.id != Kitchen.id).first()
+        existing_kitchen_email = Kitchen.query.filter(Kitchen.email == email, Kitchen.id != kitchen.id).first()
         if existing_kitchen_email:
             flash("The email is already in use by another Kitchen.", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user.name, encoded_image=image_data)
+            return redirect(url_for('kitchen.edit_kitchen',kitchen_id=kitchen_id))
 
         # Validate if contact already exists (excluding the current kitchen)
-        existing_kitchen_contact = Kitchen.query.filter(Kitchen.contact == contact, Kitchen.id != Kitchen.id).first()
+        existing_kitchen_contact = Kitchen.query.filter(Kitchen.contact == contact, Kitchen.id != kitchen.id).first()
         if existing_kitchen_contact:
             flash("The contact number is already in use by another Kitchen.", "danger")
-            return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user.name ,encoded_image= image_data)
+            return redirect(url_for('kitchen.edit_kitchen',kitchen_id=kitchen_id))
 
         # Update kitchen details
         kitchen.name = name
