@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from models import Customer, FoodItem, Order
 from base64 import b64encode
+from utils.services import get_image
 
 order_bp = Blueprint('order', __name__, static_folder='../static')
 
@@ -378,6 +379,7 @@ def kitchen_orders( ):
         user_id = session.get('user_id')
         role = session.get('role')
         user_name = session.get('user_name')
+        image_data = get_image(role, user_id)
         if not user_id or not role:
             flash('Unauthorized access', 'error')
             return redirect(url_for('auth.login'))  # Redirect to the login page
@@ -491,7 +493,9 @@ def kitchen_orders( ):
                                role=role,
                                date_filter=date_filter,
                                selected_kitchen_id=selected_kitchen_id,
-                               order_status=order_status)
+                               order_status=order_status,
+                               encoded_image=image_data,
+                            )
     
     except Exception as e:
         flash({'error': str(e)})

@@ -7,7 +7,7 @@
         <!-- Add Doctor Form Content Here -->
         <div class="sd-container">
             <h2 class="sd-form">Edit Food Item</h2>
-            <form method="post" class="sd-form" enctype="multipart/form-data">
+            <form method="post" href="url_for('food_item.edit_food_item',id=food_items.id)" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
                     <input name="name" type="text" value="{{ food_items.item_name }}" required>
                 </div>
