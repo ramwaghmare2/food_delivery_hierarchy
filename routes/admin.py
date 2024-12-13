@@ -637,7 +637,7 @@ def edit_profile():
         user.name = name
         user.email = email
         user.contact = contact
-
+        
         # If password is provided, hash and update it
         if password:
             user.password = bcrypt.generate_password_hash(password).decode('utf-8')

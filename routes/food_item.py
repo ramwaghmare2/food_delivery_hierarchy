@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template ,flash ,redirect,url_for,session
 from models import db, FoodItem ,Cuisine
-from utils.services import allowed_file
+from utils.services import allowed_file, get_image, get_user_query
 from base64 import b64encode
 
 food_item_bp = Blueprint('food_item', __name__)
@@ -9,7 +9,9 @@ food_item_bp = Blueprint('food_item', __name__)
 @food_item_bp.route('/add_food_item', methods=['GET', 'POST'])
 def add_food_item():
     user_id = session.get('user_id')
-    print(user_id)
+    role = session.get('role')
+    image_data = get_image(role, user_id)
+    user = get_user_query(role, user_id)
     
     if request.method == 'POST':
         item_name = request.form['item_name']
@@ -44,28 +46,16 @@ def add_food_item():
             db.session.rollback()
             flash(f'Error: {e}', 'error')
     cuisines = Cuisine.query.all()  # Fetch all cuisines for the dropdown
-    return render_template('add_food_item.html', cuisines=cuisines ,user_id=user_id)
-
+    return render_template('add_food_item.html', cuisines=cuisines ,user_id=user_id, encoded_image=image_data, user_name=user.name, role=role)
 
 
 ################################## Create a New FoodItem ##################################
-@food_item_bp.route('/food_items', methods=['POST'])
-def create_food_item():
-    data = request.json
-    new_food_item = FoodItem(
-        name=data.get('name'),
-        description=data.get('description'),
-        price=data.get('price'),
-        cuisine_id=data.get('cuisine_id')
-    )
-    db.session.add(new_food_item)
-    db.session.commit()
-    return jsonify({'message': 'Food item created successfully', 'food_item_id': new_food_item.id}), 201
-
 @food_item_bp.route('/food_items/<int:kitchen_id>', methods=['GET'])
 def get_food_items_by_kitchen(kitchen_id):
     user_id=session.get('user_id')
-    user_name = session.get('user_name')
+    role = session.get('role')
+    image_data = get_image(role, user_id)
+    user = get_user_query(role, user_id)
     # Query to get food items for the given kitchen_id
     food_items = FoodItem.query.filter_by(kitchen_id=kitchen_id).all()
     # Convert images to Base64 format
@@ -75,7 +65,7 @@ def get_food_items_by_kitchen(kitchen_id):
             else:
                 food.image_base64 = None
     # Render the template with the food items
-    return render_template('food_item.html', food_items=food_items, kitchen_id=kitchen_id, user_id=user_id,user_name=user_name)
+    return render_template('food_item.html', food_items=food_items, kitchen_id=kitchen_id, user_id=user_id, encoded_image=image_data, user_name=user.name, role=role)
 
 ################################## Update a FoodItem by ID ##################################
 @food_item_bp.route('/food_items/edit/<int:id>', methods=['GET', 'POST'])
@@ -90,6 +80,7 @@ def edit_food_item(id):
         image_binary = None
         if image and allowed_file(image.filename):
             image_binary = image.read()
+
         # Update food item with the form data
         food_items.name = request.form['name']
         food_items.description = request.form['description']
@@ -102,8 +93,7 @@ def edit_food_item(id):
         # Flash success message
         flash('Food item updated successfully!', 'success')
         
-        # Redirect to the food items page or another appropriate page
-        return redirect(url_for('food_item.get_food_items_by_kitchen', kitchen_id=food_items.kitchen_id))
+        return redirect(url_for('food_item.get_food_items_by_kitchen',kitchen_id=user_id))
 
     # If it's a GET request, render the edit form with the current data
     return render_template('edit_food_item.html', food_items=food_items ,user_id=user_id)
