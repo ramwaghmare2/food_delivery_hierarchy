@@ -11651,3 +11651,125 @@ body {
   left: 75%;
   font-size: 5rem;
 }
+
+
+    /* Style the pagination container */
+    #pagination-controls {
+      padding: 1%;
+      display: flex;
+      justify-content: right;
+      align-items: center;
+      margin-top: 2px;
+      gap: 5px;
+  }
+
+  /* Style for buttons */
+  #pagination-controls button {
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 0;
+  }
+
+  #pagination-controls span {
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 0;
+  }
+
+  /* Add hover effect for buttons */
+  #pagination-controls span:hover {
+      background-color: #0056b3;
+      color: white;
+  }
+
+  /* Add hover effect for buttons */
+  #pagination-controls button:hover {
+      background-color: #0056b3;
+      color: white;
+  }
+
+  /* Disabled button style */
+  #pagination-controls .disabled {
+      color: #000000;
+      cursor: not-allowed;
+  }
+
+  /* Style for page display */
+  #pagination-controls .page-display {
+      font-size: 16px;
+      font-weight: bold;
+  }
+
+
+  .card1 {
+    border-radius: 10px 10px 5px 5px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.font-weight-bold {
+            margin-left: 1%;
+    }
+
+.card-header1 {
+    border-radius: 10px 10px 0px 0px;
+    background-color:#20283E;
+    color: #fff;
+}
+
+.thead1 {
+    background-color: #488A99;
+    
+    color: #fff;
+}
+
+.chart-container1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-container1 canvas {
+    width: 400px;
+    height: 400px;
+    border: 1px solid rgb(126, 120, 120); /* Border */
+    border-radius: 5px; /* Optional: Adds rounded corners */
+    padding: 10px; /* Optional: Adds spacing inside the border */
+}
+
+.chart-wrapper1 {
+    flex: 1;
+    margin: 10px;
+}
+.card1:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 15px rgb(126, 120, 120);
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: translateY(1000px);
+        opacity: 0;
+    }
+    60% {
+        transform: translateY(-30px);
+        opacity: 1;
+    }
+    80% {
+        transform: translateY(10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.chart-container1 canvas {
+    animation: bounceIn 1s ease-out;
+}

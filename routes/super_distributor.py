@@ -79,6 +79,7 @@ def super_distributor():
                            total_orders_count=total_orders_count,
                            kitchen_names=kitchen_names,
                            order_counts=order_counts,
+                           sales=sales,
                            pie_chart_labels=pie_chart_labels,
                            pie_chart_data=pie_chart_data)
 
