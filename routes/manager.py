@@ -204,7 +204,7 @@ def get_manager_profile(manager_id):
 
 
 @manager_bp.route('/', methods=['GET', 'POST'], endpoint='manager_dashboard')
-def manager_dashboard():
+def manager_home():
     # Fetch session data
     user_name = session.get('user_name', 'User')
     role = session.get('role')

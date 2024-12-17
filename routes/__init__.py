@@ -8,6 +8,7 @@ from .cuisine import cuisine_bp
 from .order import order_bp
 from .food_item import food_item_bp
 from .admin import sales_bp, orders_bp
+from .dashboard import dashboard_bp
 
 def create_app_routes(app):
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -21,3 +22,5 @@ def create_app_routes(app):
     app.register_blueprint(food_item_bp, url_prefix='/fooditem')
     app.register_blueprint(sales_bp, url_prefix='/admin/sales')  # Updated prefix
     app.register_blueprint(orders_bp, url_prefix='/admin/orders')  # Updated prefix
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    
