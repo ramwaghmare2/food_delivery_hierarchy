@@ -311,7 +311,7 @@ def logout():
 ################################## Route for displaying admin dashboard ##################################
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
-def admin_dashboard():
+def admin_home():
     # Fetch session data
     role = session.get('role')
     user_id = session.get('user_id')
@@ -376,31 +376,6 @@ def admin_dashboard():
         .order_by(func.date_format(Sales.datetime, '%Y-%m'))\
         .all()
 
-        # Prepare bar chart data (kitchen orders)
-        kitchens_data = db.session.query(
-            Kitchen.name,
-            func.count(OrderItem.order_item_id)
-        ).join(Order, Kitchen.id == Order.kitchen_id)\
-        .join(OrderItem, Order.order_id == OrderItem.order_id)\
-        .group_by(Kitchen.name).all()
-
-        kitchen_names = [kitchen[0] for kitchen in kitchens_data]
-        order_counts = [kitchen[1] for kitchen in kitchens_data]
-        print(order_counts)
-        # Prepare pie chart data (kitchen sales)
-        kitchen_sales_data = db.session.query(
-            Kitchen.name,
-            func.sum(Order.total_amount)
-        ).join(Order, Kitchen.id == Order.kitchen_id)\
-        .group_by(Kitchen.name).all()
-
-        pie_chart_labels = [kitchen[0] for kitchen in kitchen_sales_data]
-        pie_chart_data = [float(kitchen[1]) for kitchen in kitchen_sales_data]
-        print(pie_chart_data)
-        # Prepare months and total sales for chart
-        months = [month for month, total_sales in monthly_sales]
-        total_sales = [float(total_sales) for _, total_sales in monthly_sales]
-
     except Exception as e:
         print(f"Error fetching data: {e}")
 
@@ -426,6 +401,7 @@ def admin_dashboard():
         pie_chart_labels=pie_chart_labels,
         pie_chart_data=pie_chart_data
     )
+
 
 
 ################################## Sales Data Visualization ##################################
