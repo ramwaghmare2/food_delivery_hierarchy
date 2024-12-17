@@ -1,28 +1,6 @@
 {% include 'admin/admin_header.html' %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-    .table-bordered th, .table-bordered td {
-        border: 1px solid #ffffff !important;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: #eef154 !important;
-    }
-
-    .table-responsive {
-        margin-top: 15px;
-    }
-
-    .card {
-        border-radius: 10px;
-    }
-
-    .card-header {
-        background-color: #eef154;
-        color: #fff;
-    }
-</style>
 
 <div id="layoutSidenav_content">
     <main>
@@ -207,159 +185,30 @@
         </div>
     </div>
 </div>
-<div class="chart-container mt-2 mb-4">
-    <div class="chart-wrapper">
-        <canvas id="barChart"></canvas>
-    </div>
-    <div class="chart-wrapper">
-        <canvas id="pieChart"></canvas>
-    </div>
-</div>
-
-<script>
-    // Data passed from Flask
-    const kitchenNames = {{ kitchen_names | tojson }};
-    const pieChartData = {{ pie_chart_data | tojson }};
-
-    // Chart.js Configuration
-    const ctx = document.getElementById('pieChart').getContext('2d');
-    const pieChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: kitchenNames, // Labels for the pie chart
-            datasets: [{
-                label: 'Kitchens Sale',
-                data: pieChartData, // Data for the pie chart
-                backgroundColor: ['rgba(255, 99, 132, 0.6)',   // Pink
-                    'rgba(54, 162, 235, 0.6)',   // Blue
-                    'rgba(255, 206, 86, 0.6)',   // Yellow
-                    'rgba(75, 192, 192, 0.6)',   // Green
-                    'rgba(153, 102, 255, 0.6)',  // Purple
-                    'rgba(255, 159, 64, 0.6)' ], // Example colors
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true, 
-                    position: 'top', // Legend position
-                },
-                title: { 
-                    display: true, 
-                    text: 'Total Sales Count by Kitchen' 
-                },
-                tooltip: {
-                    enabled: true // Enable tooltips
-                }
-            },
-            animation: {
-                duration: 1500,
-                easing: 'easeOutCubic',
-            },
-            hover: {
-                mode: 'nearest',
-                intersect: true,
-            }
-        }
-    });
-</script>
-
-
-<script>
-    const kitchenNames = {{ kitchen_names | safe }};
-    const orderCounts = {{ order_counts | safe }};
-    const salesData = {{ sales_data | safe }};
-    const barWidth = kitchenNames.length > 5 ? 0.5 : 0.6;
-
-    // Bar Chart
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    const barChart = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: kitchenNames,
-            datasets: [{
-                label: 'Number of Orders',
-                data: orderCounts,
-                backgroundColor: 'rgba(135, 206, 250, 0.6)', // Skyblue
-                borderColor: 'rgba(135, 206, 250, 1)',
-                borderWidth: 1,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true },
-                title: { display: true, text: 'Kitchen Orders Count' }
-            },
-            scales: {
-                x: {
-                    title: { display: true, text: 'Kitchens' },
-                    ticks: { maxRotation: 90, minRotation: 45 },
-                    barPercentage: 0.8,
-                    categoryPercentage: 0.8
-                },
-                y: {
-                    title: { display: true, text: 'Number of Orders' },
-                    beginAtZero: true
-                }
-            },
-            animation: {
-                duration: 1500,
-                easing: 'easeOutBounce',
-            },
-            hover: {
-                mode: 'nearest',
-                intersect: true,
-                onHover: function(event, chartElement) {
-                    if (chartElement.length > 0) {
-                        const index = chartElement[0].index;
-                        barChart.data.datasets[0].backgroundColor[index] = 'rgba(0, 191, 255, 1)'; // Highlight color
-                        barChart.update('none');
-                    }
-                },
-                onLeave: function(event, chartElement) {
-                    if (chartElement.length > 0) {
-                        const index = chartElement[0].index;
-                        barChart.data.datasets[0].backgroundColor[index] = 'rgba(135, 206, 250, 0.6)'; // Reset color
-                        barChart.update('none');
-                    }
-                }
-            }
-        }
-    });
-
-    
-</script>
-
-    </main>
-    {% include 'admin/admin_footer.html' %}
-</div>
 
 <style>
-    .table-bordered th, .table-bordered td {
-        border: 1px solid #ffffff !important;
-    }
+  .table-bordered th, .table-bordered td {
+      border: 1px solid #ffffff !important;
+  }
 
-    .table-hover tbody tr:hover {
-        background-color: #eef154 !important;
-    }
+  .table-hover tbody tr:hover {
+      background-color: #eef154 !important;
+  }
 
-    .table-responsive {
-        margin-top: 15px;
-    }
+  .table-responsive {
+      margin-top: 15px;
+  }
 
-    .card {
-        border-radius: 10px;
-        margin: 10px 0;
-    }
+  .card {
+      border-radius: 10px;
+      margin: 10px 0;
+  }
 
-    .card-header {
-        background-color: #eef154;
-        color: #fff;
-    }
+  .card-header {
+      background-color: #eef154;
+      color: #fff;
+  }
+
 
     .table-container {
     max-height: 300px; /* Adjust as needed to show approximately 10 rows */
@@ -396,4 +245,69 @@
     background-color: #f1f1f1;
 }
 
+    /* chart css */
+
+    .dashboard-container {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    flex: 1;
+    min-width: 150px;
+    background-color: #f7f7f7;
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .chart {
+    flex: 1;
+    min-width: 400px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+
+  .table-bordered th, .table-bordered td {
+        border: 1px solid #ffffff !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #eef154 !important;
+    }
+
+    .table-responsive {
+        margin-top: 15px;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+
+    .card-header {
+        background-color: #eef154;
+        color: #fff;
+    }
+
 </style>
+  
+</main>
+{% include 'admin/admin_footer.html' %}
+</div>
