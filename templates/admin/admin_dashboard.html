@@ -6,12 +6,12 @@
 <main>
     <div class="dashboard-container">
         <header class="dashboard-header">
-            <h1>{{ user_name }} (Role: {{ role }}), DASHBOARD</h1>
+            <h1>DASHBOARD</h1>
         </header>
         <div class="dashboard-summary">
             <div class="card">
                 <h2>Total Sales Amount</h2>
-                <p>${{ total_sales_amount }}</p>
+                <p>₹{{ total_sales_amount }}</p>
             </div>
             <div class="card">
                 <h2>Total Orders</h2>
@@ -23,6 +23,9 @@
             </div>
         </div>
         <section class="charts-section">
+            <div class="chart-container">
+                <canvas id="totalSales"></canvas>
+            </div>
             <div class="chart-container">
                 <canvas id="salesByItemChart"></canvas>
             </div>
@@ -42,7 +45,39 @@
     </div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Chart 1: Sales by Item
+            // Chart 1: Total Sales
+            const totalSalesdataCtx = document.getElementById("totalSales").getContext("2d");
+    new Chart(totalSalesdataCtx, {
+        type: "bar",
+        data: {
+            labels: {{ total_sales_data['labels'] | tojson }},
+            datasets: [{
+                label: "Total Sales by Manager",
+                data: {{ total_sales_data['values'] | tojson }},
+                backgroundColor: [
+                    "rgba(75, 192, 192, 0.6)",
+                    "rgba(54, 162, 235, 0.6)",
+                    "rgba(255, 99, 132, 0.6)"
+                ],
+                borderColor: [
+                    "rgba(75, 192, 192, 1)",
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255, 99, 132, 1)"
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+        // Chart 2: Sales by Item
         const salesByItemCtx = document.getElementById("salesByItemChart").getContext("2d");
         new Chart(salesByItemCtx, {
             type: "bar",
@@ -58,7 +93,7 @@
             }
         });
     
-        // Chart 2: Quantity Sold Over Time
+        // Chart 3: Quantity Sold Over Time
         const quantityOverTimeCtx = document.getElementById("quantityOverTimeChart").getContext("2d");
         new Chart(quantityOverTimeCtx, {
             type: "line",
@@ -75,7 +110,7 @@
             }
         });
     
-        // Chart 3: Top-Selling Items
+        // Chart 4: Top-Selling Items
         const topSellingItemsCtx = document.getElementById("topSellingItemsChart").getContext("2d");
         new Chart(topSellingItemsCtx, {
             type: "bar",
@@ -91,7 +126,7 @@
             }
         });
     
-        // Chart 4: Sales Distribution
+        // Chart 5: Sales Distribution
         const salesDistributionCtx = document.getElementById("salesDistributionChart").getContext("2d");
         new Chart(salesDistributionCtx, {
             type: "pie",
@@ -101,16 +136,18 @@
                     label: "Sales Distribution",
                     data: {{ sales_distribution['values'] | tojson }},
                     backgroundColor: [
-                        "rgba(255, 99, 132, 0.6)",
-                        "rgba(54, 162, 235, 0.6)",
-                        "rgba(255, 206, 86, 0.6)",
-                        "rgba(75, 192, 192, 0.6)"
+                        'rgba(255, 99, 132, 0.6)',   // Pink
+                'rgba(54, 162, 235, 0.6)',   // Blue
+                'rgba(255, 206, 86, 0.6)',   // Yellow
+                'rgba(75, 192, 192, 0.6)',   // Green
+                'rgba(153, 102, 255, 0.6)',  // Purple
+                'rgba(255, 159, 64, 0.6)'
                     ]
                 }]
             }
         });
     
-        // Chart 5: Daily Sales Performance
+        // Chart 6: Daily Sales Performance
         const dailyPerformanceCtx = document.getElementById("dailyPerformanceChart").getContext("2d");
         new Chart(dailyPerformanceCtx, {
             type: "line",
@@ -130,5 +167,6 @@
 
 </script>
 </main>
-</div>
+
 {% include 'admin/admin_footer.html' %}
+</div>

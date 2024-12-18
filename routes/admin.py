@@ -254,8 +254,8 @@ def login():
             )
 
             dashboard_routes = {
-                "Admin": "admin_bp.admin_dashboard",
-                "Manager": "manager.manager_dashboard",
+                "Admin": "admin_bp.admin_home",
+                "Manager": "manager.manager_home",
                 "SuperDistributor": "super_distributor.super_distributor",
                 "Distributor": "distributor.distributor_home",
                 "Kitchen": "kitchen.kitchen_dashboard"

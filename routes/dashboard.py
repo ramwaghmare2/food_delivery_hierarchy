@@ -1,7 +1,7 @@
 from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
 from flask_socketio import emit
-from utils.services import allowed_file, get_image, get_user_query
+from utils.services import allowed_file, get_image, get_user_query, ROLE_MODEL_MAP
 from sqlalchemy.exc import IntegrityError
 from utils.helpers import handle_error 
 from datetime import datetime, timedelta, timezone
@@ -11,6 +11,7 @@ from functools import wraps
 from sqlalchemy import func
 from app import socketio
 from .admin import role_required
+import logging
 
 dashboard_bp = Blueprint('dashboard', __name__, static_folder='../static')
 ################################## Route for displaying admin dashboard ##################################
@@ -35,6 +36,7 @@ def admin_dashboard():
     barChartData = {"labels": ["January", "February", "March", "April"], "values": [10, 20, 15, 30]}
 
     try:
+        filter_type = request.args.get('filter', 'manager')
         # Aggregate totals
         total_sales_amount = db.session.query(func.sum(Order.total_amount)).scalar() or 0
         total_orders_count = OrderItem.query.count()
@@ -61,11 +63,27 @@ def admin_dashboard():
         .group_by(func.date_format(Sales.datetime, '%Y-%m'))\
         .order_by(func.date_format(Sales.datetime, '%Y-%m'))\
         .all()
+        
+        
+        #Chart 1: Total Sales
+        sales_by_manager_query = db.session.query(
+            Manager.name.label("manager_name"),  # Replace with appropriate Manager field
+            func.sum(Order.total_amount).label("total_sales")  # Sum of total_amount from Order table
+        ).join(SuperDistributor, Manager.id == SuperDistributor.manager_id).join(Distributor, SuperDistributor.id == Distributor.super_distributor).join(Kitchen, Distributor.id == Kitchen.distributor_id).join(Order, Kitchen.id == Order.kitchen_id).join(Sales, Sales.order_id == Order.order_id).group_by(Manager.id).order_by(func.sum(Order.total_amount).desc()).all()
 
-        # Chart 1: Sales by Item Name
+        # Prepare data for the bar chart
+        total_sales_data = {
+            "labels": [row.manager_name for row in sales_by_manager_query],  # Manager names
+            "values": [float(row.total_sales) for row in sales_by_manager_query],  # Total sales
+        }
+        print(total_sales_data)
+
+
+
+        # Chart 2: Sales by Item Name
         sales_by_item_query = db.session.query(
             FoodItem.item_name,
-            func.sum(OrderItem.price * OrderItem.quantity).label('total_sales')
+            func.sum(OrderItem.price).label('total_sales')
         ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
         .group_by(FoodItem.item_name).all()
 
@@ -75,7 +93,7 @@ def admin_dashboard():
         }
         print("sales_by_item: ",sales_by_item)
 
-        # Chart 2: Quantity Sold Over Time
+        # Chart 3: Quantity Sold Over Time
         quantity_sold_query = db.session.query(
             func.date(FoodItem.created_at).label('sale_date'),
             func.sum(OrderItem.quantity).label('total_quantity')
@@ -88,7 +106,7 @@ def admin_dashboard():
         }
         print("quantity_sold_over_time: ",quantity_sold_over_time)
 
-        # Chart 3: Top-Selling Items
+        # Chart 4: Top-Selling Items
         top_selling_items_query = db.session.query(
             FoodItem.item_name,
             func.sum(OrderItem.quantity).label('total_quantity')
@@ -106,10 +124,10 @@ def admin_dashboard():
         }
         print("top_selling_items: ",top_selling_items)
 
-        # Chart 4: Sales Distribution by Item
+        # Chart 5: Sales Distribution by Item
         sales_distribution = db.session.query(
             FoodItem.item_name,
-            func.sum(OrderItem.price * OrderItem.quantity).label('total_sales')
+            func.sum(OrderItem.price).label('total_sales')
         ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
         .group_by(FoodItem.item_name).all()
 
@@ -117,10 +135,10 @@ def admin_dashboard():
         distribution_values = [float(item[1]) for item in sales_distribution]
         print("sales_distribution: ",sales_distribution)
 
-        # Chart 5: Daily Sales Performance
+        # Chart 6: Daily Sales Performance
         daily_sales_performance = db.session.query(
             func.date(FoodItem.created_at).label('sale_date'),
-            func.sum(FoodItem.price * OrderItem.quantity).label('total_revenue')
+            func.sum(FoodItem.price).label('total_revenue')
         ).group_by(func.date(FoodItem.created_at))\
         .order_by(func.date(FoodItem.created_at)).all()
 
@@ -141,6 +159,7 @@ def admin_dashboard():
         role=role,
         months=months,
         total_sales=total_sales,
+        total_sales_data=total_sales_data,
         barChartData=barChartData,
         encoded_image=encoded_image,
         kitchen_names=kitchen_names,
@@ -157,14 +176,106 @@ def admin_dashboard():
 @role_required('Manager')  
 def manager_dashboard():
     from models import SuperDistributor, Distributor, Kitchen
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
     super_distributors = SuperDistributor.query.all()
     distributors = Distributor.query.all()
     kitchens = Kitchen.query.all()
+    total_sales_amount, total_orders_count, quantity_sold = 0, 0, 0
+    sales_data, monthly_sales = [], []
+    months, total_sales = [], []
+
+    try:
+
+        total_sales_amount = (
+            db.session.query(db.func.sum(Order.total_amount))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0 
+        )
+        print(total_sales_amount)
+
+        total_orders_count = (
+            db.session.query(db.func.count(Order.order_id))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id) 
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id) 
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0  
+        )
+        print(total_orders_count)
+
+        quantity_sold = (
+            db.session.query(db.func.sum(OrderItem.quantity))
+            .join(Order, OrderItem.order_id == Order.order_id)  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0  
+        )
+        print(quantity_sold)
+
+        sales_data = (
+            db.session.query(
+                Sales.sale_id,
+                Sales.datetime,
+                FoodItem.item_name,
+                db.func.sum(OrderItem.price).label("total_price"),
+                db.func.sum(OrderItem.quantity).label("total_quantity"),
+            )
+            .join(Order, Sales.order_id == Order.order_id) 
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .join(FoodItem, OrderItem.item_id == FoodItem.id)
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .join(Manager, SuperDistributor.manager_id == Manager.id)
+            .filter(Manager.id == user_id)
+            .group_by(Sales.sale_id, Sales.datetime, FoodItem.item_name)
+            .all()
+        )
+
+        print("Sales Data: ", sales_data)
+
+        print(f"user_id: {user_id}")
+
+        monthly_sales = (
+            db.session.query(
+                db.func.date_format(Sales.datetime, '%Y-%m').label('month'),
+                db.func.sum(Order.total_amount).label('total_sales'),
+            )
+            .join(Order, Sales.order_id == Order.order_id)
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .filter(Kitchen.manager_id == user_id)
+            .group_by(db.func.date_format(Sales.datetime, '%Y-%m'))
+            .order_by(db.func.date_format(Sales.datetime, '%Y-%m'))
+            .all()
+        )
+        print("monthly_sales: ", monthly_sales)
+
+        months = [month for month, _ in monthly_sales]
+        total_sales = [float(total) for _, total in monthly_sales]
+
+    except Exception as e:
+        logging.error(f"Error fetching data: {e}")
+        
 
     return render_template('manager/manager_dashboard.html', 
                            super_distributors=super_distributors, 
                            distributors=distributors, 
-                           kitchens=kitchens)
+                           kitchens=kitchens,
+                            total_sales_amount=total_sales_amount,
+                            total_orders_count=total_orders_count,
+                            quantity_sold=quantity_sold,
+                            sales_data=sales_data,
+                            months=months,
+                            total_sales=total_sales,
+                            barChartData={"labels": months, "values": total_sales},)
 
 
 @dashboard_bp.route('/super_distributor', methods=['GET'])
