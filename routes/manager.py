@@ -203,7 +203,7 @@ def get_manager_profile(manager_id):
         return redirect(url_for('manager.get_managers'))
 
 
-@manager_bp.route('/', methods=['GET', 'POST'], endpoint='manager_dashboard')
+@manager_bp.route('/', methods=['GET', 'POST'])
 def manager_home():
     # Fetch session data
     user_name = session.get('user_name', 'User')
