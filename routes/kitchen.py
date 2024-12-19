@@ -166,8 +166,8 @@ def delete_kitchen(kitchen_id):
     return redirect(url_for('kitchen.get_kitchens'))
 
 ################################## Route for Display Kitchen Dashboard ##################################
-@kitchen_bp.route("/kitchen_dashboard", methods=['GET', 'POST'])
-def kitchen_dashboard():
+@kitchen_bp.route("/kitchen_home", methods=['GET', 'POST'])
+def kitchen_home():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
