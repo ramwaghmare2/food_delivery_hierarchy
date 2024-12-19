@@ -1,5 +1,5 @@
 
-{% include 'admin/admin_header.html' %}
+{% include 'manager/manager_header.html' %}
 <link rel="stylesheet" href="/static/css/dashboard.css">
 
 <div id="layoutSidenav_content">
@@ -24,10 +24,13 @@
         </div>
         <section class="charts-section">
             <div class="chart-container">
+                <canvas id="totalSalesData"></canvas>
+            </div>
+            <div class="chart-container">
                 <canvas id="salesByItemChart"></canvas>
             </div>
             <div class="chart-container">
-                <canvas id="quantityOverTimeChart"></canvas>
+                <canvas id="monthlySalesChart"></canvas>
             </div>
             <div class="chart-container">
                 <canvas id="topSellingItemsChart"></canvas>
@@ -42,15 +45,53 @@
     </div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Chart 2: Monthly Sales
+        const totalSalesDataChartCtx = document.getElementById("totalSalesData").getContext("2d");
+        new Chart(totalSalesDataChartCtx, {
+            type: "bar",
+            data: {
+                labels: {{total_sales_by_super ['labels'] | tojson }},
+                datasets: [{
+                    label: "Monthly Sales",
+                    data: {{ total_sales_by_super ['values'] | tojson }},
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1
+                }]
+            }
+        });
+    
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
         // Chart 1: Sales by Item
         const salesByItemCtx = document.getElementById("salesByItemChart").getContext("2d");
         new Chart(salesByItemCtx, {
             type: "bar",
             data: {
-                labels: {{ barChartData['labels'] | tojson }},
+                labels: {{sales_data['labels'] | tojson }},
                 datasets: [{
                     label: "Sales by Item",
-                    data: {{ barChartData['values'] | tojson }},
+                    data: {{ sales_data['values'] | tojson }},
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1
+                }]
+            }
+        });
+    
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Chart 2: Monthly Sales
+        const monthlySalesChartCtx = document.getElementById("monthlySalesChart").getContext("2d");
+        new Chart(monthlySalesChartCtx, {
+            type: "bar",
+            data: {
+                labels: {{monthly_sales_data['labels'] | tojson }},
+                datasets: [{
+                    label: "Monthly Sales",
+                    data: {{ monthly_sales_data['values'] | tojson }},
                     backgroundColor: "rgba(75, 192, 192, 0.6)",
                     borderColor: "rgba(75, 192, 192, 1)",
                     borderWidth: 1
