@@ -228,7 +228,8 @@ def login():
                 return jsonify({"error": "Unsupported hash format"}), 500
 
             if not password_valid:
-                return jsonify({"error": f"Incorrect password for {role}."}), 401
+                flash(f"Incorrect password for {role}.", 'danger')
+                return redirect(url_for('admin_bp.login'))
 
             # Re-hash the password to unify it to pbkdf2:sha256 if necessary
             if not user.password.startswith('pbkdf2:sha256'):
@@ -351,7 +352,7 @@ def admin_home():
 
         # Aggregate totals
         total_sales_amount = db.session.query(func.sum(Order.total_amount)).scalar() or 0
-        total_orders_count = OrderItem.query.count()
+        total_orders_count = Order.query.count()
         quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
 
         # Sales data

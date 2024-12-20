@@ -70,6 +70,7 @@
                                     <h5 class="card-title">{{ kitchen.name }}</h5>
                                     <p class="card-text"><strong>Email:</strong> {{ kitchen.email }}</p>
                                     <p class="card-text"><strong>Contact:</strong> {{ kitchen.contact }}</p>
+                                    <p class="card-text"><strong>Distributor:</strong> {{ kitchen.distributors.name }}</p>
                                     <p class="card-text">
                                         <strong>Status:</strong> 
                                         <span class="badge 
@@ -84,13 +85,26 @@
 
                                     <!-- Action Buttons -->
                                     {% if kitchen.status == 'deactivated' %}
-                                 
+                                        {% if role == 'Admin' %}
+                                            <div class="action-buttons" >
+                                                <a href="{{ url_for('kitchen.lock_kitchen', kitchen_id=kitchen.id) }}" onclick="return confirm('Are you sure you want to Unlock this Kitchen {{ kitchen.name }}?')" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-check2-circle"></i>
+                                                    Unlock
+                                                </a>
+                                            </div>
+                                        {% endif %}
                                     {% else %}
                                     <div class="action-buttons">
                                         <a href="{{ url_for('kitchen.edit_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i> Edit</a>
-                                        <a href="{{ url_for('kitchen.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this kitchen?')">
+                                        <a href="{{ url_for('kitchen.delete_kitchen', kitchen_id=kitchen.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Kitchen?')">
                                             <i class="fas fa-trash-alt"></i> Delete</a>
+                                    {% if kitchen.status == 'activated' and role == 'Admin' %}
+                                        <a href="{{ url_for('kitchen.lock_kitchen', kitchen_id=kitchen.id) }}" onclick="return confirm('Are you sure you want to Lock this Kitchen {{ kitchen.name }}?')" class="btn btn-secondary btn-sm">
+                                            <i class="bi bi-x-circle"></i>
+                                            Lock
+                                        </a>
+                                    {% endif %}
                                     </div>
                                     {% endif %}
                                 </div>

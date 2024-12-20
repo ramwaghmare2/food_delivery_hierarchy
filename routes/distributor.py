@@ -312,6 +312,29 @@ def delete_distributor(distributor_id):
 
     return redirect(url_for('distributor.all_distributor'))
 
+
+# Route for delete the Distributor
+@distributor_bp.route('/lock/<int:distributor_id>', methods=['GET'])
+def lock_distributor(distributor_id):
+    distributor = Distributor.query.get_or_404(distributor_id)
+
+    try:
+        if distributor.status == 'activated':
+            distributor.status = 'deactivated'
+            db.session.commit()
+            flash("Distributor Locked successfully!", "danger")
+        else:
+            distributor.status = 'activated'
+            db.session.commit()
+            flash("Distributor Unlocked successfully!", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error : {str(e)}", "danger")
+
+    return redirect(url_for('distributor.all_distributor'))
+
+
 ################################## Function for image storage ##################################
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']

@@ -18,7 +18,7 @@ def create_kitchen():
     role = session.get('role')
     image_data= get_image(role, user_id) 
     user_name = session.get('user_name')
-    distributors = Distributor.query.all()
+    distributors = Distributor.query.filter_by(status='activated').all()
     data = request.form
 
     user = get_user_query(role, user_id)
@@ -163,7 +163,30 @@ def delete_kitchen(kitchen_id):
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")
 
-    return redirect(url_for('kitchen.get_kitchens'))
+    return redirect(url_for('distributor.distrubutor_all_kitchens'))
+
+
+# Route for delete the kitchen
+@kitchen_bp.route('/lock/<int:kitchen_id>', methods=['GET'])
+def lock_kitchen(kitchen_id):
+    kitchen = Kitchen.query.get_or_404(kitchen_id)
+
+    try:
+        if kitchen.status == 'activated':
+            kitchen.status = 'deactivated'
+            db.session.commit()
+            flash("Kitchen Locked successfully!", "danger")
+        else:
+            kitchen.status = 'activated'
+            db.session.commit()
+            flash("Kitchen Unlocked successfully!", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error : {str(e)}", "danger")
+
+    return redirect(url_for('distributor.distrubutor_all_kitchens'))
+
 
 ################################## Route for Display Kitchen Dashboard ##################################
 @kitchen_bp.route("/kitchen_home", methods=['GET', 'POST'])

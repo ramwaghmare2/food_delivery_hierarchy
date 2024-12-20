@@ -34,10 +34,18 @@
                 <div class="sd-row">
                     <input name="mobile_number" type="text" placeholder="Mobile*" required>
                 </div>
-                <div class="sd-row">
-                    <input name="password" type="password" placeholder="Password*" required>
-                    <input type="password" placeholder="Re-Enter Password*" required>
+                <div class="sd-row password-wrapper">
+                    <input id="password" name="password" type="password" placeholder="Password*" required>
+                    <span class="eye-icon" onclick="togglePassword()">
+                        <i id="eye-icon" class="fa fa-eye"></i>
+                    </span>
                 </div>
+                <!-- <div class="sd-row password-wrapper">
+                    <input id="re_password" type="password" placeholder="Re-Enter Password*" required>
+                    <span class="eye-icon" onclick="toggleRePassword()">
+                        <i id="re-eye-icon" class="fa fa-eye"></i>
+                    </span>
+                </div> -->
                 <div class="sd-row">
                     <label for="image">Super Distributor Image</label>
                     <input type="file" class="form-control-file" id="image" name="image">
@@ -45,9 +53,7 @@
                 <br>
                 {% if role=='Manager' %}
                 <div class="sd-row">
-                    
                     <input type="text"  placeholder="{{user_name}}" name="username" hidden>
-                    
                 </div>
                 {% else %}
                 <div class="sd-row">
@@ -68,7 +74,8 @@
         </div>
     </main>
     <br>
-
     
 {% include 'sd_footer.html' %}
+
+
 

@@ -137,7 +137,7 @@ def add_distributor():
     user = get_user_query(role, user_id)
     try:
 
-        super_distributors = SuperDistributor.query.all() 
+        super_distributors = SuperDistributor.query.filter_by(status='activated').all() 
 
 
         if request.method == 'POST':
@@ -193,7 +193,7 @@ def add_super_distributor():
     user = get_user_query(role, user_id)
     try:
 
-        managers = Manager.query.all()
+        managers = Manager.query.filter_by(status='activated').all()
 
         if request.method == 'POST':
             image = request.files.get('image')
@@ -227,7 +227,11 @@ def add_super_distributor():
             flash('Super Distributor Added Successfully.','success')
             return redirect(url_for('super_distributor.add_super_distributor'))
 
-        return render_template('add_super_distributor.html', role=role,managers=managers, user_name=user.name, encoded_image = image_data)
+        return render_template('add_super_distributor.html', 
+                               role=role,
+                               managers=managers, 
+                               user_name=user.name, 
+                               encoded_image = image_data)
 
     except Exception as e:
         flash(f'Error: {e}','danger')
@@ -300,6 +304,28 @@ def delete_super_distributor(sd_id):
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")
+
+    return redirect(url_for('super_distributor.all_super_distributor'))
+
+
+# Route for delete the super distributor
+@super_distributor_bp.route('/lock/<int:sd_id>', methods=['GET'])
+def lock_sd(sd_id):
+    sd = SuperDistributor.query.get_or_404(sd_id)
+
+    try:
+        if sd.status == 'activated':
+            sd.status = 'deactivated'
+            db.session.commit()
+            flash("Super Distributor Locked successfully!", "danger")
+        else:
+            sd.status = 'activated'
+            db.session.commit()
+            flash("Super Distributor Unlocked successfully!", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error : {str(e)}", "danger")
 
     return redirect(url_for('super_distributor.all_super_distributor'))
 

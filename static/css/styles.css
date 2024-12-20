@@ -3168,6 +3168,13 @@ textarea.form-control-lg {
   --bs-btn-border-radius: 0.25rem;
 }
 
+.btn-sm-card {
+  --bs-btn-padding-y: 0.25rem;
+  --bs-btn-padding-x: 0.25rem;
+  --bs-btn-font-size: 0.875rem;
+  --bs-btn-border-radius: 0.25rem;
+}
+
 .fade {
   transition: opacity 0.15s linear;
 }
@@ -11425,7 +11432,6 @@ body {
 
 .manager-info {
   flex: 1;
-  margin-left: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -11652,6 +11658,22 @@ body {
   font-size: 5rem;
 }
 
+.card-body-icon-sale {
+  position: absolute;
+  z-index: 0;
+  top: -13px;
+  left: 72%;
+  font-size: 4.5rem;
+}
+
+.card-body-icon-sup {
+  position: absolute;
+  z-index: 0;
+  top: -13px;
+  left: 68%;
+  font-size: 4.5rem;
+}
+
 
     /* Style the pagination container */
     #pagination-controls {
@@ -11772,4 +11794,22 @@ body {
 
 .chart-container1 canvas {
     animation: bounceIn 1s ease-out;
+}
+
+/* Style for positioning the eye icon inside the input field */
+.password-wrapper {
+  position: relative;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+}
+
+.password-wrapper input {
+  padding-right: 40px;  /* Space for the icon */
 }
