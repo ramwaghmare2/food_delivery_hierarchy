@@ -60,10 +60,9 @@ def add_manager():
     return render_template('add_manager.html', role=role,user_name=user_name, encoded_image = image_data)
 
 
-@manager_bp.route('/managers', methods=['GET'])
+@manager_bp.route('/managers', methods=['GET', 'POST'])
 def get_managers():
     role = session.get('role')
-    user_name = session.get('user_name')
     user_id = session.get('user_id')
     image_data = get_image(role, user_id)  # Fetch user image
     counts = get_model_counts()  # Fetch model counts (e.g., for dashboard stats)
@@ -173,7 +172,7 @@ def edit_manager(manager_id):
 
 
 # Route for delete the manager
-@manager_bp.route('/delete/<int:manager_id>', methods=['GET', 'POST'])
+@manager_bp.route('/delete/<int:manager_id>', methods=['GET'])
 def delete_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
 
@@ -182,6 +181,28 @@ def delete_manager(manager_id):
         # db.session.delete(manager)
         db.session.commit()
         flash("Manager deleted successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting manager: {str(e)}", "danger")
+
+    return redirect(url_for('manager.get_managers'))
+
+
+# Route for delete the manager
+@manager_bp.route('/lock/<int:manager_id>', methods=['GET'])
+def lock_manager(manager_id):
+    manager = Manager.query.get_or_404(manager_id)
+
+    try:
+        if manager.status == 'activated':
+            manager.status = 'deactivated'
+            db.session.commit()
+            flash("Manager Locked successfully!", "danger")
+        else:
+            manager.status = 'activated'
+            db.session.commit()
+            flash("Manager Unlocked successfully!", "success")
+
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting manager: {str(e)}", "danger")
@@ -315,6 +336,7 @@ def manager_home():
         sales_data=sales_data,
         user_name=user_name,
         role=role,
+        encoded_image=image_data,
         months=months,
         total_sales=total_sales,
         barChartData={"labels": months, "values": total_sales},

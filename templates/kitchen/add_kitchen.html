@@ -14,17 +14,17 @@
         <div class="sd-container">
             <h2 class="sd-form">Add Kitchen</h2>
             {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             <form action="{{ url_for('kitchen.create_kitchen') }}" method="post" class="sd-form">
                 <div class="sd-row">
                     <input name="name" type="text" placeholder="Full Name*" required>
@@ -34,17 +34,11 @@
                     <input name="email" type="email" placeholder="Email*" required>
                     <input name="contact" type="text" placeholder="Mobile*" required>
                 </div>
-                <!-- <div class="sd-row">
-                    <select required>
-                        <option value="" disabled selected>Gender*</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                    <input type="date" placeholder="Date Of Birth*" required>
-                </div> -->
-                <div class="sd-row">
-                    <input name="password" type="password" placeholder="Password*" required>
-                    <input type="password" placeholder="Re-Enter Password*" required>
+                <div class="sd-row password-wrapper">
+                    <input id="password" name="password" type="password" placeholder="Password*" required>
+                    <span class="eye-icon" onclick="togglePassword()">
+                        <i id="eye-icon" class="fa fa-eye"></i>
+                    </span>
                 </div>
                 <textarea name="address" class="sd-textarea" placeholder="Address"></textarea>
                 <br>

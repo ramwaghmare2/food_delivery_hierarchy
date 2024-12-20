@@ -86,3 +86,35 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial pagination
     paginate();
 });
+
+function togglePassword() {
+    var passwordField = document.getElementById("password");
+    var eyeIcon = document.getElementById("eye-icon");
+    
+    // Toggle the type attribute between password and text
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+        eyeIcon.classList.remove("fa-eye");
+        eyeIcon.classList.add("fa-eye-slash");
+    } else {
+        passwordField.type = "password";
+        eyeIcon.classList.remove("fa-eye-slash");
+        eyeIcon.classList.add("fa-eye");
+    }
+}
+
+function toggleRePassword() {
+    var rePasswordField = document.getElementById("re_password");
+    var reEyeIcon = document.getElementById("re-eye-icon");
+    
+    // Toggle the type attribute between password and text
+    if (rePasswordField.type === "password") {
+        rePasswordField.type = "text";
+        reEyeIcon.classList.remove("fa-eye");
+        reEyeIcon.classList.add("fa-eye-slash");
+    } else {
+        rePasswordField.type = "password";
+        reEyeIcon.classList.remove("fa-eye-slash");
+        reEyeIcon.classList.add("fa-eye");
+    }
+}

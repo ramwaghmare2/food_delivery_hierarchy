@@ -36,14 +36,12 @@
                 <div class="sd-row">
                     <input name="contact" type="text" value="{{ kitchen.contact }}" required>
                 </div>
-                <div class="sd-row">
-                    <label for="password" class="form-label">Password (Leave blank if unchanged)</label>
-                    <input type="password" class="form-control" id="password" name="password">
+                <div class="sd-row password-wrapper">
+                    <input id="password" name="password" type="password" placeholder="Password" required>
+                    <span class="eye-icon" onclick="togglePassword()">
+                        <i id="eye-icon" class="fa fa-eye"></i>
+                    </span>
                 </div>
-                <!--<div class="sd-row">
-                    <label for="image" class="form-label">Profile Image (Optional)</label>
-                    <input type="file" class="form-control-file" id="image" name="image">
-                </div> -->
                 <div class="sd-row">
                     <label for="image" class="form-label">Profile Image (Optional)</label>
                     <input type="file" class="form-control-file" id="image" name="image">

@@ -24,9 +24,17 @@
                     <input name="email" type="email" placeholder="Email*" required>
                     <input name="mobile_number" type="text" placeholder="Mobile*" required>
                 </div>
-                <div class="sd-row">
-                    <input name="password" type="password" placeholder="Password*" required>
-                    <input type="password" placeholder="Re-Enter Password*" required>
+                <div class="sd-row password-wrapper">
+                    <input id="password" name="password" type="password" placeholder="Password*" required>
+                    <span class="eye-icon" onclick="togglePassword()">
+                        <i id="eye-icon" class="fa fa-eye"></i>
+                    </span>
+                </div>
+                <div class="sd-row password-wrapper">
+                    <input id="re_password" type="password" placeholder="Re-Enter Password*" required>
+                    <span class="eye-icon" onclick="toggleRePassword()">
+                        <i id="re-eye-icon" class="fa fa-eye"></i>
+                    </span>
                 </div>
                 <textarea name="address" class="sd-textarea" placeholder="Address"></textarea>
                 <br>

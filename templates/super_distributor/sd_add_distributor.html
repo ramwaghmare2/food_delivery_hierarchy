@@ -35,9 +35,11 @@
                 <div class="sd-row">
                     <input name="mobile_number" type="text" placeholder="Mobile*" required>
                 </div>
-                <div class="sd-row">
-                    <input name="password" type="password" placeholder="Password*" required>
-                    <input type="password" placeholder="Re-Enter Password*" required>
+                <div class="sd-row password-wrapper">
+                    <input id="password" name="password" type="password" placeholder="Password*" required>
+                    <span class="eye-icon" onclick="togglePassword()">
+                        <i id="eye-icon" class="fa fa-eye"></i>
+                    </span>
                 </div>
                 <div class="sd-row">
                     <label for="image">Profile Image</label>

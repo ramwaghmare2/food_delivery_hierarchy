@@ -53,9 +53,9 @@
                             <!-- Manager Image -->
                             <div>
                                 {% if sd.image_base64 %}
-                                <img src="{{ sd.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
+                                    <img src="{{ sd.image_base64 }}" alt="Manager Image" class="manager-image" width="120" height="120">
                                 {% else %}
-                                No Image
+                                    No Image
                                 {% endif %}
                             </div>
                             <!-- Manager Info -->
@@ -63,6 +63,7 @@
                                 <h5 class="card-title">{{ sd.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ sd.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ sd.contact }}</p>
+                                <p class="card-text"><strong>Manager:</strong> {{ sd.manager.name }}</p>
                                 <p class="card-text">
                                     <strong>Status:</strong> 
                                     <span class="badge 
@@ -75,14 +76,27 @@
                                     </span>
                                 </p>
                                 <!-- Action Buttons -->
-                                 {% if sd.status == 'deactivated' %}
-                                 
-                                 {% else %}
+                                {% if sd.status == 'deactivated' %}
+                                    {% if role == 'Admin' %}
+                                        <div class="action-buttons" >
+                                            <a href="{{ url_for('super_distributor.lock_sd', sd_id=sd.id) }}" onclick="return confirm('Are you sure you want to Unlock this Super Distributor {{ sd.name }}?')" class="btn btn-success btn-sm">
+                                                <i class="bi bi-check2-circle"></i>
+                                                Unlock
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
                                 <div class="action-buttons">
                                     <a href="{{ url_for('super_distributor.edit_super_distributor', sd_id=sd.id ) }}" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i> Edit</a>
                                     <a href="{{ url_for('super_distributor.delete_super_distributor', sd_id=sd.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Super Distributor?')">
                                         <i class="fas fa-trash-alt"></i> Delete</a>
+                                    {% if sd.status == 'activated' and role == 'Admin' %}
+                                        <a href="{{ url_for('super_distributor.lock_sd', sd_id=sd.id) }}" onclick="return confirm('Are you sure you want to Lock this Super Distributor {{ sd.name }}?')" class="btn btn-secondary btn-sm">
+                                            <i class="bi bi-x-circle"></i>
+                                            Lock
+                                        </a>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
                             </div>
