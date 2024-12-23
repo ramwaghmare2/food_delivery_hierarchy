@@ -267,16 +267,57 @@ def distrubutor_all_kitchens():
     # Execute the final query
     all_kitchens = query.all()
     kitchens_count = len(all_kitchens)
+
+    all_kitchen_ids = [kitchen.id for kitchen in all_kitchens]
+    sales_by_kitchen = Sales.query.filter(Sales.kitchen_id.in_(all_kitchen_ids)).all()
+
+    # Extract all order_ids from the sales data
+    order_ids = [sale.order_id for sale in sales_by_kitchen]
+    
+    # Get Orders data based on the order_ids
+    orders = Order.query.filter(Order.order_id.in_(order_ids)).all()
+
+    # Helper function to calculate total sales for a given list of kitchens
+    def calculate_total_sales(kitchens_list):
+        total_sales = 0
+        for kitchen in kitchens_list:
+            # Find the sales corresponding to this kitchen
+            kitchen_sales = [sale for sale in sales_by_kitchen if sale.kitchen_id == kitchen.id]
+            
+            # Collect orders related to these sales
+            kitchen_orders = [order for order in orders if order.order_id in [sale.order_id for sale in kitchen_sales]]
+            
+            # Sum the total amount of orders for this kitchen
+            total_sales += sum(order.total_amount for order in kitchen_orders)
+        return total_sales
+    
     # Convert images to Base64 format
     for kitchen in all_kitchens:
         if kitchen.image:
             kitchen.image_base64 = f"data:image/jpeg;base64,{b64encode(kitchen.image).decode('utf-8')}"
         else:
             kitchen.image_base64 = None
+    
+    # Create kitchen data with sales included
+    kitchen_data = [
+        {
+            'id': kitchen.id,
+            'name': kitchen.name,
+            'distributor_name': kitchen.distributors.name,
+            'total_sales': calculate_total_sales([kitchen]),
+            'image': kitchen.image_base64,
+            'email': kitchen.email,
+            'contact': kitchen.contact,
+            'status': kitchen.status,
+
+        }
+        for kitchen in all_kitchens
+    ]
+
 
     return render_template(
         'kitchen/all_kitchens.html',
-        all_kitchens=all_kitchens,
+        all_kitchens=kitchen_data,
         role=role,
         user_name=user.name,
         **counts,
@@ -490,3 +531,64 @@ def distributor_orders():
     except Exception as e:
         flash({'error': str(e)})
         return redirect(url_for('distributor.distributor_home'))
+
+
+
+@distributor_bp.route('/view-details/<int:user_id>', methods=['GET'])
+def view_details(user_id):
+    id = session.get('user_id')
+    role = session.get('role')
+    user_name = get_user_query(role, id)
+    encoded_image = get_image(role, id)
+    
+    # Get Distributors for the manager
+    user = Distributor.query.filter_by(id=user_id).first()
+    
+    # Get Kitchens for the Distributors
+    kitchens = Kitchen.query.filter(Kitchen.distributor_id == user.id).all()
+    kitchen_ids = [kitchen.id for kitchen in kitchens]
+    
+    # Get Sales data for the Kitchens
+    sales_k = Sales.query.filter(Sales.kitchen_id.in_(kitchen_ids)).all()
+
+    # Extract all order_ids from the sales data
+    order_ids = [sale.order_id for sale in sales_k]
+    
+    # Get Orders data based on the order_ids
+    orders = Order.query.filter(Order.order_id.in_(order_ids)).all()
+
+    # Helper function to calculate total sales for a given list of kitchens
+    def calculate_total_sales(kitchens_list):
+        total_sales = 0
+        for kitchen in kitchens_list:
+            # Find the sales corresponding to this kitchen
+            kitchen_sales = [sale for sale in sales_k if sale.kitchen_id == kitchen.id]
+            
+            # Collect orders related to these sales
+            kitchen_orders = [order for order in orders if order.order_id in [sale.order_id for sale in kitchen_sales]]
+            
+            # Sum the total amount of orders for this kitchen
+            total_sales += sum(order.total_amount for order in kitchen_orders)
+        return total_sales
+
+    # Create kitchen data with sales included
+    kitchen_data = [
+        {
+            'kitchen_name': kitchen.name,
+            'distributor_name': kitchen.distributors.name,
+            'total_sales': calculate_total_sales([kitchen])
+        }
+        for kitchen in kitchens
+    ]
+
+    details = 'Distributor'
+
+    return render_template('view_details.html',
+                           role=role,
+                           user_name=user_name.name,
+                           encoded_image=encoded_image,
+                           user=user,
+                           details=details,
+                           kitchens=kitchen_data,
+                           )
+

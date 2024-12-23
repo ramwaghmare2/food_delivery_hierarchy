@@ -50,6 +50,9 @@
                                     <span class="red-dot"></span> <span class="status-text">Offline</span>
                                 {% endif %}
                             </div>
+                            <div class="view" style="position: absolute; top: 10px; right: 10px; display: flex;">
+                                <a href="{{ url_for('super_distributor.view_details', user_id=sd.id )}}" class="btn btn-light btn-sm">Details</a>
+                            </div>
                             <!-- Manager Image -->
                             <div>
                                 {% if sd.image_base64 %}
@@ -63,7 +66,6 @@
                                 <h5 class="card-title">{{ sd.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ sd.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ sd.contact }}</p>
-                                <p class="card-text"><strong>Manager:</strong> {{ sd.manager.name }}</p>
                                 <p class="card-text">
                                     <strong>Status:</strong> 
                                     <span class="badge 

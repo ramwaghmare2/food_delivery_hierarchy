@@ -52,7 +52,10 @@
                 {% for kitchen in all_kitchens %}
                     <div class="col-md-4 mb-4"> <!-- Added margin-bottom for spacing between cards -->
                         <div class="card manager-card">
-                            <div class="card-body manager-card-body">
+                            <div type="button" class="card-body manager-card-body" data-toggle="modal" data-target="#kitchenModal" 
+                                    data-name="{{ kitchen.name }}" 
+                                    data-sales="{{ kitchen.total_sales }}"
+                                    data-distributor="{{ kitchen.distributor_name }}">
                                 <div class="status-dot-container">
                                     {% if kitchen.online_status %}
                                         <span class="green-dot"></span> <span class="status-text">Online</span>
@@ -61,16 +64,15 @@
                                     {% endif %}
                                 </div>
                                 <!-- Manager Image -->
-                                {% if kitchen.image_base64 %}
-                                <img src="{{ kitchen.image_base64 }}" alt="Kitchen Image" class="manager-image" width="120" height="120">
+                                {% if kitchen.image %}
+                                    <img src="{{ kitchen.image }}" alt="Kitchen Image" class="manager-image" width="120" height="120">
                                 {% else %}
-                                No Image
+                                    No Image
                                 {% endif %}
                                 <div class="manager-info mt-3">
                                     <h5 class="card-title">{{ kitchen.name }}</h5>
                                     <p class="card-text"><strong>Email:</strong> {{ kitchen.email }}</p>
                                     <p class="card-text"><strong>Contact:</strong> {{ kitchen.contact }}</p>
-                                    <p class="card-text"><strong>Distributor:</strong> {{ kitchen.distributors.name }}</p>
                                     <p class="card-text">
                                         <strong>Status:</strong> 
                                         <span class="badge 
@@ -114,6 +116,27 @@
                 {% endfor %}
             </div>
         <!-- Inline Styles for debugging purposes -->
+          <!-- Modal for Kitchen -->
+          <div class="modal fade" id="kitchenModal" tabindex="-1" aria-labelledby="kitchenModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="kitchenModalLabel">Kitchen</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Name:</strong> <span id="kitchenName"></span></p>
+                        <p><strong>Sales:</strong> ₹ <span id="kitchenSales"></span></p>
+                        <p><strong>Distributor:</strong> <span id="kitchenDistributor"></span></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <style>
             .status-dot-container {
                 position: absolute;
@@ -161,6 +184,23 @@
         </style>
         </div>
     </main>
+    <!-- JavaScript to update modal content dynamically -->
+    <!-- Ensure that both jQuery and Bootstrap JS are included -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // For Kitchen Modal
+        $('#kitchenModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var name = button.data('name');
+            var sales = button.data('sales');
+            var distributor = button.data('distributor');
+            var modal = $(this);
+            modal.find('#kitchenName').text(name);
+            modal.find('#kitchenSales').text(sales);
+            modal.find('#kitchenDistributor').text(distributor);
+        });
+    </script>
 
     {% include 'admin/admin_footer.html' %}
 

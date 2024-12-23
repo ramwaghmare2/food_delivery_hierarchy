@@ -52,6 +52,9 @@
                                 <span class="red-dot"></span> <span class="status-text">Offline</span>
                             {% endif %}
                         </div>
+                        <div class="view" style="position: absolute; top: 10px; right: 10px; display: flex;">
+                            <a href="{{ url_for('distributor.view_details', user_id=distributor.id )}}" class="btn btn-light btn-sm">Details</a>
+                        </div>
                         <div class="card-body manager-card-body">
                             <!-- Manager Image -->
                             <div>
@@ -66,7 +69,6 @@
                                 <h5 class="card-title">{{ distributor.name }}</h5>
                                 <p class="card-text"><strong>Email:</strong> {{ distributor.email }}</p>
                                 <p class="card-text"><strong>Contact:</strong> {{ distributor.contact }}</p>
-                                <p class="card-text"><strong>Super Distributor:</strong> {{ distributor.super_distributors.name }}</p>
                                 <p class="card-text">
                                     <strong>Status:</strong> 
                                     <span class="badge 
