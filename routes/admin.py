@@ -642,3 +642,97 @@ def edit_profile():
                            encoded_image=encoded_image
                            )
 
+
+
+@admin_bp.route('/view-details/<int:user_id>', methods=['GET'])
+def view_details(user_id):
+    id = session.get('user_id')
+    role = session.get('role')
+    user_name = get_user_query(role, id)
+    encoded_image = get_image(role, id)
+
+    # Fetch the user (manager)
+    user = Manager.query.filter_by(id=user_id).first()
+    
+    # Get Super Distributors for the manager
+    sd = SuperDistributor.query.filter(SuperDistributor.manager_id == user.id).all()
+    sd_ids = [s.id for s in sd]
+    
+    # Get Distributors for the Super Distributors
+    distributors = Distributor.query.filter(Distributor.super_distributor.in_(sd_ids)).all()
+    distributor_ids = [distributor.id for distributor in distributors]
+    
+    # Get Kitchens for the Distributors
+    kitchens = Kitchen.query.filter(Kitchen.distributor_id.in_(distributor_ids)).all()
+    kitchen_ids = [kitchen.id for kitchen in kitchens]
+    
+    # Get Sales data for the Kitchens
+    sales_k = Sales.query.filter(Sales.kitchen_id.in_(kitchen_ids)).all()
+
+    # Extract all order_ids from the sales data
+    order_ids = [sale.order_id for sale in sales_k]
+    
+    # Get Orders data based on the order_ids
+    orders = Order.query.filter(Order.order_id.in_(order_ids)).all()
+
+    # Helper function to calculate total sales for a given list of kitchens
+    def calculate_total_sales(kitchens_list):
+        total_sales = 0
+        for kitchen in kitchens_list:
+            # Find the sales corresponding to this kitchen
+            kitchen_sales = [sale for sale in sales_k if sale.kitchen_id == kitchen.id]
+            
+            # Collect orders related to these sales
+            kitchen_orders = [order for order in orders if order.order_id in [sale.order_id for sale in kitchen_sales]]
+            
+            # Sum the total amount of orders for this kitchen
+            total_sales += sum(order.total_amount for order in kitchen_orders)
+        return total_sales
+
+    # Create super distributor data with sales included
+    super_distributor_data = [
+        {
+            'super_distributor_name': super_distributor.name,
+            'total_sales': calculate_total_sales(
+                [kitchen for distributor in distributors if distributor.super_distributor == super_distributor.id
+                    for kitchen in kitchens if kitchen.distributor_id == distributor.id]
+            )
+        }
+        for super_distributor in sd
+    ]
+
+    # Create distributor data with sales included
+    distributor_data = [
+        {
+            'distributor_name': distributor.name,
+            'super_distributor_name': distributor.super_distributors.name,
+            'total_sales': calculate_total_sales(
+                [kitchen for kitchen in kitchens if kitchen.distributor_id == distributor.id]
+            )
+        }
+        for distributor in distributors
+    ]
+
+    # Create kitchen data with sales included
+    kitchen_data = [
+        {
+            'kitchen_name': kitchen.name,
+            'distributor_name': kitchen.distributors.name,
+            'total_sales': calculate_total_sales([kitchen])
+        }
+        for kitchen in kitchens
+    ]
+
+    details = 'Manager'
+
+    return render_template('view_details.html',
+                           role=role,
+                           user_name=user_name.name,
+                           encoded_image=encoded_image,
+                           user=user,
+                           details=details,
+                           super_distributors=super_distributor_data,
+                           distributors=distributor_data,
+                           kitchens=kitchen_data,
+                           )
+
