@@ -63,13 +63,7 @@ def create_kitchen():
         db.session.add(new_kitchen)
         db.session.commit()
         flash('Kitchen Added Successfully.','success')
-        return render_template(
-            'kitchen/add_kitchen.html',
-            role=role,
-            distributors=distributors,
-            user_name=user_name,
-            encoded_image=image_data
-        )
+        return redirect(url_for('kitchen.create_kitchen'))
 
     return render_template(
         'kitchen/add_kitchen.html',
