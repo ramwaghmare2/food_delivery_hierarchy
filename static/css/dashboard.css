@@ -1,6 +1,6 @@
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #d1dde6;
+    background-color: #fdfefe;
     margin: 0;
     padding: 0;
 }
@@ -23,7 +23,7 @@ body {
 }
 
 .card {
-    background: #c3ced7;
+    background: #fdfefe;
     border: 1px solid #dfedf8;
     border-radius: 20px;
     padding: 15px;
@@ -50,7 +50,7 @@ body {
 }
 
 .chart-container {
-    background: #c6d0d7;
+    background: #fdfefe;
     border: 1px solid #dfedf8;
     border-radius: 8px;
     padding: 10px; /* Reduced padding */
