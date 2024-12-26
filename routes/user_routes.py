@@ -193,7 +193,7 @@ def login():
                 "Manager": "manager.manager_home",
                 "SuperDistributor": "super_distributor.super_distributor",
                 "Distributor": "distributor.distributor_home",
-                "Kitchen": "kitchen.kitchen_dashboard"
+                "Kitchen": "kitchen.kitchen_home"
             }
             route_name = dashboard_routes.get(role)
             

@@ -176,18 +176,29 @@ def manager_dashboard():
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
-    super_distributors = SuperDistributor.query.all()
-    distributors = Distributor.query.all()
-    kitchens = Kitchen.query.all()
+
+    total_sales_amount, total_orders_count, quantity_sold, total_sales_data, sales_by_item = 0, 0, 0, 0, 0
+    sales_data, monthly_sales, daily_performance_data = [], [], 0
+    months, total_sales, sales_distribution_data, top_selling_items = [], [], [], 0
+    barChartData = {"labels": ["January", "February", "March", "April"], "values": [10, 20, 15, 30]}
     
-    # Initialize variables with default values
-    total_sales_amount, total_orders_count, quantity_sold = 0, 0, 0
-    sales_data, monthly_sales = [], []
-    months, total_sales = [], []
-    total_sales_by_super = {}  # Initialize total_sales_by_super to an empty dictionary to avoid UnboundLocalError
+    # Initialize the variables to avoid UnboundLocalError
+    performance_dates, total_revenues,  quantity_sold_over_time = [], [], []
+    distribution_values, distribution_labels, sale_dates, total_sales = [], [], [], []
+    total_sales_data = {"labels": [], "values": []}
+    quantity_sold_over_time = {"labels": [], "values": []}
+
+
+  # Initialize with an empty dictionary
 
     try:
-        # Total sales amount
+        # Get Manager's specific data (based on logged-in Manager's role)
+        manager = Manager.query.filter_by(id=user_id).first()
+
+        if not manager:
+            raise Exception("Manager not found")
+
+        # Aggregate totals for the logged-in Manager
         total_sales_amount = (
             db.session.query(db.func.sum(Order.total_amount))  
             .join(Kitchen, Order.kitchen_id == Kitchen.id)  
@@ -197,7 +208,6 @@ def manager_dashboard():
             .scalar() or 0 
         )
 
-        # Total orders count
         total_orders_count = (
             db.session.query(db.func.count(Order.order_id))  
             .join(Kitchen, Order.kitchen_id == Kitchen.id)  
@@ -207,7 +217,6 @@ def manager_dashboard():
             .scalar() or 0  
         )
 
-        # Quantity sold
         quantity_sold = (
             db.session.query(db.func.sum(OrderItem.quantity))
             .join(Order, OrderItem.order_id == Order.order_id)  
@@ -218,7 +227,63 @@ def manager_dashboard():
             .scalar() or 0  
         )
 
-        # 1. Chart for sales by item on the basis of total price
+        # Sales data for the logged-in Manager
+        sales_data = (
+            db.session.query(
+                Sales.sale_id,
+                Sales.datetime,
+                FoodItem.item_name,
+                db.func.sum(OrderItem.price).label("total_price"),
+                db.func.sum(OrderItem.quantity).label("total_quantity"),
+            )
+            .join(Order, Sales.order_id == Order.order_id) 
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .join(FoodItem, OrderItem.item_id == FoodItem.id)
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .join(Manager, SuperDistributor.manager_id == Manager.id)
+            .filter(Manager.id == user_id)
+            .group_by(Sales.sale_id, Sales.datetime, FoodItem.item_name)
+            .all()
+        )
+        
+        # Monthly sales for the logged-in Manager
+        monthly_sales = db.session.query(
+            func.date_format(Sales.datetime, '%Y-%m').label('month'),
+            func.sum(Order.total_amount).label('total_sales')
+        ).join(Order, Sales.order_id == Order.order_id)\
+        .join(Kitchen, Order.kitchen_id == Kitchen.id)\
+        .join(Distributor, Kitchen.distributor_id == Distributor.id)\
+        .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)\
+        .join(Manager, SuperDistributor.manager_id == Manager.id)\
+        .filter(Manager.id == user_id)\
+        .group_by(func.date_format(Sales.datetime, '%Y-%m'))\
+        .order_by(func.date_format(Sales.datetime, '%Y-%m'))\
+        .all()
+
+            # Chart 1: Total Sales by Manager
+        sales_by_manager_query = db.session.query(
+            Manager.name.label("manager_name"),
+            func.sum(Order.total_amount).label("total_sales")
+        ).join(SuperDistributor, Manager.id == SuperDistributor.manager_id)\
+        .join(Distributor, SuperDistributor.id == Distributor.super_distributor)\
+        .join(Kitchen, Distributor.id == Kitchen.distributor_id)\
+        .join(Order, Kitchen.id == Order.kitchen_id)\
+        .join(Sales, Sales.order_id == Order.order_id)\
+        .group_by(Manager.id)\
+        .order_by(func.sum(Order.total_amount).desc())\
+        .all()
+
+        if sales_by_manager_query:
+            total_sales_data = {
+                "labels": [row.manager_name for row in sales_by_manager_query],
+                "values": [float(row.total_sales) for row in sales_by_manager_query],
+            }
+        else:
+            total_sales_data = {"labels": [], "values": []}
+
+        # Sales By Item
         sales_by_item_query = (
             db.session.query(
                 FoodItem.item_name,
@@ -230,23 +295,22 @@ def manager_dashboard():
             .join(Distributor, Kitchen.distributor_id == Distributor.id)
             .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
             .join(Manager, SuperDistributor.manager_id == Manager.id)
-            .filter(Manager.id == user_id)  # Filter by logged-in manager's ID
+            .filter(Manager.id == user_id)  # Filtering by Manager ID
             .group_by(FoodItem.item_name)
             .all()
         )
 
         sales_by_item = {
-            "labels": [item[0] for item in sales_by_item_query],  # Food Item names
-            "values": [float(item[1]) for item in sales_by_item_query],  # Total sales
+            "labels": [item[0] for item in (sales_by_item_query or [])],
+            "values": [float(item[1]) for item in (sales_by_item_query or [])],
         }
 
-        print(f"user_id: {user_id}")
 
-        # 2. Chart for Monthly sales
-        monthly_sales = (
+        # Query for Sales Over Time (grouped by date)
+        sales_over_time_query = (
             db.session.query(
-                db.func.date_format(Sales.datetime, '%Y-%m').label('month'),  # Extract year and month
-                db.func.sum(Order.total_amount).label('total_sales')  # Sum of total sales for that month
+                func.date(Sales.datetime).label('sale_date'),  # Group by date
+                db.func.sum(OrderItem.price).label("total_sales")  # Sum of total sales
             )
             .join(Order, Sales.order_id == Order.order_id) 
             .join(OrderItem, Order.order_id == OrderItem.order_id)
@@ -255,60 +319,108 @@ def manager_dashboard():
             .join(Distributor, Kitchen.distributor_id == Distributor.id)
             .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
             .join(Manager, SuperDistributor.manager_id == Manager.id)
-            .filter(Manager.id == user_id)  # Filter by the logged-in manager
-            .group_by(db.func.date_format(Sales.datetime, '%Y-%m'))  # Grouping by month
-            .order_by(db.func.date_format(Sales.datetime, '%Y-%m'))  # Ordering by month
-            .all()  # Fetch the results
+            .filter(Manager.id == user_id)
+            .group_by(func.date(Sales.datetime))  # Group by date only
+            .order_by(func.date(Sales.datetime))  # Order by date
+            .all()
         )
-        print(monthly_sales)
-        # Extract the results into a dictionary for the chart
-        months = [month for month, _ in monthly_sales]
-        total_sales = [float(total) for _, total in monthly_sales]
+        
+        # Process the query result
+        sale_dates = []
+        total_sales = []
+        if sales_over_time_query:
+            sale_dates = [str(row.sale_date) for row in sales_over_time_query]  # Date as string
+            total_sales = [float(row.total_sales) for row in sales_over_time_query]  # Total sales for each date
 
-        # Prepare the data for the bar chart
-        monthly_sales_data = {
-            "labels": months,  # X-axis labels (months)
-            "values": total_sales,  # Y-axis values (total sales)
-        }
+        # Top-Selling Items
+        top_selling_items_query = (
+            db.session.query(
+                FoodItem.item_name,
+                db.func.sum(OrderItem.quantity).label("total_quantity"),
+            )
+            .join(OrderItem, FoodItem.id == OrderItem.item_id)
+            .join(Order, OrderItem.order_id == Order.order_id)
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .join(Manager, SuperDistributor.manager_id == Manager.id)
+            .filter(Manager.id == user_id)  # Filtering by Manager ID
+            .group_by(FoodItem.item_name)
+            .order_by(db.func.sum(OrderItem.quantity).desc())
+            .limit(10)
+            .all()
+        )
 
-        # 3. Chart for Total sales by SuperDistributor
-        sales_by_super_distributor_query = db.session.query(
-            SuperDistributor.name.label("super_distributor_name"),  
-            func.sum(Order.total_amount).label("total_sales") 
-        ).join(Distributor, SuperDistributor.id == Distributor.super_distributor) \
-        .join(Kitchen, Distributor.id == Kitchen.distributor_id) \
-        .join(Order, Kitchen.id == Order.kitchen_id) \
-        .join(Sales, Sales.order_id == Order.order_id) \
-        .filter(SuperDistributor.manager_id == user_id).filter(Kitchen.id == Distributor.kitchen_id).filter(Distributor.id == SuperDistributor.distributor_id).group_by(SuperDistributor.id).order_by(func.sum(Order.total_amount).desc()).all()
-        # Prepare data for the bar chart
-        total_sales_by_super = {
-            "labels": [row.super_distributor_name for row in sales_by_super_distributor_query],  # SuperDistributor names
-            "values": [float(row.total_sales) for row in sales_by_super_distributor_query],  # Total sales
+        top_selling_items = {
+            "labels": [item[0] for item in (top_selling_items_query or [])],
+            "values": [int(item[1]) for item in (top_selling_items_query or [])],
         }
-        print(total_sales_by_super)
+        print("Top Selling Items: ", top_selling_items)
+        
+        # Query for Daily Sales Performance
+        daily_sales_performance_query = db.session.query(
+            func.date(FoodItem.created_at).label('sale_date'),
+            func.sum(FoodItem.price).label('total_revenue')
+        ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
+        .join(Order, OrderItem.order_id == Order.order_id)\
+        .join(Kitchen, Order.kitchen_id == Kitchen.id)\
+        .group_by(func.date(FoodItem.created_at))\
+        .order_by(func.date(FoodItem.created_at)).all()
+
+        performance_dates = []
+        total_revenues = []
+        if daily_sales_performance_query:
+            performance_dates = [str(row.sale_date) for row in daily_sales_performance_query]
+            total_revenues = [float(row.total_revenue) for row in daily_sales_performance_query]
+
+        # Query for Sales Distribution by Food Item
+        sales_distribution_query = db.session.query(
+            FoodItem.item_name.label('item_name'),
+            func.sum(FoodItem.price).label('total_revenue')
+        ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
+        .join(Order, OrderItem.order_id == Order.order_id)\
+        .join(Kitchen, Order.kitchen_id == Kitchen.id)\
+        .group_by(FoodItem.item_name)\
+        .order_by(func.sum(FoodItem.price).desc()).all()
+
+        distribution_labels = []
+        distribution_values = []
+        if sales_distribution_query:
+            distribution_labels = [row.item_name for row in sales_distribution_query[:5]]
+            distribution_values = [float(row.total_revenue) for row in sales_distribution_query[:5]]
 
     except Exception as e:
-        logging.error(f"Error fetching total sales by super distributor: {e}")
-        total_sales_by_super = {"labels": [], "values": []}
+        print(f"Error fetching data: {e}")
 
-    # Return data to the template
-    return render_template('manager/manager_dashboard.html', 
-                           user_name=user.name,
-                           role=role,
-                           encoded_image=encoded_image,
-                           super_distributors=super_distributors, 
-                           distributors=distributors, 
-                           kitchens=kitchens,
-                           total_sales_amount=total_sales_amount,
-                           total_orders_count=total_orders_count,
-                           quantity_sold=quantity_sold,
-                           sales_data=sales_by_item,
-                           monthly_sales_data=monthly_sales_data,
-                           total_sales_by_super=total_sales_by_super,  # Pass data to template
-                           months=months,
-                           total_sales=total_sales,
-                           barChartData={"labels": months, "values": total_sales},
-                           )
+    return render_template(
+        'manager/manager_dashboard.html',
+        total_sales_amount=total_sales_amount,
+        total_orders_count=total_orders_count,
+        quantity_sold=quantity_sold,
+        sales_data=sales_data,
+        user_name=user.name,
+        role=role,
+        months=months,
+        monthly_sales=monthly_sales,
+        total_sales=total_sales,
+        total_sales_data=total_sales_data,
+        barChartData=barChartData,
+        encoded_image=encoded_image,
+        sales_by_item=sales_by_item,
+        top_selling_items=top_selling_items,
+        daily_sales_performance={
+            "labels": performance_dates,
+            "values": total_revenues
+        },
+        sales_distribution={
+            "labels": distribution_labels,
+            "values": distribution_values
+        },
+            sales_over_time={
+        "labels": sale_dates,
+        "values": total_sales
+        }
+    )
 
 
 @dashboard_bp.route('/super_distributor', methods=['GET'])
@@ -326,6 +438,12 @@ def super_distributor_dashboard():
     kitchen_names = []
     order_counts = []
     quantity_sold = 0
+    total_sales_data = {"labels": [], "values": []}
+    sales_data = {"labels": [], "values": []}
+    quantity_sold_data = {"labels": [], "values": []}
+    top_selling_items = {"labels": [], "values": []}
+    sales_distribution_data = {"labels": [], "values": []}
+    daily_sales_data = {"labels": [], "values": []}
     try:
         distributors = Distributor.query.filter_by(super_distributor=user_id).all()
         distributor_count = len(distributors)
@@ -341,7 +459,7 @@ def super_distributor_dashboard():
 
         total_sales_amount = (db.session.query(func.sum(Order.total_amount))
             .join(Sales, Sales.order_id == Order.order_id)  # Join Sales with Order using order_id
-            .filter(Order.kitchen_id.in_(kitchens_ids))     # Filter by kitchen_id from kitchens_ids
+            .filter(Order.kitchen_id.in_(kitchen_ids))     # Filter by kitchen_id from kitchens_ids
             .scalar() or 0                                  # Default to 0 if no result
         )
         
@@ -383,7 +501,9 @@ def super_distributor_dashboard():
         .group_by(Distributor.id) \
         .order_by(func.sum(Order.total_amount).desc()) \
         .all()
+        
         print(sales_by_distributor_query)
+        
         total_sales_data = {
                 "labels": [row.distributor_name for row in sales_by_distributor_query],
                 "values": [float(row.total_sales) for row in sales_by_distributor_query],
@@ -523,7 +643,7 @@ def super_distributor_dashboard():
         print(f"Error fetching data: {e}")
 
     return render_template('super_distributor/sd_dashboard.html',
-                            user_id=user_id,
+                           user_id=user_id,
                            user_name=user.name,
                            role=role,
                            total_sales_data=total_sales_data,
