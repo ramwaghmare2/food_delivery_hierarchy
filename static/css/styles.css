@@ -11418,8 +11418,8 @@ body {
 }
 .manager-image {
   border-radius: 50%;
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
   margin-right: 20px;
 }
@@ -11450,7 +11450,7 @@ body {
 }
 
 .action-buttons a {
-  margin-right: 10px;
+  margin-right: 1px;
 }
 .manager-card-body {
   display: flex;

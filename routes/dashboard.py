@@ -298,6 +298,9 @@ def manager_dashboard():
 
     # Return data to the template
     return render_template('manager/manager_dashboard.html', 
+                           user_name=user.name,
+                           role=role,
+                           encoded_image=encoded_image,
                            super_distributors=super_distributors, 
                            distributors=distributors, 
                            kitchens=kitchens,

@@ -18,19 +18,19 @@
             {% endwith %}
             <form action="{{ url_for('food_item.add_food_item') }}" method="post" class="sd-form" enctype="multipart/form-data">
                 <div class="sd-row">
-                    <input name="item_name" type="text" placeholder="Item Name*" required>
+                    <input name="item_name" type="text" placeholder="Item Name" required>
                 </div>
                 <div class="sd-row">
                     <textarea name="description" class="sd-textarea" placeholder="Description (Optional)"></textarea>
                     
                 </div>
                 <div class="sd-row">
-                    <input name="price" type="number" step="0.01" placeholder="Price*" required>
+                    <input name="price" type="number" step="0.01" placeholder="Price" required>
                 </div>
                 <div class="sd-row">
                     <label for="cuisine_id">Cuisine:</label>
                     <select name="cuisine_id" required>
-                        <option value="" disabled selected>Select Cuisine*</option>
+                        <option value="" disabled selected>Select Cuisine</option>
                         {% for cuisine in cuisines %}
                             <option value="{{ cuisine.id }}">{{ cuisine.name }}</option>
                         {% endfor %}

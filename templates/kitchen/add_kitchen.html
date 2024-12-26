@@ -27,15 +27,15 @@
             {% endwith %}
             <form action="{{ url_for('kitchen.create_kitchen') }}" method="post" class="sd-form">
                 <div class="sd-row">
-                    <input name="name" type="text" placeholder="Full Name*" required>
+                    <input name="name" type="text" placeholder="Kitchen Name" required>
                     <!-- <input type="text" placeholder="Last name"> -->
                 </div>
                 <div class="sd-row">
-                    <input name="email" type="email" placeholder="Email*" required>
-                    <input name="contact" type="text" placeholder="Mobile*" required>
+                    <input name="email" type="email" placeholder="Email" required>
+                    <input name="contact" type="text" placeholder="Mobile" required>
                 </div>
                 <div class="sd-row password-wrapper">
-                    <input id="password" name="password" type="password" placeholder="Password*" required>
+                    <input id="password" name="password" type="password" placeholder="Password" required>
                     <span class="eye-icon" onclick="togglePassword()">
                         <i id="eye-icon" class="fa fa-eye"></i>
                     </span>
@@ -43,12 +43,12 @@
                 <textarea name="address" class="sd-textarea" placeholder="Address"></textarea>
                 <br>
                 <div class="sd-row">
-                    <input name="city" type="text" placeholder="City*" required>
-                    <input name="district" type="text" placeholder="District*" required>
+                    <input name="city" type="text" placeholder="City" required>
+                    <input name="district" type="text" placeholder="District" required>
                 </div>
                 <div class="sd-row">
-                    <input name="state" type="text" placeholder="State*" required>
-                    <input name="pin_code" type="text" placeholder="pin-code*" required>
+                    <input name="state" type="text" placeholder="State" required>
+                    <input name="pin_code" type="text" placeholder="pin-code" required>
                 </div>
                 {% if role=='Distributor' %}
                 <div class="sd-row">
