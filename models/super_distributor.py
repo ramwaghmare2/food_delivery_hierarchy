@@ -11,16 +11,14 @@ class SuperDistributor(db.Model):
     password = db.Column(db.String(255), nullable=False)
     contact = db.Column(db.String(20), nullable=True)
     manager_id = db.Column(db.Integer, db.ForeignKey('managers.id'), nullable=True)
-    #distributor_id = db.Column(db.Integer, db.ForeignKey('distributors.id'), nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    image = db.Column(LONGBLOB,nullable=True)
+    image = db.Column(LONGBLOB, nullable=True)
     online_status = db.Column(db.Boolean, nullable=True, default=False)
-
-    distributors = db.relationship('Distributor', backref='super_distributors', lazy=True)
+    
+    # Relationship with Distributor
+    distributors = db.relationship('Distributor', back_populates='super_distributor_relation', lazy=True)
 
     def __repr__(self):
         return f'<SuperDistributor {self.name}>'
-
-

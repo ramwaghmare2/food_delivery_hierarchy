@@ -13,9 +13,10 @@ from base64 import b64encode
 from functools import wraps
 from sqlalchemy import func
 from app import socketio
+from .user_routes import role_required
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
-
+"""
 # Sessions permanent with a timeput
 ################################## Helper function to create a user based on role ##################################
 def create_user(data, role):
@@ -47,10 +48,7 @@ def create_user(data, role):
         return None
 
 def role_required(required_roles):
-    """
-    Decorator to enforce access control based on the user role.
-    `required_roles` can be a single role or a list of roles.
-    """
+
     if isinstance(required_roles, str):
         required_roles = [required_roles]  # Convert to list if it's a single role
 
@@ -67,26 +65,6 @@ def role_required(required_roles):
 
     return wrapper
 
-################################## Route for signup ##################################
-@admin_bp.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        data = request.form
-        role = data.get('role')
-        if data['password'] != data['confirmPassword']:
-            return jsonify({"error": "Passwords do not match"}), 400
-         
-        user = create_user(data, role)
-        if user:
-            return render_template('admin/login.html')
-        else:
-            flash("User already exists or invalid role", "danger")
-            return redirect(url_for('admin_bp.signup'))
-
-    return render_template("admin/signup.html")
-
-################################## globally defined role_model_map ##################################
-
 ROLE_MODEL_MAP = {
     "Admin": Admin,
     "Manager": Manager,
@@ -98,216 +76,8 @@ ROLE_MODEL_MAP = {
 def get_model_by_role(role):
     return ROLE_MODEL_MAP.get(role)
 
-################################## Handel Connect Disconnect ##################################
-@socketio.on('connect')
-def handle_connect():
-    try:
-        user_id = session.get('user_id')
-        role = session.get('role')
+"""
 
-        if user_id and role:
-            # The globally defined role_model_map
-            model = ROLE_MODEL_MAP(role)
-            if model:
-                user = model.query.get(user_id)
-                if user:
-                    user.online_status = True
-                    user.last_seen = datetime.now(timezone.utc)
-                    db.session.commit()
-
-                    # Notify all connected clients
-                    socketio.emit(
-                        'status_update',
-                        {'user_id': user.id, 
-                         'status': 'online', 
-                         'role': role,
-                         'laste_seen': user.last_seen.isoformat()
-                         },
-                        broadcast=True
-                    )
-    except Exception as e:
-        print(f"Error in handle_connect: {str(e)}")
-
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    reasone = request.args.get('reason', 'unknown')
-    print(f"User disconnected due to:{reasone}")
-    try:
-        user_id = session.get('user_id')
-        role = session.get('role')
-
-        if user_id and role:
-            model = ROLE_MODEL_MAP(role)
-            if model:
-                user = model.query.get(user_id)
-                if user:
-                    user.online_status = False
-                    user.last_seen = datetime.now(timezone.utc)
-                    db.session.commit()
-
-                    socketio.emit(
-                        'status_update',
-                        {'user_id': user.id, 
-                         'status': 'offline', 
-                         'role': role,
-                         'laste_seen': user.last_seen.isoformat()
-                         },
-                        broadcast=True
-                    )
-        else:
-            print("Session data missing on disconnect.")
-    except Exception as e:
-        print(f"Error in handle_disconnect: {str(e)}")
-
-@admin_bp.route('/update-status', methods=['POST'])
-def update_status():
-    try:
-        data = request.get_json()
-        status = data.get('status')
-        user_id = session.get('user_id')
-        role = session.get('role')
-
-        if user_id and role and status:
-            model = ROLE_MODEL_MAP(role)
-            if model:
-                user = model.query.get(user_id)
-                if user:
-                    user.online_status = (status == 'online')
-                    user.last_seen = datetime.now(timezone.utc)
-                    db.session.commit()
-        return jsonify({"message": "Status updated"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-################################## Route for Login ##################################
-
-from werkzeug.security import check_password_hash, generate_password_hash
-import bcrypt
-
-@admin_bp.route('/login', methods=['GET', 'POST'])
-def login():
-    try:
-        if request.method == 'POST':
-            data = request.form
-            
-            role = data.get('role')
-            email = data.get('email')
-            password = data.get('password')
-            
-            if not email or not password:
-                flash("Email and password are required", 'danger')
-                return redirect(url_for('admin_bp.login'))
-            
-            model = ROLE_MODEL_MAP.get(role)
-            if not model:
-                flash("Invalid Role", 'danger')
-                return redirect(url_for('admin_bp.login'))
-            
-            user = model.query.filter_by(email=email).first()
-
-            if not user:
-                return jsonify({"error": f"No {role} found with this email."}), 404
-
-            if role != 'Admin' and (user.status == 'deactivated' or user.status == ''):
-                flash('User is not Active', 'danger')
-                return redirect(url_for('admin_bp.login'))
-
-            # Identify hash type and validate accordingly
-            password_valid = False
-            if user.password.startswith('pbkdf2:sha256'):
-                # Validate pbkdf2:sha256 hash
-                password_valid = check_password_hash(user.password, password)
-            elif user.password.startswith('$2b$') or user.password.startswith('$2a$'):
-                # Validate bcrypt hash
-                password_valid = bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8'))
-            elif user.password.startswith('scrypt:'):
-                # Validate scrypt hash
-                password_valid = check_password_hash(user.password, password)
-            else:
-                return jsonify({"error": "Unsupported hash format"}), 500
-
-            if not password_valid:
-                flash(f"Incorrect password for {role}.", 'danger')
-                return redirect(url_for('admin_bp.login'))
-
-            # Re-hash the password to unify it to pbkdf2:sha256 if necessary
-            if not user.password.startswith('pbkdf2:sha256'):
-                user.password = generate_password_hash(password)  # Update hash to pbkdf2:sha256
-                db.session.commit()
-                
-            session['user_id'] = user.id
-            session['role'] = role
-            session['user_name'] = f"{user.name}" if hasattr(user, 'name') else user.name
-            user.online_status = True
-            user.last_seen = datetime.now(timezone.utc)
-            db.session.commit()
-
-            current_app.socketio.emit(
-                'status_update',
-                {
-                    'user_id': user.id,
-                    'status': 'online',
-                    'role': role,
-                    'last_seen': user.last_seen.isoformat()
-                },
-                to='*/'  # Broadcast to all connected clients
-            )
-
-            dashboard_routes = {
-                "Admin": "admin_bp.admin_home",
-                "Manager": "manager.manager_home",
-                "SuperDistributor": "super_distributor.super_distributor",
-                "Distributor": "distributor.distributor_home",
-                "Kitchen": "kitchen.kitchen_home"
-            }
-            route_name = dashboard_routes.get(role)
-            
-            return redirect(url_for(route_name))
-        
-        return render_template('admin/login.html')
-
-    except Exception as e:
-        return handle_error(e)
-
-
-################################## Logout Route  ##################################
-@admin_bp.route('/logout')
-def logout():
-    try:
-        # Retrieve user information from session
-        user_id = session.get('user_id')
-        role = session.get('role')
-
-        model = ROLE_MODEL_MAP.get(role)
-
-        # If the role and user_id are valid, update online_status
-        if model and user_id:
-            user = model.query.get(user_id)
-            if user:
-                user.online_status = False
-                user.last_seen = datetime.now(timezone.utc)
-                db.session.commit()
-
-                # Emit status_update event for logout using socketio
-                current_app.socketio.emit(
-                    'status_update',
-                    {'user_id': user.id, 
-                     'status': 'offline', 
-                     'role': role,
-                     'laste_seen': user.last_seen.isoformat()
-                     },
-                    to='*/' 
-                )
-
-        # Clear the session
-        session.clear()
-        flash("You have logged out successfully!", "success")
-        return redirect(url_for('admin_bp.login'))
-    except Exception as e:
-        flash(f"Error during logout: {str(e)}", "danger")
-        return redirect(url_for('admin_bp.login'))
-    
 
 ################################## Route for displaying admin dashboard ##################################
 @admin_bp.route('/admin', methods=['GET'])
@@ -531,119 +301,8 @@ def order_list():
     
     return render_template('admin/order_list.html', orders=orders, exception_message=None)
 
-################################## Get All Manager Profile ##################################
-@admin_bp.route('/profile', methods=['GET'])
-def get_profile():
-    role = session.get('role')
-    user_id = session.get('user_id')
-    # user_name = session.get('user_name')
 
-    role_model_map = {
-                "Admin": Admin,
-                "Manager": Manager,
-                "SuperDistributor": SuperDistributor,
-                "Distributor": Distributor,
-                "Kitchen": Kitchen
-            }
-            
-    model = role_model_map.get(role)
-    
-    user = model.query.filter_by(id=user_id).first()
-
-    # Encode the image to Base64 for rendering in HTML
-    encoded_image = None
-    if user.image:
-        encoded_image = b64encode(user.image).decode('utf-8')
-
-
-
-    return render_template('admin/user_profile.html', 
-                           user=user, 
-                           role=role, 
-                           encoded_image=encoded_image,
-                           user_name=user.name,
-                           user_id=user_id,
-                           )
-
-################################## Edit Admin ##################################
-@admin_bp.route('/profile-edit', methods=['GET', 'POST'])
-def edit_profile():
-
-    user_id = session.get('user_id')
-    role = session.get('role')
-    user = get_user_query(role, user_id)
-    encoded_image = get_image(role, user_id)
-    role_model_map = {
-                "Admin": Admin,
-                "Manager": Manager,
-                "SuperDistributor": SuperDistributor,
-                "Distributor": Distributor,
-                "Kitchen": Kitchen
-            }
-            
-    model = role_model_map.get(role)
-    
-    user = model.query.filter_by(id=user_id).first()
-    
-
-    image_data= get_image(role, user_id)
-
-    if isinstance(role, bytes):
-        role = role.decode('utf-8')
-
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        contact = request.form.get('contact')
-        password = request.form.get('password')
-        image = request.files.get('image')  # Get the image from the form if provided
-
-        # Validate if email already exists (excluding the current manager)
-        existing_email = model.query.filter(model.email == email, model.id != user.id).first()
-        if existing_email:
-            flash(f"The email is already in use by another {role}.", "danger")
-            return redirect(url_for('admin_bp.edit_profile'))
-
-        # Validate if contact already exists (excluding the current manager)
-        existing_contact = model.query.filter(model.contact == contact, model.id != user.id).first()
-        if existing_contact:
-            flash(f"The contact number is already in use by another {role}.", "danger")
-            return redirect(url_for('admin_bp.edit_profile'))
-
-        # Update manager details
-        user.name = name
-        user.email = email
-        user.contact = contact
-        
-        # If password is provided, hash and update it
-        if password:
-            user.password = bcrypt.generate_password_hash(password).decode('utf-8')
-
-        # Handle image update if a new image is uploaded
-        if image and allowed_file(image.filename):
-            # Convert the image to binary data
-            image_binary = image.read()
-            user.image = image_binary
-
-        try:
-            db.session.commit()
-            flash(f"{role} updated successfully!", "success")
-            return redirect(url_for('admin_bp.get_profile'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Error updating {role}: {str(e)}", "danger")
-            return redirect(url_for('admin_bp.edit_profile'))
-
-    return render_template('admin/edit_profile.html', 
-                           user=user, 
-                           role=role, 
-                           user_name=user.name,
-                           user_id=user_id,
-                           encoded_image=encoded_image
-                           )
-
-
-
+################################## View Details ##################################
 @admin_bp.route('/view-details/<int:user_id>', methods=['GET'])
 def view_details(user_id):
     id = session.get('user_id')

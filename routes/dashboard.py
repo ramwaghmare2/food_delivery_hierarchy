@@ -76,8 +76,6 @@ def admin_dashboard():
             "labels": [row.manager_name for row in sales_by_manager_query],  # Manager names
             "values": [float(row.total_sales) for row in sales_by_manager_query],  # Total sales
         }
-        print(total_sales_data)
-
 
 
         # Chart 2: Sales by Item Name
@@ -91,7 +89,6 @@ def admin_dashboard():
             "labels": [item[0] for item in sales_by_item_query],
             "values": [float(item[1]) for item in sales_by_item_query]
         }
-        print("sales_by_item: ",sales_by_item)
 
         # Chart 3: Quantity Sold Over Time
         quantity_sold_query = db.session.query(
@@ -104,7 +101,6 @@ def admin_dashboard():
             "labels": [str(row[0]) for row in quantity_sold_query],  # Convert dates to strings
             "values": [int(row[1]) for row in quantity_sold_query]  # Ensure values are integers
         }
-        print("quantity_sold_over_time: ",quantity_sold_over_time)
 
         # Chart 4: Top-Selling Items
         top_selling_items_query = db.session.query(
@@ -122,7 +118,6 @@ def admin_dashboard():
             'labels': top_item_names,
             'values': top_item_quantities,
         }
-        print("top_selling_items: ",top_selling_items)
 
         # Chart 5: Sales Distribution by Item
         sales_distribution = db.session.query(
@@ -133,7 +128,6 @@ def admin_dashboard():
 
         distribution_labels = [item[0] for item in sales_distribution]
         distribution_values = [float(item[1]) for item in sales_distribution]
-        print("sales_distribution: ",sales_distribution)
 
         # Chart 6: Daily Sales Performance
         daily_sales_performance = db.session.query(
@@ -172,10 +166,12 @@ def admin_dashboard():
         daily_sales_performance={"labels": performance_dates, "values": total_revenues}
     )
 
+
 @dashboard_bp.route('/manager', methods=['GET'])
-@role_required('Manager')  
+@role_required('Manager')
 def manager_dashboard():
-    from models import SuperDistributor, Distributor, Kitchen
+    from models import SuperDistributor, Distributor, Kitchen, FoodItem, OrderItem, Order, Sales, Manager
+
     role = session.get('role')
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
@@ -200,7 +196,6 @@ def manager_dashboard():
             .filter(SuperDistributor.manager_id == user_id)  
             .scalar() or 0 
         )
-        print(total_sales_amount)
 
         # Total orders count
         total_orders_count = (
@@ -211,7 +206,6 @@ def manager_dashboard():
             .filter(SuperDistributor.manager_id == user_id)  
             .scalar() or 0  
         )
-        print(total_orders_count)
 
         # Quantity sold
         quantity_sold = (
@@ -223,7 +217,6 @@ def manager_dashboard():
             .filter(SuperDistributor.manager_id == user_id)  
             .scalar() or 0  
         )
-        print(quantity_sold)
 
         # 1. Chart for sales by item on the basis of total price
         sales_by_item_query = (
@@ -255,7 +248,9 @@ def manager_dashboard():
                 db.func.date_format(Sales.datetime, '%Y-%m').label('month'),  # Extract year and month
                 db.func.sum(Order.total_amount).label('total_sales')  # Sum of total sales for that month
             )
-            .join(Order, Sales.order_id == Order.order_id)
+            .join(Order, Sales.order_id == Order.order_id) 
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .join(FoodItem, OrderItem.item_id == FoodItem.id)
             .join(Kitchen, Order.kitchen_id == Kitchen.id)
             .join(Distributor, Kitchen.distributor_id == Distributor.id)
             .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)

@@ -21,7 +21,7 @@ def create_app():
     bcrypt.init_app(app)
     db.init_app(app)
     Migrate(app, db)
-
+        
     # Register blueprints
     from routes import create_app_routes
     create_app_routes(app)
