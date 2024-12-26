@@ -1,6 +1,6 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
+    font-family: 'Roboto', sans-serif;
+    background-color: #d1dde6;
     margin: 0;
     padding: 0;
 }
@@ -23,9 +23,9 @@ body {
 }
 
 .card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background: #c3ced7;
+    border: 1px solid #dfedf8;
+    border-radius: 20px;
     padding: 15px;
     text-align: center;
     width: 30%;
@@ -50,9 +50,23 @@ body {
 }
 
 .chart-container {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: #c6d0d7;
+    border: 1px solid #dfedf8;
     border-radius: 8px;
-    padding: 20px;
+    padding: 10px; /* Reduced padding */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex; /* Ensures proper alignment */
+    justify-content: center; /* Centers the chart horizontally */
+    align-items: center; /* Centers the chart vertically */
+}
+
+.chart-container canvas{
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.charts-section{
+    margin: 0;
+    padding: 0;
 }

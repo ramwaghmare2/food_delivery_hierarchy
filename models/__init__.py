@@ -14,4 +14,4 @@ from .sales import Sales
 from .order import Order
 from .food_item import FoodItem
 from .order import OrderItem
-
+from .activitylog import ActivityLog

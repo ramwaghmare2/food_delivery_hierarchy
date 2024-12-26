@@ -22,9 +22,7 @@ class Kitchen(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     online_status = db.Column(db.Boolean, nullable=True, default=False)
-    manager_id = db.Column(db.Integer, db.ForeignKey('managers.id'), nullable=True)
-
-    manager = db.relationship('Manager', backref='kitchens', lazy=True)
+    
     food_items = db.relationship('FoodItem', backref='kitchen', lazy=True)
     sales = db.relationship('Sales', backref='kitchen', lazy=True)
 

@@ -16,9 +16,11 @@ class Manager(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     online_status = db.Column(db.Boolean, nullable=True, default=False)
+    
 
-    distributors = db.relationship('Distributor', backref='manager', lazy=True)
     super_distributors = db.relationship('SuperDistributor', backref='manager', lazy=True)
+    
+
     # Method to hash password
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')

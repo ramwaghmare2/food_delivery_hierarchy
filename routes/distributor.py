@@ -19,13 +19,16 @@ from datetime import datetime, timedelta
 
 @distributor_bp.route('/', methods=['GET', 'POST'])
 def distributor_home():
+    user_id = session.get('user_id')
+    role = session.get('role')
+    image_data = get_image(role, user_id)
+    user = get_user_query(role, user_id)
     try:
         # Logging session data for debugging
         logging.debug(f"Session user_id: {session.get('user_id')}")
 
         # Get the logged-in distributor's ID from the session
-        distributor_id = session.get('user_id')
-        if not distributor_id:
+        if not user_id:
             flash({'error': 'Unauthorized access'})
             logging.debug("Redirecting due to missing user_id in session")
             return redirect(url_for('distributor.distributor_home'))
@@ -57,7 +60,7 @@ def distributor_home():
             end_date = None
 
         # Fetch all active kitchens under this distributor
-        kitchens = Kitchen.query.filter_by(distributor_id=distributor_id, status="activated").all()
+        kitchens = Kitchen.query.filter_by(distributor_id=user_id, status="activated").all()
 
         # Fetch orders based on the selected filter
         kitchen_ids = [kitchen.id for kitchen in kitchens]
@@ -139,10 +142,6 @@ def distributor_home():
                 kitchen = next(k for k in kitchens if k.id == order.kitchen_id)
                 kitchen_sales_total[kitchen.name] += float(order.total_amount)  # Sum up the total sales amount
 
-        # Get user data (name, role, etc.)
-        role = session.get('role')
-        image_data = get_image(role, distributor_id)
-        user = get_user_query(role, distributor_id)
         # Render the distributor home page with table and chart data
         return render_template(
             'd_index.html', 
@@ -221,8 +220,6 @@ def all_distributor():
         encoded_image=image_data,
         filter=filter_status,
     )
-
-
 
 ################################## Route to display all kitchens ##################################
 @distributor_bp.route('/all-kitchens', methods=['GET'])

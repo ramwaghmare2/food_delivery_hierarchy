@@ -188,6 +188,7 @@ def kitchen_home():
     user_name = session.get('user_name', 'User')
     role = session.get('role')
     user_id = session.get('user_id')
+    image_data = get_image(role, user_id)
 
     # Filter orders by kitchen_id
     orders = Order.query.filter(Order.kitchen_id == user_id).all()
@@ -223,9 +224,6 @@ def kitchen_home():
 
         sales_on_date = db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id == user_id, func.date(Order.created_at) == date.date()).scalar()
         sales_per_date.append(float(sales_on_date) if sales_on_date else 0)
-
-    # Assuming get_image function is working correctly
-    image_data = get_image(role, user_id)
 
     # Initialize variables to hold the total values
     total_sales_amount = 0
