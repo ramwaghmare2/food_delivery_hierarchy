@@ -6,6 +6,7 @@ from utils.services import allowed_file, get_image, get_user_query
 from sqlalchemy.exc import IntegrityError
 from utils.helpers import handle_error 
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 from collections import defaultdict
 from models.order import OrderItem
 from extensions import bcrypt
@@ -17,54 +18,6 @@ from .user_routes import role_required
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 """
-# Sessions permanent with a timeput
-################################## Helper function to create a user based on role ##################################
-def create_user(data, role):
-    from models import db  
-    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
-    try:
-        if role == "Admin":
-            from models import Admin  
-            new_user = Admin(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "Manager":
-            from models import Manager
-            new_user = Manager(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "SuperDistributor":
-            from models import SuperDistributor
-            new_user = SuperDistributor(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "Distributor":
-            from models import Distributor
-            new_user = Distributor(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "Kitchen":
-            from models import Kitchen
-            new_user = Kitchen(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        else:
-            return None
-        db.session.add(new_user)
-        db.session.commit()
-        return new_user
-    except IntegrityError:
-        db.session.rollback()
-        return None
-
-def role_required(required_roles):
-
-    if isinstance(required_roles, str):
-        required_roles = [required_roles]  # Convert to list if it's a single role
-
-    def wrapper(fn):
-        @wraps(fn)
-        def decorated_view(*args, **kwargs):
-            if 'role' not in session:
-                return jsonify({"error": "Unauthorized access"}), 401
-            if session['role'] not in required_roles:
-                return jsonify({"error": "Insufficient permissions"}), 403
-            return fn(*args, **kwargs)
-
-        return decorated_view
-
-    return wrapper
-
 ROLE_MODEL_MAP = {
     "Admin": Admin,
     "Manager": Manager,
@@ -77,7 +30,6 @@ def get_model_by_role(role):
     return ROLE_MODEL_MAP.get(role)
 
 """
-
 
 ################################## Route for displaying admin dashboard ##################################
 @admin_bp.route('/admin', methods=['GET'])
