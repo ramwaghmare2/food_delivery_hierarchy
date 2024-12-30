@@ -4,6 +4,7 @@ from datetime import datetime
 
 class RoyaltySettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    role = db.Column(db.String(20), nullable=False)
     royalty_percentage = db.Column(db.Float, default=20.0)
     
 

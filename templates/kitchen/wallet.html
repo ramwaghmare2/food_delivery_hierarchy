@@ -1,0 +1,32 @@
+{% include 'kitchen/kitchen_header.html' %}
+
+<link rel="stylesheet" href="/static/css/dashboard.css">
+<div id="layoutSidenav_content">
+    <br>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <h1>WALLET</h1>
+            </header>
+            <div class="dashboard-summary">
+                <div class="card">
+                    <h2>Today Total Sales</h2>
+                    <p>₹{{ total_sales }}</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    {% include 'admin/admin_footer.html' %}
+</div>

@@ -1,43 +1,77 @@
 from models import db
 from datetime import datetime
 from functools import wraps
-from flask import request, jsonify, Blueprint
+from routes.user_routes import role_required
+from utils.services import get_image, get_user_query, today_sale
+from flask import request, jsonify, Blueprint, render_template, redirect, url_for, session, flash
 from models.royalty import RoyaltySettings, RoyaltyWallet
-from admin import admin_bp
 
 
-################################## Decorators for Role-Based Access ##################################
-def admin_only(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        user_role = request.headers.get('Role')
-        if user_role != 'Admin':
-            return jsonify({"error": "Access denied"}), 403
-        return f(*args, **kwargs)
-    return decorated_function
+
+royalty_bp = Blueprint('royalty', __name__, static_folder='../static')
+
+
+################################## Add Royalty Percentage (Admin-Only) ##################################
+@royalty_bp.route('/add-royalty', methods=['GET', 'POST'])
+@role_required('Admin')
+def add_royalty():
+    
+    role = session.get('role')
+    user_id = session.get('user_id')
+    image_data = get_image(role, user_id)
+    user = get_user_query(role, user_id)
+
+    share_percentages = RoyaltySettings.query.all()
+
+    try:
+        if request.method == 'POST':
+            form_role = request.form.get('role')
+            share = request.form.get('royalty')
+            new_share = RoyaltySettings(
+                role=form_role,
+                royalty_percentage=share
+            )
+            db.session.add(new_share)
+            db.session.commit()
+            flash('Royalty Added Successfully', 'success')
+            return redirect(url_for('royalty.add_royalty'))
+    except Exception as e:
+        flash(f'Error: {e}')
+        return redirect(url_for('royalty.add_royalty'))
+            
+
+    return render_template('admin/royalty_sharing.html',
+                           role=role,
+                           encoded_image=image_data,
+                           user_name=user.name,
+                           shares=share_percentages)
+
 
 ################################## Update Royalty Percentage (Admin-Only) ##################################
-@admin_bp.route('/admin/update-royalty', methods=['PUT'])
-@admin_only
+@royalty_bp.route('/update-royalty', methods=['POST'])
+@role_required('Admin')
 def update_royalty():
-    data = request.json
-    new_percentage = data.get("royalty_percentage")
-    if not new_percentage or not (0 < new_percentage <= 100):
-        return jsonify({"error": "Invalid royalty percentage"}), 400
+        
+    if request.method == 'POST':
+        data = request.form
+        new_percentage = float(data.get("percentage"))
+        if not new_percentage or not (0 < new_percentage <= 100):
+            return jsonify({"error": "Invalid royalty percentage"}), 400
 
-    setting = RoyaltySettings.query.first()
-    if not setting:
-        setting = RoyaltySettings(royalty_percentage=new_percentage)
-        db.session.add(setting)
-    else:
-        setting.royalty_percentage = new_percentage
+        setting = RoyaltySettings.query.first()
+        if not setting:
+            setting = RoyaltySettings(royalty_percentage=new_percentage)
+            db.session.add(setting)
+        else:
+            setting.royalty_percentage = new_percentage
 
-    db.session.commit()
-    return jsonify({"message": "Royalty percentage updated successfully"})
+        db.session.commit()
+        flash('Royalty Percentage Updated Successfully', 'success')
+        return redirect(url_for('royalty.add_royalty'))
 
 
 ################################## Route for Distribute Royalty After Kitchen Close ##################################
-@admin_bp.route('/kitchen/close-day', methods=['POST'])
+@royalty_bp.route('/kitchen/close-day', methods=['POST'])
 def close_day():
     data = request.json
     kitchen_id = data.get("kitchen_id")
