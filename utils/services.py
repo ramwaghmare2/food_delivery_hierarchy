@@ -2,8 +2,11 @@ from models.manager import Manager
 from models.distributor import Distributor
 from models.super_distributor import SuperDistributor
 from models.kitchen import Kitchen
-from models.admin import Admin
+from models.admin import Admin, db
+from models import Sales, Order
+from sqlalchemy import func, and_
 from base64 import b64encode
+from datetime import datetime, time
 
 def get_model_counts():
     """Returns a dictionary with counts of all models."""
@@ -61,3 +64,24 @@ def get_user_query(role, user_id):
     user = model.query.filter_by(id=user_id).first()
 
     return user
+
+
+def today_sale(user_id):
+
+    
+    today_start = datetime.combine(datetime.today(), time.min)  # Midnight
+    today_end = datetime.combine(datetime.today(), time.max)   # 11:59 PM
+
+    # Query to calculate total sales
+    today_total_sales = db.session.query(
+            func.sum(Order.total_amount)
+        ).join(Sales, Sales.order_id == Order.order_id) \
+         .filter(
+            and_(
+                Sales.kitchen_id == user_id,
+                Order.created_at >= today_start,
+                Order.created_at <= today_end
+            )
+         ).scalar()
+    
+    return today_total_sales
