@@ -41,3 +41,4 @@ def delete_notifications():
     Notification.query.filter_by(user_id=user_id).delete()
     db.session.commit()
     return jsonify({'message': 'Notifications deleted successfully.'})
+
