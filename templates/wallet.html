@@ -1,0 +1,32 @@
+{% if role == 'Admin' %}
+    {% include 'admin/admin_header.html' %}
+{% elif role == 'Manager' %}
+    {% include 'manager_header.html' %}
+{% elif role == "SuperDistributor" %}
+    {% include 'super_distributor/sd_header.html'%}
+{% elif role == "Distributor" %}
+    {% include 'distributor/d_header.html'%}
+{% endif %}
+
+<link rel="stylesheet" href="/static/css/dashboard.css">
+<div id="layoutSidenav_content">
+    <main>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1><b>WALLET</b></h1>
+        </header>
+        <div class="dashboard-summary">
+            <div class="card">
+        <h3>Yesterday's Wallet</h3>
+        <p>₹{{ yesterday_wallet }}</p>
+            </div>
+            <div class="card">
+                <h2>Total Wallet</h2>
+                <p>₹{{ total_wallet }}</p>
+            </div>
+        </div>
+    </div>
+</main>
+{% include 'admin/admin_footer.html' %}
+</div>
+

@@ -58,7 +58,7 @@ def update_royalty():
         if not new_percentage or not (0 < new_percentage <= 100):
             return jsonify({"error": "Invalid royalty percentage"}), 400
 
-        setting = RoyaltySettings.query.first()
+        setting = RoyaltySettings.query.filter_by(role=data.get('role')).first()
         if not setting:
             setting = RoyaltySettings(royalty_percentage=new_percentage)
             db.session.add(setting)
