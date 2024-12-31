@@ -18,15 +18,57 @@
         {% endwith %}
         <div class="dashboard-container">
             <header class="dashboard-header">
-                <h1>WALLET</h1>
+                <h1><b>WALLET</b></h1>
             </header>
             <div class="dashboard-summary">
                 <div class="card">
                     <h2>Today Total Sales</h2>
                     <p>₹{{ total_sales }}</p>
                 </div>
+                <div class="card">
+                    <h2>Today's Wallet</h2>
+                    <p>₹{{remaining_wallet}}</p>
+                </div>
+                <div class="card">
+                    <h2>Total Wallet</h2>
+                    <p>₹{{ total_royalty_amount }}</p>
+                </div>
             </div>
         </div>
+
+        <div class="container mt-4">
+            <h1>Wallet Details</h1>
+            <p><strong>Total Sales:</strong> {{ total_sales }}</p>
+            <p><strong>Remaining Wallet:</strong> {{ remaining_wallet }}</p>
+    
+            <h2>Role Shares</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Sr.no</th>
+                        <th>ID</th>
+                        <th>Role</th>
+                        <th>Name</th>
+                        <th>Percentage</th>
+                        <th>Royalty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for role, data in role_shares_with_names.items() %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ data.id }}</td>
+                        <td>{{ role }}</td>
+                        <td>{{ data.name }}</td>
+                        <td>{{ data.royalty_percentage }}%</td>
+                        <td>{{ data.share }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        
     </main>
     {% include 'admin/admin_footer.html' %}
 </div>

@@ -85,6 +85,22 @@
                         </a>
                       </div>
                   </div>
+                  <div class="col-xl-3 col-sm-6 mb-3">
+                    <div class="card text-white bg-primary o-hidden h-100">
+                      <div class="card-body">
+                        <div class="card-body-icon-kit">
+                          <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="mr-5"><b> Wallet</b></div>
+                      </div>
+                      <a class="card-footer text-white clearfix small z-1" href="{{ url_for('wallet.view_all_wallets') }}">
+                        <span class="float-left">View Details</span>
+                        <span class="float-right">
+                          
+                        </span>
+                      </a>
+                    </div>
+                </div>
             </div>
             <br>
             <!-- Totals Table -->
@@ -148,17 +164,14 @@
                  <div class="d-flex float-right" id="pagination-controls"></div>
             </div>
 
-             <ol class="breadcrumb mt-5 mb-2">
-        <li class="breadcrumb-item active">Statistics</li>
-    </ol>
-    <div class="chart-container1 mt-2 mb-4">
+    <!--<div class="chart-container1 mt-2 mb-4">
         <div class="chart-wrapper1 same-size">
             <canvas id="barChart"></canvas>
         </div>
         <div class="chart-wrapper1 same-size">
             <canvas id="pieChart"></canvas>
         </div>
-    </div>                   
+    </div>   -->                
             <br>
             <style>
                 .chart-container {
