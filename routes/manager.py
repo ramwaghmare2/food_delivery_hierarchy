@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash
 from models.manager import db, Manager
 from extensions import bcrypt
 from base64 import b64encode
-from flask import Blueprint
 import logging
 
 manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')

@@ -15,3 +15,5 @@ from .order import Order
 from .food_item import FoodItem
 from .order import OrderItem
 from .activitylog import ActivityLog
+from .notification import Notification
+from .royalty import RoyaltySettings, RoyaltyWallet

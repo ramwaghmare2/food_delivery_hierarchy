@@ -88,7 +88,7 @@ def close_day():
         return jsonify({"error": "Royalty settings not found"}), 500
 
     royalty_percentage = setting.royalty_percentage
-    royalty_per_entity = (total_sales * royalty_percentage / 100) / 4
+    royalty_per_entity = (total_sales * royalty_percentage / 20) / 4
 
     roles = ['Admin', 'Manager', 'Super Distributor', 'Distributor']
     for role in roles:
