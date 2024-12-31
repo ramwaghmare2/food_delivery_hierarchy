@@ -1,5 +1,3 @@
-# routes/notification_routes.py
-
 from flask import Blueprint, request, jsonify, session
 from models import db, Notification
 
