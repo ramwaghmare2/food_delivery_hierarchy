@@ -1,13 +1,20 @@
+import sys
 import os
-from datetime import datetime ,timezone
-from flask import Flask, session, current_app ,render_template, flash,redirect, url_for
+import time
+from datetime import datetime
+import pytz
+from flask import Flask, session, flash, redirect, url_for
 from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
-from apscheduler.schedulers.background import BackgroundScheduler
 from models import db
 from utils.services import today_sale
 from models.royalty import RoyaltyWallet
+import schedule
+import threading
+
+# Apply the mock_zoneinfo module before anything else
+sys.modules['zoneinfo'] = __import__('mock_zoneinfo')
 
 # Declare global variables
 socketio = SocketIO(cors_allowed_origins="*", ping_interval=25, ping_timeout=10)
@@ -25,9 +32,6 @@ def create_app():
     bcrypt.init_app(app)
     db.init_app(app)
     Migrate(app, db)
-
-    # Initialize scheduler within create_app
-    scheduler = BackgroundScheduler()
 
     def save_role_shares_in_memory(user_id, role_shares_with_names):
         """
@@ -54,7 +58,7 @@ def create_app():
                         entity_id=entity_id,
                         role=role,
                         royalty_amount=share,
-                        updated_at=datetime.now(timezone.utc) # Set the creation timestamp
+                        updated_at=datetime.now(pytz.UTC)  # Set the creation timestamp
                     )
                     db.session.add(wallet)
 
@@ -64,13 +68,21 @@ def create_app():
                 with app.test_request_context():  # Create a request context to work with session
                     session.pop('role_shares', None)  # Removes role_shares from session
                     session.modified = True
-                    print("sessison cleared successfully")
+                    print("session cleared successfully")
 
-    # Schedule the task to run at 5:50 PM daily
-    scheduler.add_job(send_wallet_shares, 'cron', hour=1, minute=1)
+    # Schedule the task to run daily at 5:50 PM
+    schedule.every().day.at("17:50").do(send_wallet_shares)
 
-    # Start the scheduler
-    scheduler.start()
+    # Function to run the scheduler in a separate thread
+    def run_scheduler():
+        while True:
+            schedule.run_pending()
+            time.sleep(1)  # Ensure the correct usage of time.sleep
+
+    # Start the scheduler thread
+    scheduler_thread = threading.Thread(target=run_scheduler)
+    scheduler_thread.daemon = True  # Set daemon to ensure thread exits when the main program exits
+    scheduler_thread.start()
 
     # Register blueprints
     from routes import create_app_routes
@@ -94,7 +106,6 @@ def create_app():
         return redirect(url_for('kitchen.kitchen_home'))
 
     return app
-
 
 if __name__ == "__main__":
     app = create_app()
