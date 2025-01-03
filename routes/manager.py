@@ -1,8 +1,9 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session
-from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem
+from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem, Notification
 from utils.services import get_model_counts ,allowed_file ,get_image, get_user_query
 from werkzeug.security import generate_password_hash
 from models.manager import db, Manager
+from utils.notification_service import create_notification, check_notification
 from extensions import bcrypt
 from base64 import b64encode
 import logging
@@ -50,6 +51,13 @@ def add_manager():
         try:
             db.session.add(new_manager)
             db.session.commit()
+
+            create_notification(user_id=new_manager.id, 
+                                role='Manager', 
+                                notification_type='Add', 
+                                description=f'{user.name}, the Admin, has successfully added new Manager, {name}.')
+
+
             flash("Manager added successfully!", "success")
             return redirect(url_for('manager.add_manager'))
         except Exception as e:
@@ -158,15 +166,22 @@ def edit_manager(manager_id):
             # Convert the image to binary data
             image_binary = image.read()
             manager.image = image_binary
+            
 
         try:
             db.session.commit()
-            flash("Manager updated successfully!", "success")
+
+            create_notification(user_id=manager.id, 
+                                role='Manager', 
+                                notification_type='Edit', 
+                                description=f'{user.name}, the Admin, has successfully edited the details of {manager.name}, the Manager.')
+
+            flash('Manager updated successfully!', "success")
             return redirect(url_for('manager.get_managers'))
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating manager: {str(e)}", "danger")
-
+    
     return render_template('edit_manager.html', manager=manager, role=role, user_name=user.name,encoded_image=image_data)
 
 
@@ -174,11 +189,21 @@ def edit_manager(manager_id):
 @manager_bp.route('/delete/<int:manager_id>', methods=['GET'])
 def delete_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
 
     try:
         manager.status = 'deactivated'
         # db.session.delete(manager)
         db.session.commit()
+
+        create_notification(user_id=manager.id, 
+                            role='Manager', 
+                            notification_type='Delete', 
+                            description=f'{user.name}, the Admin, has Deleted {manager.name}, the Manager.')
+
+
         flash("Manager deleted successfully!", "success")
     except Exception as e:
         db.session.rollback()
@@ -190,12 +215,22 @@ def delete_manager(manager_id):
 # Route for delete the manager
 @manager_bp.route('/lock/<int:manager_id>', methods=['GET'])
 def lock_manager(manager_id):
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
     manager = Manager.query.get_or_404(manager_id)
 
     try:
         if manager.status == 'activated':
             manager.status = 'deactivated'
             db.session.commit()
+
+            create_notification(user_id=manager.id, 
+                                role='Manager', 
+                                notification_type='Lock', 
+                                description=f'{user.name}, the Admin, has Locked {manager.name}, the Manager.')
+
+
             flash("Manager Locked successfully!", "danger")
         else:
             manager.status = 'activated'
@@ -299,9 +334,7 @@ def manager_home():
             .all()
         )
 
-        print("Sales Data: ", sales_data)
-
-        print(f"user_id: {user_id}")
+        notification_check = check_notification(user_id)
 
         monthly_sales = (
             db.session.query(
@@ -335,6 +368,7 @@ def manager_home():
         sales_data=sales_data,
         user_name=user_name,
         role=role,
+        notification_check=notification_check,
         encoded_image=image_data,
         months=months,
         total_sales=total_sales,

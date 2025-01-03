@@ -6,6 +6,7 @@ from utils.services import allowed_file, get_image, get_user_query
 from sqlalchemy.exc import IntegrityError
 from utils.helpers import handle_error 
 from datetime import datetime, timedelta, timezone
+from utils.notification_service import check_notification
 from functools import wraps
 from collections import defaultdict
 from models.order import OrderItem
@@ -102,6 +103,8 @@ def admin_home():
     except Exception as e:
         print(f"Error fetching data: {e}")
 
+    notification_check = check_notification(user_id)
+
     # Render the admin dashboard template
     return render_template(
         'admin/admin_index.html',
@@ -114,6 +117,7 @@ def admin_home():
         quantity_sold=quantity_sold,
         sales_data=sales_data,
         user_name=user.name,
+        notification_check=len(notification_check),
         role=role,
         months=months,
         total_sales=total_sales,

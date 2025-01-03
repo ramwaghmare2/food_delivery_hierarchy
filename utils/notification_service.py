@@ -2,6 +2,7 @@ from models import db, Notification
 from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
 from datetime import datetime
 from app import socketio
+from flask import current_app
 
 def get_notification_targets(creator_role, target_role=None):
 
@@ -49,7 +50,7 @@ def create_notification(user_id, role, notification_type, description):
     db.session.add(notification)
     db.session.commit()
 
-    socketio.emit(
+    current_app.socketio.emit(
         'new_notification',
         {
             'user_id': user_id,
@@ -58,8 +59,18 @@ def create_notification(user_id, role, notification_type, description):
             'description': description,
             'timestamp': notification.created_at.isoformat(),
         },
-        broadcast=True
+        to='*/'
     )
 
     return notification
+
+
+def check_notification(user_id):
+
+    notification_check = Notification.query.filter(
+                Notification.user_id == user_id,
+                Notification.is_read == 0
+            ).all()  
+    
+    return notification_check
 

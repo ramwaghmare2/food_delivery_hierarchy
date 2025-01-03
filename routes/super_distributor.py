@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, url_for, redirect, flash, session
 from models import Manager, SuperDistributor, Distributor, Kitchen, Sales, Order
 from werkzeug.security import generate_password_hash
+from utils.notification_service import create_notification
 from models import db
 import bcrypt
 from utils.services import get_model_counts ,allowed_file, get_image, get_user_query
@@ -244,6 +245,7 @@ def edit_super_distributor(sd_id):
     role = session.get('role')
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
+    user = get_user_query(role, user_id)
     sd = SuperDistributor.query.get_or_404(sd_id)
 
     if request.method == 'POST':
@@ -281,6 +283,12 @@ def edit_super_distributor(sd_id):
 
         try:
             db.session.commit()
+
+            create_notification(user_id=user.id, 
+                                role=role, 
+                                notification_type='Edit', 
+                                description=f'{user.name}, the {role}, has successfully edited the details of {sd.name}, the Super Distributor.')
+            
             flash("Super Distributor updated successfully!", "success")
             return redirect(url_for('super_distributor.all_super_distributor'))
         except Exception as e:

@@ -313,6 +313,11 @@ table {
   border-collapse: collapse;
 }
 
+.table-not {
+  caption-side: bottom;
+  border-collapse: collapse;
+}
+
 caption {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -11267,6 +11272,7 @@ body {
   margin-top: 10px;
 }
 
+
 .sd-breadcrumb {
   color: #555;
   font-size: 14px;
@@ -11292,7 +11298,7 @@ body {
 .sd-row input,
 .sd-row select,
 .sd-textarea {
-  width: 100%;
+  width: 100%;  
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -11813,3 +11819,28 @@ body {
 .password-wrapper input {
   padding-right: 40px;  /* Space for the icon */
 }
+
+
+
+.notification-dot {
+  display: none; /* Initially hidden */
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  width: 15px;         /* Adjust the size of the dot */
+  height: 15px;        /* Adjust the size of the dot */
+  background-color: red; /* Red background for the dot */
+  border-radius: 50%;  /* Make it circular */
+  border: 1px solid white; /* Optional: To add a white border for better visibility */
+  transform: translate(50%, -50%); /* Adjust position */
+  color: white;        /* White color for the text inside the dot */
+  text-align: center;  /* Center the text horizontally */
+  line-height: 13px;   /* Center the text vertically (same as dot height) */
+  font-weight: bold;   /* Optional: make the number bold */
+  font-size: 12px;     /* Adjust the font size */
+}
+
+  /* Show the dot when there are notifications */
+  .nav-link.has-notifications .notification-dot {
+  display: block;
+  }
