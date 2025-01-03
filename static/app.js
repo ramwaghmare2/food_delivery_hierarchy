@@ -83,3 +83,15 @@ function toggleRePassword() {
         reEyeIcon.classList.add("fa-eye");
     }
 }
+
+// Example: Toggle notifications
+const bellLink = document.querySelector('.nav-link');
+
+// Simulate notifications
+const hasNotifications = true;
+
+if (hasNotifications) {
+    bellLink.classList.add('has-notifications');
+} else {
+    bellLink.classList.remove('has-notifications');
+}

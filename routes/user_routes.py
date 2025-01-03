@@ -1,49 +1,70 @@
-from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
+from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_socketio import emit
 from utils.services import allowed_file, get_image, get_user_query
 from sqlalchemy.exc import IntegrityError
 from utils.helpers import handle_error 
-from datetime import datetime, timedelta, timezone
-from collections import defaultdict
-from models.order import OrderItem
+from datetime import datetime, timezone
 from extensions import bcrypt
 from base64 import b64encode
 from functools import wraps
-from sqlalchemy import func
-from app import socketio
-from flask import request, g
 from models.activitylog import ActivityLog
 from .activity_log_service import log_user_activity
 import uuid
+from utils.notification_service import create_notification, get_notification_targets
+
 
 user_bp = Blueprint('user_bp', __name__, static_folder='../static')
+################################## globally defined role_model_map ##################################
+def get_model_by_role(role):
+    ROLE_MODEL_MAP = {
+        "Admin": Admin,
+        "Manager": Manager,
+        "SuperDistributor": SuperDistributor,
+        "Distributor": Distributor,
+        "Kitchen": Kitchen,
+    }
+    return ROLE_MODEL_MAP.get(role)
+
 # Sessions permanent with a timeput
 ################################## Helper function to create a user based on role ##################################
-def create_user(data, role):
+def create_user(data, role, creator_role):
     from models import db  
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
     try:
-        if role == "Admin":
-            from models import Admin  
-            new_user = Admin(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "Manager":
-            from models import Manager
-            new_user = Manager(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "SuperDistributor":
-            from models import SuperDistributor
-            new_user = SuperDistributor(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "Distributor":
-            from models import Distributor
-            new_user = Distributor(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        elif role == "Kitchen":
-            from models import Kitchen
-            new_user = Kitchen(name=data['name'], email=data['email'], password=hashed_password, contact=data['contact'])
-        else:
+        ModelClass = get_model_by_role(role)
+        if role == ModelClass:
             return None
+        
+        new_user = ModelClass(
+            name=data['name'],
+            email=data['email'],
+            password=hashed_password,
+            contact=data['contact']
+        )
+
         db.session.add(new_user)
         db.session.commit()
+        
+        # Send notifications to the targets
+        targets = get_notification_targets(creator_role, target_role=role)
+        for target_id in targets:
+            create_notification(
+                user_id=target_id,
+                role=creator_role,
+                notification_type="New User Add",
+                description=f"A new {role} user '{data['name']}' has been added."
+            )
+
+        # Notify the created user
+        create_notification(
+            user_id=new_user.id,
+            role=role,
+            notification_type="Welcome",
+            description=f"Welcome, {new_user.name}! Your account has been created successfully."
+        )
+
         return new_user
     except IntegrityError:
         db.session.rollback()
@@ -88,19 +109,6 @@ def signup():
 
     return render_template("admin/signup.html")
 
-################################## globally defined role_model_map ##################################
-
-ROLE_MODEL_MAP = {
-    "Admin": Admin,
-    "Manager": Manager,
-    "SuperDistributor": SuperDistributor,
-    "Distributor": Distributor,
-    "Kitchen": Kitchen,
-}
-
-def get_model_by_role(role):
-    return ROLE_MODEL_MAP.get(role)
-
 ################################## Route for Login ##################################
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -120,7 +128,7 @@ def login():
                 flash("Email and password are required", 'danger')
                 return redirect(url_for('user_bp.login'))
             
-            model = ROLE_MODEL_MAP.get(role)
+            model = get_model_by_role(role)
             if not model:
                 flash("Invalid Role", 'danger')
                 return redirect(url_for('user_bp.login'))
@@ -213,7 +221,7 @@ def logout():
         user_id = session.get('user_id')
         role = session.get('role')
         session_id = session.get('session_id')
-        model = ROLE_MODEL_MAP.get(role)
+        model = get_model_by_role(role)
 
         # If the role and user_id are valid, update online_status
         if model and user_id:

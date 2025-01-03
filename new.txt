@@ -1,4 +1,0 @@
-    user_name = session.get('user_name', 'User')
-    role = session.get('role')
-    image_data = get_image(role, user_id)
-    user_id = session.get('user_id')

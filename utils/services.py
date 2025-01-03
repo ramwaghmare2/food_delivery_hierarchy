@@ -79,8 +79,8 @@ def today_sale(user_id):
          .filter(
             and_(
                 Sales.kitchen_id == user_id,
-                Order.created_at >= today_start,
-                Order.created_at <= today_end
+                Sales.datetime >= today_start,
+                Sales.datetime <= today_end
             )
          ).scalar()
     

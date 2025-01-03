@@ -15,36 +15,18 @@
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
         <style>
             /* Style for the green dot */
-            .green-dot {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background-color: green;
+                .green-dot {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    background-color: green;
+                    display: inline-block;
+                }
+
+                .nav-link {
+                position: relative;
                 display: inline-block;
             }
-
-            .nav-link {
-            position: relative;
-            display: inline-block;
-        }
-
-        .notification-dot {
-            display: none; /* Initially hidden */
-            position: absolute;
-            top: 11px;
-            right: 9px;
-            width: 8px;
-            height: 8px;
-            background-color: red;
-            border-radius: 50%;
-            border: 1px solid white; /* Optional: To add a white border for better visibility */
-            transform: translate(50%, -50%); /* Adjust position */
-        }
-
-        /* Show the dot when there are notifications */
-        .nav-link.has-notifications .notification-dot {
-            display: block;
-        }
 
         </style>
     </head>
@@ -64,7 +46,11 @@
             <!-- Navbar-->
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-1">
                 <li class="nav-item dropdown">
-                    <a class="nav-link" href="#" type="button" ><i class="fa-solid fa-bell"></i><span class="notification-dot"></span></a>
+                    <a class="nav-link" href="{{ url_for('notification.get_notifications') }}" type="button" ><i class="fa-solid fa-bell"></i>
+                        {% if notification_check %}
+                            <span class="notification-dot"></span>
+                        {% endif %}
+                    </a>
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
@@ -172,17 +158,3 @@
                     </div>
                 </nav>
             </div>
-            <script>
-                // Example: Toggle notifications
-                const bellLink = document.querySelector('.nav-link');
-
-                // Simulate notifications
-                const hasNotifications = true;
-
-                if (hasNotifications) {
-                    bellLink.classList.add('has-notifications');
-                } else {
-                    bellLink.classList.remove('has-notifications');
-                }
-
-            </script>
