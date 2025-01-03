@@ -1,17 +1,11 @@
 from . import db
 from datetime import datetime
 from pytz import timezone as pytz_timezone
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-
-def kolkata_time():
-    try:
-        # Preferred method: Use ZoneInfo if available
-        return datetime.now(ZoneInfo('Asia/Kolkata'))
-    except ZoneInfoNotFoundError:
-        # Fallback to pytz if ZoneInfo fails
-        return datetime.now(pytz_timezone('Asia/Kolkata'))
-
+def kolkata_time(): # Use pytz for timezone-aware datetime 
+    dt = datetime.now(pytz_timezone('Asia/Kolkata')) # Convert the datetime object to a naive datetime (without timezone) 
+    naive_dt = dt.replace(tzinfo=None) 
+    return naive_dt
 
 class ActivityLog(db.Model):
     __tablename__ = 'activity_logs'

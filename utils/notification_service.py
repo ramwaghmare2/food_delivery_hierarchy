@@ -62,4 +62,3 @@ def create_notification(user_id, role, notification_type, description):
     )
 
     return notification
-
