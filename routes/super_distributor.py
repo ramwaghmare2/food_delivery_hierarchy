@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, url_for, redirect, flash, session
 from models import Manager, SuperDistributor, Distributor, Kitchen, Sales, Order
 from werkzeug.security import generate_password_hash
-from utils.notification_service import create_notification
+from utils.notification_service import create_notification, check_notification
 from models import db
 import bcrypt
 from utils.services import get_model_counts ,allowed_file, get_image, get_user_query
@@ -28,6 +28,8 @@ def super_distributor():
     order_counts = []
     pie_chart_labels = []
     pie_chart_data = []
+
+    notification_check = check_notification(role, user_id)
 
     try:
         distributors = Distributor.query.filter_by(super_distributor=user_id).all()
@@ -67,9 +69,10 @@ def super_distributor():
 
     except Exception as e:
         print(f"Error fetching data: {e}")
+    
 
     return render_template('sd_index.html',
-    total_quantity_sold=total_quantity_sold,
+                           total_quantity_sold=total_quantity_sold,
                            user_id=user_id,
                            user_name=user.name,
                            role=role,
@@ -82,7 +85,8 @@ def super_distributor():
                            order_counts=order_counts,
                            sales=sales,
                            pie_chart_labels=pie_chart_labels,
-                           pie_chart_data=pie_chart_data)
+                           pie_chart_data=pie_chart_data,
+                           notification_check=len(notification_check))
 
 
 ################################## Route for Get All Super Distributor's ##################################
@@ -118,6 +122,8 @@ def all_super_distributor():
         else:
             sd.image_base64 = None
 
+    notification_check = check_notification(role, user_id)
+
     return render_template(
         'sd_all_distributor.html',
         all_super_distributors=all_super_distributors,
@@ -127,6 +133,7 @@ def all_super_distributor():
         all_super_distributors_count = len(all_super_distributors),
         encoded_image=image_data,
         filter=filter_status,
+        notification_check=len(notification_check)
     )
     
 ################################## Route for Ass Distributor ##################################
@@ -136,6 +143,9 @@ def add_distributor():
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
     user = get_user_query(role, user_id)
+
+    notification_check = check_notification(role, user_id)
+
     try:
 
         super_distributors = SuperDistributor.query.filter_by(status='activated').all() 
@@ -170,6 +180,13 @@ def add_distributor():
 
             db.session.add(new_distributor)
             db.session.commit()
+
+            create_notification(user_id=new_distributor.id, 
+                                role='Distributor', 
+                                notification_type='Add', 
+                                description=f'{user.name}, the {role}, has successfully added new Distributor, {new_distributor.name}.')
+
+
             flash('Distributor Added Successfully.','success')
             return redirect(url_for('super_distributor.add_distributor'))
 
@@ -178,6 +195,7 @@ def add_distributor():
                                super_distributors=super_distributors, 
                                user_name=user.name,
                                encoded_image=image_data,
+                               notification_check=len(notification_check)
                                )
 
     except Exception as e:
@@ -193,6 +211,8 @@ def add_super_distributor():
     image_data= get_image(role, user_id) 
     user = get_user_query(role, user_id)
     try:
+        
+        notification_check = check_notification(role, user_id)
 
         managers = Manager.query.filter_by(status='activated').all()
 
@@ -225,6 +245,13 @@ def add_super_distributor():
 
             db.session.add(new_distributor)
             db.session.commit()
+
+            create_notification(user_id=new_distributor.id, 
+                                role='SuperDistributor', 
+                                notification_type='Add', 
+                                description=f'{user.name}, the {role}, has successfully added new Super Distributor, {new_distributor.name}.')
+
+
             flash('Super Distributor Added Successfully.','success')
             return redirect(url_for('super_distributor.add_super_distributor'))
 
@@ -232,7 +259,8 @@ def add_super_distributor():
                                role=role,
                                managers=managers, 
                                user_name=user.name, 
-                               encoded_image = image_data)
+                               encoded_image = image_data,
+                               notification_check=len(notification_check))
 
     except Exception as e:
         flash(f'Error: {e}','danger')
@@ -247,6 +275,8 @@ def edit_super_distributor(sd_id):
     image_data= get_image(role, user_id) 
     user = get_user_query(role, user_id)
     sd = SuperDistributor.query.get_or_404(sd_id)
+
+    notification_check = check_notification(role, user_id)
 
     if request.method == 'POST':
         name = request.form['name']
@@ -284,8 +314,8 @@ def edit_super_distributor(sd_id):
         try:
             db.session.commit()
 
-            create_notification(user_id=user.id, 
-                                role=role, 
+            create_notification(user_id=sd.id, 
+                                role='SuperDistributor', 
                                 notification_type='Edit', 
                                 description=f'{user.name}, the {role}, has successfully edited the details of {sd.name}, the Super Distributor.')
             
@@ -296,18 +326,33 @@ def edit_super_distributor(sd_id):
             flash(f"Error updating Super Distributor: {str(e)}", "danger")
             return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=sd.name, encoded_image=image_data)
 
-    return render_template('edit_super_distributor.html', super_distributor=sd, role=role ,user_name=sd.name, encoded_image = image_data)
+    return render_template('edit_super_distributor.html',
+                           super_distributor=sd,
+                           role=role,
+                           user_name=sd.name,
+                           encoded_image=image_data,
+                           notification_check=len(notification_check))
 
 
 ################################## Function for delete the super distributor ##################################
 @super_distributor_bp.route('/delete/<int:sd_id>', methods=['GET', 'POST'])
 def delete_super_distributor(sd_id):
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
     super_distributor = SuperDistributor.query.get_or_404(sd_id)
 
     try:
         super_distributor.status = 'deactivated'
         # db.session.delete(super_distributor)
         db.session.commit()
+
+        create_notification(user_id=super_distributor.id, 
+                            role='SuperDistributor', 
+                            notification_type='Delete', 
+                            description=f'{user.name}, the {role}, has successfully Deleted Super Distributor, {super_distributor.name}.')
+
+
         flash("Super Distributor deleted successfully!", "success")
     except Exception as e:
         db.session.rollback()
@@ -319,16 +364,32 @@ def delete_super_distributor(sd_id):
 # Route for delete the super distributor
 @super_distributor_bp.route('/lock/<int:sd_id>', methods=['GET'])
 def lock_sd(sd_id):
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
     sd = SuperDistributor.query.get_or_404(sd_id)
 
     try:
         if sd.status == 'activated':
             sd.status = 'deactivated'
             db.session.commit()
+
+            create_notification(user_id=sd.id, 
+                                role='SuperDistributor', 
+                                notification_type='Lock', 
+                                description=f'{user.name}, the {role}, has successfully Locked Super Distributor, {sd.name}.')
+
+
             flash("Super Distributor Locked successfully!", "danger")
         else:
             sd.status = 'activated'
             db.session.commit()
+
+            create_notification(user_id=sd.id, 
+                                role='SuperDistributor', 
+                                notification_type='Unlock', 
+                                description=f'{user.name}, the {role}, has successfully Unlocked Super Distributor, {sd.name}.')
+
             flash("Super Distributor Unlocked successfully!", "success")
 
     except Exception as e:

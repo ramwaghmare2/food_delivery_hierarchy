@@ -12,7 +12,7 @@ from functools import wraps
 from models.activitylog import ActivityLog
 from .activity_log_service import log_user_activity
 import uuid
-from utils.notification_service import create_notification, get_notification_targets
+from utils.notification_service import check_notification, create_notification, get_notification_targets
 
 
 user_bp = Blueprint('user_bp', __name__, static_folder='../static')
@@ -267,6 +267,7 @@ def logout():
 def get_profile():
     role = session.get('role')
     user_id = session.get('user_id')
+    notification_check = check_notification(role, user_id)
     # user_name = session.get('user_name')
 
     role_model_map = {
@@ -294,6 +295,7 @@ def get_profile():
                            encoded_image=encoded_image,
                            user_name=user.name,
                            user_id=user_id,
+                           notification_check=len(notification_check)
                            )
 
 ################################## Edit Admin ##################################
@@ -304,6 +306,8 @@ def edit_profile():
     role = session.get('role')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
+    notification_check = check_notification(role, user_id)
+
     role_model_map = {
                 "Admin": Admin,
                 "Manager": Manager,
@@ -370,5 +374,6 @@ def edit_profile():
                            role=role, 
                            user_name=user.name,
                            user_id=user_id,
-                           encoded_image=encoded_image
+                           encoded_image=encoded_image,
+                           notification_check=len(notification_check)
                            )

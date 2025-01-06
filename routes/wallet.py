@@ -1,6 +1,7 @@
 from flask import request, jsonify, Blueprint, render_template, redirect, url_for, session
 from models.royalty import RoyaltySettings, RoyaltyWallet
 from models import Sales, Order, db ,Kitchen, SuperDistributor ,Distributor,Manager,Admin
+from utils.notification_service import check_notification
 from utils.services import get_image, get_user_query, today_sale
 from decimal import Decimal
 from datetime import datetime, time, timedelta
@@ -10,15 +11,16 @@ wallet_bp = Blueprint('wallet', __name__, static_folder='../static')
 
 @wallet_bp.route('/view', methods=['GET'])
 def view_wallet():
-    role = session.get('role')
+    session_role = session.get('role')
     user_id = session.get('user_id')
-    image_data = get_image(role, user_id)
-    user = get_user_query(role, user_id)
+    image_data = get_image(session_role, user_id)
+    user = get_user_query(session_role, user_id)
+    notification_check = check_notification(session_role, user_id)
 
     wallet = RoyaltyWallet.query.filter_by(entity_id=user_id).first()
     # Step 5: Calculate the sum of the total_amount (royalty_amount) for the logged-in user's role
     total_royalty_amount = db.session.query(func.round(func.sum(RoyaltyWallet.royalty_amount), 2)) \
-    .filter(RoyaltyWallet.entity_id == user_id, RoyaltyWallet.role == role) \
+    .filter(RoyaltyWallet.entity_id == user_id, RoyaltyWallet.role == session_role) \
     .scalar() or 0.0
 
     today_total_sales = today_sale(user_id) or Decimal(0)
@@ -56,51 +58,53 @@ def view_wallet():
 
     # Combine names with shares
     role_shares_with_names = {
-    "Admin": {
-        "id": admin.id if admin else None,
-        "name": admin.name if admin else None,
-        "share": float(role_shares['Admin']),
-        "royalty_percentage": royalty_dict['Admin']
-    },
-    "Manager": {
-        "id": manager.id if manager else None,
-        "name": manager.name if manager else None,
-        "share": float(role_shares['Manager']),
-        "royalty_percentage": royalty_dict['Manager']
-    },
-    "SuperDistributor": {
-        "id": super_distributor.id if super_distributor else None,
-        "name": super_distributor.name if super_distributor else None,
-        "share": float(role_shares['SuperDistributor']),
-        "royalty_percentage": royalty_dict['SuperDistributor']
-    },
-    "Distributor": {
-        "id": distributor.id if distributor else None,
-        "name": distributor.name if distributor else None,
-        "share": float(role_shares['Distributor']),
-        "royalty_percentage": royalty_dict['Distributor']
-    },
-    "Kitchen": {
-        "id": kitchen.id if kitchen else None,
-        "name": kitchen.name if kitchen else None,
-        "share": float(remaining_wallet),
-        "royalty_percentage": None  # Kitchen does not have a royalty percentage
-    },
-}   
+                                "Admin": {
+                                    "id": admin.id if admin else None,
+                                    "name": admin.name if admin else None,
+                                    "share": float(role_shares['Admin']),
+                                    "royalty_percentage": royalty_dict['Admin']
+                                },
+                                "Manager": {
+                                    "id": manager.id if manager else None,
+                                    "name": manager.name if manager else None,
+                                    "share": float(role_shares['Manager']),
+                                    "royalty_percentage": royalty_dict['Manager']
+                                },
+                                "SuperDistributor": {
+                                    "id": super_distributor.id if super_distributor else None,
+                                    "name": super_distributor.name if super_distributor else None,
+                                    "share": float(role_shares['SuperDistributor']),
+                                    "royalty_percentage": royalty_dict['SuperDistributor']
+                                },
+                                "Distributor": {
+                                    "id": distributor.id if distributor else None,
+                                    "name": distributor.name if distributor else None,
+                                    "share": float(role_shares['Distributor']),
+                                    "royalty_percentage": royalty_dict['Distributor']
+                                },
+                                "Kitchen": {
+                                    "id": kitchen.id if kitchen else None,
+                                    "name": kitchen.name if kitchen else None,
+                                    "share": float(remaining_wallet),
+                                    "royalty_percentage": None  # Kitchen does not have a royalty percentage
+                                },
+                            }   
     
 
     # Store calculated shares temporarily in the session
     session['role_shares'] = role_shares_with_names
     # Pass the data to the HTML template
+    print('after', session_role)
     return render_template('kitchen/wallet.html',
                            encoded_image=image_data,
                            user_name=user.name,
                            user_id=user_id,
                            total_sales=today_total_sales,
-                           role=role,
+                           role=session_role,
                            role_shares_with_names=role_shares_with_names,
                            remaining_wallet=remaining_wallet,
-                           total_royalty_amount=total_royalty_amount
+                           total_royalty_amount=total_royalty_amount,
+                           notification_check=len(notification_check)
                            )
 
 @wallet_bp.route('/all', methods=['GET'])
@@ -110,6 +114,7 @@ def view_all_wallets():
     role = session.get('role')
     image_data = get_image(role, user_id)
     user = get_user_query(role, user_id)
+    notification_check = check_notification(role, user_id)
 
     # Calculate total wallet amount for the user based on user_id and role
     total_wallet = db.session.query(func.sum(RoyaltyWallet.royalty_amount)) \
@@ -138,7 +143,8 @@ def view_all_wallets():
                            user_id=user_id,
                            role=role, 
                            total_wallet=total_wallet, 
-                           yesterday_wallet=yesterday_wallet)
+                           yesterday_wallet=yesterday_wallet,
+                           notification_check=len(notification_check))
 
 
 """

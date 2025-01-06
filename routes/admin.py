@@ -103,7 +103,7 @@ def admin_home():
     except Exception as e:
         print(f"Error fetching data: {e}")
 
-    notification_check = check_notification(user_id)
+    notification_check = check_notification(role, user_id)
 
     # Render the admin dashboard template
     return render_template(

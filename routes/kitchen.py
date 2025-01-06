@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from utils.services import allowed_file
 import bcrypt
+from utils.notification_service import check_notification, create_notification
 import json
 from utils.services import get_model_counts , get_image, get_user_query
 from sqlalchemy import func
@@ -20,6 +21,8 @@ def create_kitchen():
     user_name = session.get('user_name')
     distributors = Distributor.query.filter_by(status='activated').all()
     data = request.form
+
+    notification_check = check_notification(role, user_id)
 
     user = get_user_query(role, user_id)
     if request.method == 'POST':
@@ -62,6 +65,12 @@ def create_kitchen():
         
         db.session.add(new_kitchen)
         db.session.commit()
+
+        create_notification(user_id=new_kitchen.id, 
+                                role='Kitchen', 
+                                notification_type='Add', 
+                                description=f'{user.name}, the {role}, has Successfully Added {new_kitchen.name}, the Kitchen.')
+
         flash('Kitchen Added Successfully.','success')
         return redirect(url_for('kitchen.create_kitchen'))
 
@@ -69,8 +78,9 @@ def create_kitchen():
         'kitchen/add_kitchen.html',
         role=role,
         distributors=distributors,
-        user_name=user_name,
-        encoded_image=image_data
+        user_name=user.name,
+        encoded_image=image_data,
+        notification_check=len(notification_check)
     )
 
 
@@ -83,7 +93,12 @@ def get_kitchens():
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
     counts = get_model_counts()
-    return render_template('distributor/d_all_kitchens.html', all_kitchens=kitchens, role=role ,user_name=user_name, **counts , encoded_image=image_data)
+    return render_template('distributor/d_all_kitchens.html',
+                           all_kitchens=kitchens,
+                           role=role,
+                           user_name=user_name,
+                           **counts,
+                           encoded_image=image_data)
 
 ################################## Route for edit the super_distributor ##################################
 @kitchen_bp.route('/edit/<int:kitchen_id>', methods=['GET', 'POST'])
@@ -94,7 +109,8 @@ def edit_kitchen(kitchen_id):
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
     user = get_user_query(role, user_id)
-    
+
+    notification_check = check_notification(role, user_id)
 
     if request.method == 'POST':
         image = request.files.get('image')
@@ -132,6 +148,12 @@ def edit_kitchen(kitchen_id):
 
         try:
             db.session.commit()
+
+            create_notification(user_id=kitchen.id, 
+                                role='Kitchen', 
+                                notification_type='Edit', 
+                                description=f'{user.name}, the {role}, has Successfully Edited {kitchen.name}, the Kitchen.')
+
             flash("Kitchen updated successfully!", "success")
             return redirect(url_for('distributor.distrubutor_all_kitchens'))
         except Exception as e:
@@ -139,11 +161,19 @@ def edit_kitchen(kitchen_id):
             flash(f"Error updating Kitchen: {str(e)}", "danger")
             return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role,user_name=user.name, encoded_image =image_data)
 
-    return render_template('kitchen/edit_kitchen.html', kitchen=kitchen, role=role ,user_name=user.name ,encoded_image = image_data)
+    return render_template('kitchen/edit_kitchen.html',
+                           kitchen=kitchen,
+                           role=role,
+                           user_name=user.name,
+                           encoded_image=image_data,
+                           notification_check=len(notification_check))
 
 ################################## Route for delete the kitchen ##################################
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])
 def delete_kitchen(kitchen_id):
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
     kitchen = Kitchen.query.get_or_404(kitchen_id)
     food_items = FoodItem.query.filter_by(kitchen_id=kitchen_id)
     try:
@@ -151,6 +181,12 @@ def delete_kitchen(kitchen_id):
             item.status = 'deactivated'
         kitchen.status = 'deactivated'
         db.session.commit()
+
+        create_notification(user_id=kitchen.id, 
+                            role='Kitchen', 
+                            notification_type='Delete', 
+                            description=f'{user.name}, the {role}, has Successfully Deleted {kitchen.name}, the Kitchen.')
+
         flash("Kitchen deleted successfully!", "success")
         return redirect(url_for('distributor.distrubutor_all_kitchens'))
     except Exception as e:
@@ -163,16 +199,31 @@ def delete_kitchen(kitchen_id):
 # Route for delete the kitchen
 @kitchen_bp.route('/lock/<int:kitchen_id>', methods=['GET'])
 def lock_kitchen(kitchen_id):
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
     kitchen = Kitchen.query.get_or_404(kitchen_id)
 
     try:
         if kitchen.status == 'activated':
             kitchen.status = 'deactivated'
             db.session.commit()
+
+            create_notification(user_id=kitchen.id, 
+                                role='Kitchen', 
+                                notification_type='Lock', 
+                                description=f'{user.name}, the {role}, has Locked {kitchen.name}, the Kitchen.')
+
             flash("Kitchen Locked successfully!", "danger")
         else:
             kitchen.status = 'activated'
             db.session.commit()
+
+            create_notification(user_id=kitchen.id, 
+                                role='Kitchen', 
+                                notification_type='Unlock', 
+                                description=f'{user.name}, the {role}, has Unlocked {kitchen.name}, the Kitchen.')
+
             flash("Kitchen Unlocked successfully!", "success")
 
     except Exception as e:
@@ -189,6 +240,7 @@ def kitchen_home():
     role = session.get('role')
     user_id = session.get('user_id')
     image_data = get_image(role, user_id)
+    notification_check = check_notification(role, user_id)
 
     # Filter orders by kitchen_id
     orders = Order.query.filter(Order.kitchen_id == user_id).all()
@@ -249,5 +301,6 @@ def kitchen_home():
                            order_count_per_date=order_count_per_date,
                            total_sales_amount=total_sales_amount,
                            total_quantity_sold=total_quantity_sold,
-                           total_orders_count=total_orders_count
+                           total_orders_count=total_orders_count,
+                           notification_check=len(notification_check)
                            )
