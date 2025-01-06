@@ -51,16 +51,20 @@ def get_notifications():
 
 @notification_bp.route('/mark-as-read/<int:id>', methods=['GET'])
 def mark_as_read(id):
+    role = session.get('role')
     notification = Notification.query.get(id)
     try:
-        if notification and session.get('user_id') == notification.user_id:
+        if role == 'Admin' and notification:
             notification.is_read = True
             db.session.commit()
             return redirect(url_for('notification.get_notifications'))
-
+        elif notification and session.get('user_id') == notification.user_id:
+            notification.is_read = True
+            db.session.commit()
+            return redirect(url_for('notification.get_notifications'))
     except Exception as e:
         db.session.rollback()
-        flash(f"Error updating manager: {str(e)}", "danger")
+        flash(f"Error: {str(e)}", "danger")
         return redirect(url_for('notification.get_notifications'))
     #     return jsonify({'message': 'Notification marked as read.'})
     # return jsonify({'error': 'Notification not found or unauthorized.'}), 404
