@@ -5,8 +5,8 @@ from datetime import datetime
 import pytz
 from flask import Flask, session, flash, redirect, url_for
 from flask_socketio import SocketIO
-from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
+from flask_bcrypt import Bcrypt
 from models import db
 from utils.services import today_sale
 from models.royalty import RoyaltyWallet
