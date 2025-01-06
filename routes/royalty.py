@@ -2,6 +2,7 @@ from models import db
 from datetime import datetime
 from functools import wraps
 from routes.user_routes import role_required
+from utils.notification_service import check_notification
 from utils.services import get_image, get_user_query, today_sale
 from flask import request, jsonify, Blueprint, render_template, redirect, url_for, session, flash
 from models.royalty import RoyaltySettings, RoyaltyWallet
@@ -22,6 +23,8 @@ def add_royalty():
     user = get_user_query(role, user_id)
 
     share_percentages = RoyaltySettings.query.all()
+
+    notification_check = check_notification(role, user_id)
 
     try:
         if request.method == 'POST':
@@ -44,7 +47,8 @@ def add_royalty():
                            role=role,
                            encoded_image=image_data,
                            user_name=user.name,
-                           shares=share_percentages)
+                           shares=share_percentages,
+                           notification_check=len(notification_check))
 
 
 ################################## Update Royalty Percentage (Admin-Only) ##################################

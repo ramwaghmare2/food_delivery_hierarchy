@@ -16,26 +16,30 @@ def get_notifications():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
-    query = Notification.query
+    if role == 'Admin':
+        notifications = Notification.query.all()
+    else:
+        query = Notification.query
 
-    if role:
-        query = query.filter(Notification.role == role)
-    if user_id:
-        query = query.filter(Notification.user_id == user_id)
-    if start_date:
-        query = query.filter(Notification.created_at >= start_date)
-    if end_date:
-        query = query.filter(Notification.created_at <= end_date)
+        if role:
+            query = query.filter(Notification.role == role)
+        if user_id:
+            query = query.filter(Notification.user_id == user_id)
+        if start_date:
+            query = query.filter(Notification.created_at >= start_date)
+        if end_date:
+            query = query.filter(Notification.created_at <= end_date)
 
-    notifications = query.order_by(Notification.created_at.desc()).all()
+        notifications = query.order_by(Notification.created_at.desc()).all()
 
-    notification_check = check_notification(user_id)
+    notification_check = check_notification(role, user_id)
 
     today = datetime.today().date()
     yesterday = (datetime.today() - timedelta(days=1)).date()
 
     return render_template('notification.html',
                            role=role,
+                           user_id=user_id,
                            encoded_image=image_data,
                            user_name=user.name,
                            notifications=notifications,

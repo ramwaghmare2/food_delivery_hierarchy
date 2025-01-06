@@ -11837,7 +11837,7 @@ body {
   text-align: center;  /* Center the text horizontally */
   line-height: 13px;   /* Center the text vertically (same as dot height) */
   font-weight: bold;   /* Optional: make the number bold */
-  font-size: 12px;     /* Adjust the font size */
+  font-size: 9px;     /* Adjust the font size */
 }
 
   /* Show the dot when there are notifications */

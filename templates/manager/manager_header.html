@@ -48,7 +48,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link" href="{{ url_for('notification.get_notifications') }}" type="button" ><i class="fa-solid fa-bell"></i>
                         {% if notification_check %}
-                            <span class="notification-dot"></span>
+                            <span class="notification-dot">{{ notification_check }}</span>
                         {% endif %}
                     </a>
                 </li>

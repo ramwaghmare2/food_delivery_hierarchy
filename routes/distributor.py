@@ -3,6 +3,7 @@ from models.kitchen import Kitchen
 from models.distributor import Distributor
 from models import db, SuperDistributor  ,Order ,OrderItem ,Sales, FoodItem
 import bcrypt
+from utils.notification_service import check_notification, create_notification
 import json
 from utils.services import get_model_counts, allowed_file ,get_image, get_user_query
 from base64 import b64encode
@@ -142,6 +143,9 @@ def distributor_home():
                 kitchen = next(k for k in kitchens if k.id == order.kitchen_id)
                 kitchen_sales_total[kitchen.name] += float(order.total_amount)  # Sum up the total sales amount
 
+        
+        notification_check = check_notification(role, user_id)
+
         # Render the distributor home page with table and chart data
         return render_template(
             'd_index.html', 
@@ -160,7 +164,8 @@ def distributor_home():
             kitchen_sales=kitchen_sales,
             filter_type=filter_type,
             total_sales_data=total_sales_data,
-            total_quantity_sold=total_quantity_sold
+            total_quantity_sold=total_quantity_sold,
+            notification_check=len(notification_check)
         )
     except Exception as e:
         flash({'error': str(e)})
@@ -211,6 +216,8 @@ def all_distributor():
         else:
             distributor.image_base64 = None
 
+    notification_check = check_notification(role, user_id)
+
     return render_template(
         'd_all_distributor.html',
         total_distributors_count=len(all_distributors),
@@ -219,6 +226,7 @@ def all_distributor():
         user_name=user.name,
         encoded_image=image_data,
         filter=filter_status,
+        notification_check=len(notification_check)
     )
 
 ################################## Route to display all kitchens ##################################
@@ -311,6 +319,8 @@ def distrubutor_all_kitchens():
         for kitchen in all_kitchens
     ]
 
+    
+    notification_check = check_notification(role, user_id)
 
     return render_template(
         'kitchen/all_kitchens.html',
@@ -321,21 +331,16 @@ def distrubutor_all_kitchens():
         encoded_image=image_data,
         kitchens_count=kitchens_count,
         filter=filter_status,
+        notification_check=len(notification_check)
     )
 
-
-################################## Route to delete kitchen ##################################
-@distributor_bp.route('/delete-kitchen/<int:kitchen_id>', methods=['GET','POST'])
-def delete_kitchen(kitchen_id):
-    kitchen = Kitchen.query.get_or_404(kitchen_id)
-    db.session.delete(kitchen)
-    db.session.commit()
-    flash('Kitchen deleted successfully!')
-    return redirect(url_for('distributor.distrubutor_all_kitchens'))
 
 ################################## Route for delete the distributor ##################################
 @distributor_bp.route('/delete/<int:distributor_id>', methods=['GET', 'POST'])
 def delete_distributor(distributor_id):
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
     
     distributor = Distributor.query.get_or_404(distributor_id)
 
@@ -343,6 +348,13 @@ def delete_distributor(distributor_id):
         distributor.status = 'deactivated'
         # db.session.delete(distributor)
         db.session.commit()
+
+        create_notification(user_id=distributor.id, 
+                            role='Distributor', 
+                            notification_type='Delete', 
+                            description=f'{user.name}, the {role}, has successfully Deleted Distributor, {distributor.name}.')
+
+
         flash("Distributor deleted successfully!", "success")
     except Exception as e:
         db.session.rollback()
@@ -354,16 +366,31 @@ def delete_distributor(distributor_id):
 # Route for delete the Distributor
 @distributor_bp.route('/lock/<int:distributor_id>', methods=['GET'])
 def lock_distributor(distributor_id):
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
     distributor = Distributor.query.get_or_404(distributor_id)
 
     try:
         if distributor.status == 'activated':
             distributor.status = 'deactivated'
             db.session.commit()
+
+            create_notification(user_id=distributor.id, 
+                                role='Distributor', 
+                                notification_type='Lock', 
+                                description=f'{user.name}, the {role}, has Locked {distributor.name}, the Distributor.')
+
             flash("Distributor Locked successfully!", "danger")
         else:
             distributor.status = 'activated'
             db.session.commit()
+
+            create_notification(user_id=distributor.id, 
+                                role='Distributor', 
+                                notification_type='Unlock', 
+                                description=f'{user.name}, the {role}, has Unlocked {distributor.name}, the Distributor.')
+
             flash("Distributor Unlocked successfully!", "success")
 
     except Exception as e:
@@ -386,6 +413,7 @@ def edit_distributor(distributor_id):
     user_id = session.get('user_id')
     image_data= get_image(role, user_id) 
     user = get_user_query(role, user_id)
+    notification_check = check_notification(role, user_id)
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -421,6 +449,13 @@ def edit_distributor(distributor_id):
 
         try:
             db.session.commit()
+
+            create_notification(user_id=distributor.id, 
+                                role='Distributor', 
+                                notification_type='Edit', 
+                                description=f'{user.name}, the {role}, has Successfully Edited {distributor.name}, the Distributor.')
+
+
             flash("Distributor updated successfully!", "success")
             return redirect(url_for('distributor.all_distributor'))
         except Exception as e:
@@ -428,7 +463,12 @@ def edit_distributor(distributor_id):
             flash(f"Error updating Distributor: {str(e)}", "danger")
             return render_template('edit_distributor.html', distributor=distributor, role=role , encoded_image = image_data, user_name=user.name)
 
-    return render_template('edit_distributor.html', distributor=distributor, role=role , encoded_image = image_data, user_name=user.name)
+    return render_template('edit_distributor.html',
+                           distributor=distributor,
+                           role=role,
+                           encoded_image=image_data,
+                           user_name=user.name,
+                           notification_check=len(notification_check))
 
 ################################## Route for Display orders related to distributor ##################################
 @distributor_bp.route('/distributor-orders', methods=['GET'])
@@ -512,6 +552,8 @@ def distributor_orders():
             for order in orders
         ]
 
+        notification_check = check_notification(role, distributor_id)
+
         # Render the distributor's order page
         return render_template(
             'distributor/d_orders.html',
@@ -522,7 +564,8 @@ def distributor_orders():
             selected_kitchen_id=selected_kitchen_id,
             order_status=order_status,
             date_filter=date_filter,
-            encoded_image=image_data
+            encoded_image=image_data,
+            notification_check=len(notification_check)
         )
     
     except Exception as e:
@@ -580,6 +623,8 @@ def view_details(user_id):
 
     details = 'Distributor'
 
+    notification_check = check_notification(role, id)
+
     return render_template('view_details.html',
                            role=role,
                            user_name=user_name.name,
@@ -587,5 +632,6 @@ def view_details(user_id):
                            user=user,
                            details=details,
                            kitchens=kitchen_data,
+                           notification_check=len(notification_check)
                            )
 

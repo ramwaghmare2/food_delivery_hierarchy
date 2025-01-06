@@ -2,6 +2,12 @@
     {% include 'admin/admin_header.html' %}
 {% elif role == 'Manager' %}
     {% include 'manager/manager_header.html' %}
+{% elif role == 'SuperDistributor' %}
+    {% include 'super_distributor/sd_header.html' %}
+{% elif role == 'Distributor' %}
+    {% include 'distributor/d_header.html' %}
+{% else %}
+    {% include 'kitchen/kitchen_header.html' %}
 {% endif %}
 
 <div id="layoutSidenav_content" style="background-color: rgb(248, 244, 238);">
@@ -21,8 +27,8 @@
                 <tbody>
                     {% for notification in notifications %}
                         <tr {% if not notification.is_read %} style="background-color: rgb(228, 252, 252);" {% endif %}>
-                            <td style="border-left: none; border-right: none;">{{ notification.description }}</td>
-                            <td style="border-left: none; border-right: none;">
+                            <td style="border-left: none; border-right: none; padding: 20px;">{{ notification.description }}</td>
+                            <td style="border-left: none; border-right: none; padding: 20px;">
                                 {% if notification.is_read %}
                                     <span class="badge bg-success">Read</span>
                                 {% else %}

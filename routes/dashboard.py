@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, session, render_template, redirec
 from flask_socketio import emit
 from utils.services import allowed_file, get_image, get_user_query, ROLE_MODEL_MAP
 from sqlalchemy.exc import IntegrityError
+from utils.notification_service import check_notification
 from utils.helpers import handle_error 
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
@@ -139,6 +140,8 @@ def admin_dashboard():
         performance_dates = [str(row[0]) for row in daily_sales_performance]
         total_revenues = [float(row[1]) for row in daily_sales_performance]
 
+        notification_check = check_notification(role, user_id)
+
     except Exception as e:
         print(f"Error fetching data: {e}")
 
@@ -150,6 +153,7 @@ def admin_dashboard():
         quantity_sold=quantity_sold,
         sales_data=sales_data,
         user_name=user.name,
+        notification_check=len(notification_check),
         role=role,
         months=months,
         total_sales=total_sales,
@@ -176,6 +180,7 @@ def manager_dashboard():
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
+    notification_check = check_notification(role, user_id)
 
     total_sales_amount, total_orders_count, quantity_sold, total_sales_data, sales_by_item = 0, 0, 0, 0, 0
     sales_data, monthly_sales, daily_performance_data = [], [], 0
@@ -394,6 +399,7 @@ def manager_dashboard():
 
     return render_template(
         'manager/manager_dashboard.html',
+        notification_check=len(notification_check),
         total_sales_amount=total_sales_amount,
         total_orders_count=total_orders_count,
         quantity_sold=quantity_sold,
@@ -429,9 +435,9 @@ def super_distributor_dashboard():
     from models import Distributor, Kitchen
     role = session.get('role')
     user_id = session.get('user_id')
-    print(user_id)
     image_data = get_image(role, user_id) 
     user = get_user_query(role, user_id)
+    notification_check = check_notification(role, user_id)
 
     total_sales_amount = 0
     total_orders_count = 0
@@ -657,7 +663,8 @@ def super_distributor_dashboard():
                            sales_distribution_data=sales_distribution_data,
                            daily_sales_data=daily_sales_data,
                            order_counts=order_counts,
-                           quantity_sold=quantity_sold,)
+                           quantity_sold=quantity_sold,
+                           notification_check=len(notification_check))
 
 
 @dashboard_bp.route('/distributor', methods=['GET'])
@@ -668,6 +675,7 @@ def distributor_dashboard():
     user_id = session.get('user_id')
     image_data = get_image(role, user_id) 
     user = get_user_query(role, user_id)
+    notification_check = check_notification(role, user_id)
     
     try:
         # Query to get kitchen ids
@@ -851,7 +859,9 @@ def distributor_dashboard():
                            quantity_sold_data=quantity_sold_data,
                            top_selling_items=top_selling_items,
                            sales_distribution_data=sales_distribution_data,
-                           daily_sales_data=daily_sales_data )
+                           daily_sales_data=daily_sales_data,
+                           notification_check=len(notification_check)
+                           )
 
 from collections import Counter
 @dashboard_bp.route('/kitchen', methods=['GET'])
@@ -862,6 +872,7 @@ def kitchen_dashboard():
     user_id = session.get('user_id')
     image_data = get_image(role, user_id) 
     user = get_user_query(role, user_id)
+    notification_check = check_notification(role, user_id)
 
     try:
         total_sales_amount = (
@@ -1001,6 +1012,7 @@ def kitchen_dashboard():
                            filter_type=filter_type,
                            daily_sales_data=sales_data,
                            top_selling_items=top_selling_items,
-                           order_data =order_data ,
+                           order_data =order_data,
+                           notification_check=len(notification_check)
                     )
 
