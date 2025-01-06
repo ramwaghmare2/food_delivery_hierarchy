@@ -65,12 +65,16 @@ def create_notification(user_id, role, notification_type, description):
     return notification
 
 
-def check_notification(user_id):
+def check_notification(role, user_id):
 
-    notification_check = Notification.query.filter(
-                Notification.user_id == user_id,
-                Notification.is_read == 0
-            ).all()  
+    if role == 'Admin':
+        notification_check = Notification.query.all()
+    else:    
+        notification_check = Notification.query.filter(
+                    Notification.user_id == user_id,
+                    Notification.is_read == 0,
+                    Notification.role == role
+                ).all()  
     
     return notification_check
 

@@ -3,6 +3,7 @@ from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderIt
 from utils.services import get_model_counts ,allowed_file ,get_image, get_user_query
 from werkzeug.security import generate_password_hash
 from models.manager import db, Manager
+from utils.notification_service import check_notification
 from utils.notification_service import create_notification, check_notification
 from extensions import bcrypt
 from base64 import b64encode
@@ -19,6 +20,9 @@ def add_manager():
     user_id = session.get('user_id')
     image_data= get_image(role, user_id)       
     user = get_user_query(role, user_id)
+
+    notification_check = check_notification(role, user_id)
+
     if request.method == 'POST':
         name = request.form['name']     # Get the name from  the form
         email = request.form['email']   # Get the email from  the form
@@ -64,7 +68,11 @@ def add_manager():
             db.session.rollback()
             flash(f"Error adding manager: {str(e)}", "danger")
     
-    return render_template('add_manager.html', role=role,user_name=user_name, encoded_image = image_data)
+    return render_template('add_manager.html',
+                           role=role,
+                           user_name=user_name,
+                           encoded_image=image_data,
+                           notification_check=len(notification_check))
 
 
 @manager_bp.route('/managers', methods=['GET', 'POST'])
@@ -97,6 +105,9 @@ def get_managers():
             else:
                 manager.image_base64 = None
 
+        
+        notification_check = check_notification(role, user_id)
+
         # Render the template with filtered managers
         return render_template(
             'managers.html',
@@ -105,8 +116,11 @@ def get_managers():
             user_name=user.name,
             filter=filter_status,  # Pass the filter to the template
             **counts,
-            encoded_image=image_data
+            encoded_image=image_data,
+            notification_check=len(notification_check)
         )
+    
+
     except Exception as e:
         flash(f"Error retrieving managers: {str(e)}", "danger")
         return render_template(
@@ -132,6 +146,9 @@ def edit_manager(manager_id):
         role = role.decode('utf-8')
     # if isinstance(user_name, bytes):
     #     user_name = user_name.decode('utf-8')
+
+    
+    notification_check = check_notification(role, user_id)
 
     if request.method == 'POST':
         name = request.form['name']
@@ -171,6 +188,7 @@ def edit_manager(manager_id):
         try:
             db.session.commit()
 
+
             create_notification(user_id=manager.id, 
                                 role='Manager', 
                                 notification_type='Edit', 
@@ -182,7 +200,12 @@ def edit_manager(manager_id):
             db.session.rollback()
             flash(f"Error updating manager: {str(e)}", "danger")
     
-    return render_template('edit_manager.html', manager=manager, role=role, user_name=user.name,encoded_image=image_data)
+    return render_template('edit_manager.html', 
+                            manager=manager,
+                            role=role,
+                            user_name=user.name,
+                            encoded_image=image_data,
+                            notification_check=len(notification_check))
 
 
 # Route for delete the manager
@@ -235,6 +258,12 @@ def lock_manager(manager_id):
         else:
             manager.status = 'activated'
             db.session.commit()
+
+            create_notification(user_id=manager.id, 
+                                role='Manager', 
+                                notification_type='Unlock', 
+                                description=f'{user.name}, the Admin, has Unlocked {manager.name}, the Manager.')
+
             flash("Manager Unlocked successfully!", "success")
 
     except Exception as e:
@@ -334,7 +363,7 @@ def manager_home():
             .all()
         )
 
-        notification_check = check_notification(user_id)
+        notification_check = check_notification(role, user_id)
 
         monthly_sales = (
             db.session.query(
@@ -368,7 +397,7 @@ def manager_home():
         sales_data=sales_data,
         user_name=user_name,
         role=role,
-        notification_check=notification_check,
+        notification_check=len(notification_check),
         encoded_image=image_data,
         months=months,
         total_sales=total_sales,
