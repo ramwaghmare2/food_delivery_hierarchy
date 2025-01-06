@@ -136,6 +136,19 @@ def view_all_wallets():
     # Round the yesterday_wallet to 2 decimal places
     yesterday_wallet = round(yesterday_wallet, 2)
 
+    daily_wallet = RoyaltyWallet.query.filter(RoyaltyWallet.role == role ,RoyaltyWallet.entity_id == user_id).all()
+    print(daily_wallet)
+
+    """wallet_data = {
+                    "dates": [entry.updated_at.strftime('%Y-%m-%d') for entry in daily_wallet],
+                    "amounts": [entry.royalty_amount for entry in daily_wallet]
+                }"""    
+    wallet_data = {
+                "labels": [entry.updated_at.strftime('%Y-%m-%d') for entry in daily_wallet[:10]],
+                "values": [entry.royalty_amount for entry in daily_wallet[:10]]
+            }
+
+    print(wallet_data)
     # Render the template and pass the data
     return render_template('wallet.html',
                            encoded_image=image_data,
@@ -144,6 +157,7 @@ def view_all_wallets():
                            role=role, 
                            total_wallet=total_wallet, 
                            yesterday_wallet=yesterday_wallet,
+                           wallet_data=wallet_data,
                            notification_check=len(notification_check))
 
 
