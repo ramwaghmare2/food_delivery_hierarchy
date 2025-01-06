@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session
-from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem, Notification
+from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem
 from utils.services import get_model_counts ,allowed_file ,get_image, get_user_query
 from werkzeug.security import generate_password_hash
 from models.manager import db, Manager
@@ -271,6 +271,7 @@ def manager_home():
     total_sales_amount, total_orders_count, quantity_sold = 0, 0, 0
     sales_data, monthly_sales = [], []
     months, total_sales = [], []
+    notification_check = None
 
     try:
         # Fetch data

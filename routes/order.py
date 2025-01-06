@@ -505,28 +505,34 @@ def kitchen_orders( ):
             return redirect(url_for('kitchen.kitchen_dashboard'))
     
 
-@order_bp.route('/update-status/<int:order_id>', methods=['GET'])
+
+@order_bp.route('/update-status/<int:order_id>', methods=['POST'])
 def update_status(order_id):
     try:
         user_id = session.get('user_id')
         order = Order.query.filter_by(order_id=order_id).first()
-        order.order_status = 'Completed'
-        db.session.commit()
-        sales = Sales(
-            order_id=order.order_id,
-            cuisine_id=order.order_items[0].food_item.cuisine_id,
-            kitchen_id=order.kitchen_id,
-            item_id=order.order_items[0].item_id
-        )
-        db.session.add(sales)
-        db.session.commit()
-
-        flash('Order Status updated Successfully!', 'success')
-        return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
+        if order:
+            print(f"Updating order ID: {order_id} from {order.order_status} to 'Completed'")
+            order.order_status = 'Completed'
+            db.session.commit()
+            print("Order status updated in the database.")
+            sales = Sales(
+                order_id=order.order_id,
+                cuisine_id=order.order_items[0].food_item.cuisine_id,
+                kitchen_id=order.kitchen_id,
+                item_id=order.order_items[0].item_id
+            )
+            db.session.add(sales)
+            db.session.commit()
+            print("Sales record created.")
+            return jsonify({"message": "Order Status updated Successfully!", "new_status": "Completed"}), 200
+        else:
+            print(f"Order ID: {order_id} not found.")
+            return jsonify({"error": "Order not found"}), 404
     except Exception as e:
-        flash(f'Error: {str(e)}')
-        return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
-    
+        print(f"Error occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 
 
 ################################## Routes for Cart ##################################
