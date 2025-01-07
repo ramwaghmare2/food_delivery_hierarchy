@@ -22,50 +22,38 @@ def place_order(item_id):
     try:
 
         data = request.form
-        
 
         item = FoodItem.query.filter_by(id=item_id).first()
+        if not item:
+            raise ValueError(f"FoodItem with id {item_id} does not exist.")
         if item.image:
             item.image_base64 = f"data:image/jpeg;base64,{b64encode(item.image).decode('utf-8')}"
         else:
             item.image_base64 = None
 
         user_id = session.get('user_id')
-        
+        if not user_id:
+            raise ValueError("User not logged in.")        
 
         if request.method == 'POST':
-        
-            # Get current user id from the JWT token
-            # user_id = get_jwt_identity()
-
-            # user = User.query.get(user_id)
-            # if not user:
-            #     raise ValueError("User does not exist.")
-
             total_amount = 0  # Initialize total amount to 0
 
-            # Create the new order with a default total_amount
             new_order = Order(
                 user_id=user_id,
                 kitchen_id=data['kitchen_id'],
                 total_amount=total_amount,  # This will be updated after calculating
-                # address=user.address
                 order_status='Pending'  # Set initial status to 'Pending'
             )
             db.session.add(new_order)
             db.session.commit()
 
             order_items_details = []
-
-            # if 'order_items' in data:
-            #     for item in data:
                     
             menu_item = FoodItem.query.get(item_id)
             if not menu_item:
                 raise ValueError(f"FoodItem with id {item_id} does not exist.")
 
             original_price = item.price   # Store the original price
-
             item_total_price = original_price * int(data['quantity'])  # Calculate total price for this order item base on quantity.
             
             # Create the order item
@@ -87,37 +75,24 @@ def place_order(item_id):
 
             # Add the item's total price to the total amount for the order
             total_amount += item_total_price
-
-            # Calculate GST (18%) for the order price
-            # gst = total_amount * Decimal('0.18')
-
-            # Add delivery charge (50 rupees)
-            # delivery_charge = Decimal('50.00')
-
-            # Update the total amount with GST and delivery charge
             total_amount_with_gst_and_delivery = total_amount# + gst + delivery_charge
 
             # Update the total amount of the order
             new_order.total_amount = total_amount_with_gst_and_delivery
-            
             db.session.commit()
-
-            # return jsonify({
-            #     'message': 'Order created successfully!',
-            #     'order_id': new_order.order_id,
-            #     'delivery_charge':delivery_charge,
-            #     'gst': gst,
-            #     'total_amount': total_amount,
-            #     'address': user.address,
-            #     'order_items': order_items_details
-
-            # }), 201 
-            # return redirect(url_for('payment.make_payment', order_id=new_order.order_id))
-            # return redirect(url_for('https://cosmofeed.com/vp/670e326be4c91d00131ada48'))
+            
             flash('Order Successful!')
             return redirect(url_for('customer.customer_dashboard'))
     
         return render_template('order/place_order.html', item=item)
+
+    except ValueError as ve:
+        db.session.rollback()
+        return jsonify({'error': str(ve)}), 400
+    
+    except KeyError as ke:
+        db.session.rollback()
+        return jsonify({'error': f"Missing key: {str(ke)}"}), 400
 
     except Exception as e:
         db.session.rollback()
@@ -260,26 +235,31 @@ def cancel_order(order_id):
 def order_cart():
     
     try:
-
         user_id = session.get('user_id')
+        if not user_id:
+            raise ValueError("User not logged in.")
 
         cart_key = f'cart_{user_id}'
         cart_items = session.get(cart_key, [])
-
-
+        if not cart_items:
+            raise ValueError("Cart is empty.")
+        
         data = request.form
     
         if request.method == 'POST':
-            # data =request.json
-            # # Get current user id from the JWT token
-            # user_id = get_jwt_identity()
             kitchen_id = data.get('kitchen_id')
-            # Retrieve the cart for the logged-in user from the session
-            # cart_key = f'cart_{user_id}'
-            # cart_items = session.get(cart_key, [])
-
-            if not cart_items:
-                raise ValueError("Cart is empty.")
+            if not kitchen_id:
+                raise ValueError("Kitchen ID is required.")
+            if not kitchen_id.isdigit():
+                raise ValueError("Invalid kitchen ID.")
+            
+            for item in cart_items:
+                if 'item_id' not in item or not item['item_id'] or not str(item['item_id']).isdigit():
+                    raise ValueError("Invalid item ID in cart.")
+                if 'quantity' not in item or not item['quantity'] or not str(item['quantity']).isdigit():
+                    raise ValueError("Invalid quantity in cart.")
+                if 'price' not in item or not item['price']:
+                    raise ValueError("Invalid price in cart.")    
 
             total_amount = 0  # Initialize total amount to 0
 
@@ -365,14 +345,21 @@ def order_cart():
         
         return render_template('order/place_order_mul.html', items=items_with_images)
     
+    except ValueError as ve:
+        db.session.rollback()
+        flash(f"Error: {str(ve)}")
+        
+    except KeyError as ke:
+        db.session.rollback()
+        flash(f'Error:  Missing key: {str(ke)}')
+        return redirect(url_for('order.get_cart'))
+
     except Exception as e:
         db.session.rollback()
         flash(f'error: {str(e)}')
         return redirect(url_for('order.get_cart'))
 
 
-
-    
 @order_bp.route('/kitchen-order', methods=['GET', 'POST'])
 def kitchen_orders( ):
     try:
@@ -509,33 +496,27 @@ def kitchen_orders( ):
     
 
 
-@order_bp.route('/update-status/<int:order_id>', methods=['POST'])
+@order_bp.route('/update-status/<int:order_id>', methods=['GET'])
 def update_status(order_id):
     try:
         user_id = session.get('user_id')
         order = Order.query.filter_by(order_id=order_id).first()
-        if order:
-            print(f"Updating order ID: {order_id} from {order.order_status} to 'Completed'")
-            order.order_status = 'Completed'
-            db.session.commit()
-            print("Order status updated in the database.")
-            sales = Sales(
-                order_id=order.order_id,
-                cuisine_id=order.order_items[0].food_item.cuisine_id,
-                kitchen_id=order.kitchen_id,
-                item_id=order.order_items[0].item_id
-            )
-            db.session.add(sales)
-            db.session.commit()
-            print("Sales record created.")
-            return jsonify({"message": "Order Status updated Successfully!", "new_status": "Completed"}), 200
-        else:
-            print(f"Order ID: {order_id} not found.")
-            return jsonify({"error": "Order not found"}), 404
-    except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        order.order_status = 'Completed'
+        db.session.commit()
+        sales = Sales(
+            order_id=order.order_id,
+            cuisine_id=order.order_items[0].food_item.cuisine_id,
+            kitchen_id=order.kitchen_id,
+            item_id=order.order_items[0].item_id
+        )
+        db.session.add(sales)
+        db.session.commit()
 
+        flash('Order Status updated Successfully!', 'success')
+        return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
+    except Exception as e:
+        flash(f'Error: {str(e)}')
+        return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
 
 
 ################################## Routes for Cart ##################################
