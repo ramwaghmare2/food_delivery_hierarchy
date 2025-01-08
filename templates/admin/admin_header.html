@@ -53,8 +53,9 @@
                     <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{{ url_for('user_bp.get_profile') }}">Profile<i class="fas fa-user-tie" style="margin-left:56% ;"></i></a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user_bp.activity_logs') }}">View Logs<i class="fas fa-file-alt" style="margin-left:35% ;"></i></a></li>
                         <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item" href="{{ url_for('user_bp.logout') }}">Logout <i class="fa fa-sign-out" style="margin-left:50% ;"></i></a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user_bp.logout') }}">Logout <i class="fa fa-sign-out" style="margin-left:49% ;"></i></a></li>
                     </ul>
                 </li>
             </ul>
@@ -69,12 +70,6 @@
                                 <div>
                                     <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
                                 </div>
-                                {% endif %}
-                            </p>
-                            <p class="text-center">
-                                <b>{{ user_name }}</b><br>
-                                {% if role == 'Admin' %}
-                                    <span class="green-dot"></span>
                                 {% endif %}
                             </p>                            
                             

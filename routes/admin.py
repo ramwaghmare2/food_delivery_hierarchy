@@ -320,7 +320,7 @@ def view_details(user_id):
     distributor_data = [
         {
             'distributor_name': distributor.name,
-            'super_distributor_name': distributor.super_distributors.name,
+            'super_distributor_name': distributor.super_distributor_relation.name,
             'total_sales': calculate_total_sales(
                 [kitchen for kitchen in kitchens if kitchen.distributor_id == distributor.id]
             )
