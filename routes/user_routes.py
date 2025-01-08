@@ -377,3 +377,28 @@ def edit_profile():
                            encoded_image=encoded_image,
                            notification_check=len(notification_check)
                            )
+
+################################## Fetch Activity Logs ##################################
+@user_bp.route('/activity-logs', methods=['GET'])
+def activity_logs():
+    user_id = session.get('user_id')
+    role = session.get('role')
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
+    notification_check = check_notification(role, user_id)
+
+    if not user_id or not role:
+        return redirect(url_for('login'))
+
+    if role == 'Admin':
+        logs = ActivityLog.query.order_by(ActivityLog.timestamp.desc()).all()  # Fetch all logs for Admin, ordered by timestamp descending
+    else:
+        logs = ActivityLog.query.filter_by(user_id=user_id, role=role).order_by(ActivityLog.timestamp.desc()).all()  # Fetch logs based on user_id and role
+
+    return render_template('notification/activity_logs.html', logs=logs,
+                            user=user, 
+                           role=role, 
+                           user_name=user.name,
+                           user_id=user_id,
+                           encoded_image=encoded_image,
+                           notification_check=len(notification_check))
