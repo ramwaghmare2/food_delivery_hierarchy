@@ -104,3 +104,8 @@ body {
 .dashboard-summary .card p:hover::after {
     width: 100%; /* On hover, the underline expands to full width */
 }
+.dashboard-container {
+    background-color: #f8f9fa; /* Light background for the dashboard */
+    padding: 30px;
+    border-radius: 10px;
+}
