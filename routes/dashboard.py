@@ -56,16 +56,6 @@ def admin_dashboard():
         .order_by(Sales.datetime.desc())\
         .all()
 
-        # Monthly sales
-        monthly_sales = db.session.query(
-            func.date_format(Sales.datetime, '%Y-%m').label('month'),
-            func.sum(Order.total_amount).label('total_sales')
-        ).join(Order, Sales.sale_id == Order.order_id)\
-        .group_by(func.date_format(Sales.datetime, '%Y-%m'))\
-        .order_by(func.date_format(Sales.datetime, '%Y-%m'))\
-        .all()
-        
-        
         #Chart 1: Total Sales
         sales_by_manager_query = db.session.query(
             Manager.name.label("manager_name"),  # Replace with appropriate Manager field
@@ -77,7 +67,6 @@ def admin_dashboard():
             "labels": [row.manager_name for row in sales_by_manager_query],  # Manager names
             "values": [float(row.total_sales) for row in sales_by_manager_query],  # Total sales
         }
-
 
         # Chart 2: Sales by Item Name
         sales_by_item_query = db.session.query(
@@ -183,16 +172,14 @@ def manager_dashboard():
     notification_check = check_notification(role, user_id)
 
     total_sales_amount, total_orders_count, quantity_sold, total_sales_data, sales_by_item = 0, 0, 0, 0, 0
-    sales_data, monthly_sales, daily_performance_data = [], [], 0
-    months, total_sales, sales_distribution_data, top_selling_items = [], [], [], 0
+    sales_data, monthly_sales = [], []
+    months, total_sales, top_selling_items = [], [], 0
     barChartData = {"labels": ["January", "February", "March", "April"], "values": [10, 20, 15, 30]}
     
     # Initialize the variables to avoid UnboundLocalError
-    performance_dates, total_revenues,  quantity_sold_over_time = [], [], []
+    performance_dates, total_revenues = [], []
     distribution_values, distribution_labels, sale_dates, total_sales = [], [], [], []
     total_sales_data = {"labels": [], "values": []}
-    quantity_sold_over_time = {"labels": [], "values": []}
-
 
   # Initialize with an empty dictionary
 
@@ -360,7 +347,6 @@ def manager_dashboard():
             "labels": [item[0] for item in (top_selling_items_query or [])],
             "values": [int(item[1]) for item in (top_selling_items_query or [])],
         }
-        print("Top Selling Items: ", top_selling_items)
         
         # Query for Daily Sales Performance
         daily_sales_performance_query = db.session.query(
@@ -492,10 +478,6 @@ def super_distributor_dashboard():
             Order.kitchen_id.in_(kitchen_ids)
         ).scalar() or 0
 
-
-
-        sales = Sales.query.filter(Sales.kitchen_id.in_([kitchen.id for kitchen in kitchens])).all()
-        # total_orders_count = len(sales)  # Total number of orders (sales records)
         # 1. Chart for total sales by distributor
         sales_by_distributor_query = db.session.query(
             Distributor.name.label("distributor_name"),
@@ -507,8 +489,6 @@ def super_distributor_dashboard():
         .group_by(Distributor.id) \
         .order_by(func.sum(Order.total_amount).desc()) \
         .all()
-        
-        print(sales_by_distributor_query)
         
         total_sales_data = {
                 "labels": [row.distributor_name for row in sales_by_distributor_query],
@@ -529,18 +509,11 @@ def super_distributor_dashboard():
         .group_by(FoodItem.item_name) \
         .all()
 
-        # Debugging: Print query results to check the values
-        for row in sales_by_item_query:
-            print(row)
-
         # Convert results into a list of dictionaries
         sales_data = {
             "labels": [row.item_name if row.item_name else '' for row in sales_by_item_query],  # Ensure item_name is not None
             "values": [float(row.total_sales) if row.total_sales is not None else 0.0 for row in sales_by_item_query],  # Ensure total_sales is not None
         }
-
-        # Debugging: Print the sales data to check before sending it to JSON
-        print(sales_data)
 
         # Chart 3: Quantity Sold Over Time
 
@@ -556,16 +529,11 @@ def super_distributor_dashboard():
         .group_by(func.date(FoodItem.created_at)) \
         .all()
 
-        # Debugging: Print query results to check the values
-        for row in quantity_sold_query:
-            print(row)
-
         # Convert results into a list of dictionaries
         quantity_sold_data = {
             "labels": [row.sale_date.strftime('%Y-%m-%d') if row.sale_date else '' for row in quantity_sold_query],  # Ensure sale_date is not None
             "values": [int(row.total_quantity) if row.total_quantity is not None else 0 for row in quantity_sold_query],  # Ensure total_quantity is not None
         }
-        print(quantity_sold_data)
 
         # Chart 3: Top Selling Item
 
@@ -592,9 +560,6 @@ def super_distributor_dashboard():
             'values': top_item_quantities,
         }
 
-        # Debugging: Print the top-selling items dictionary
-        print("top_selling_items: ", top_selling_items)
-
         # Chart 5: Sales Distribution by Item
         sales_distribution = db.session.query(
             FoodItem.item_name,
@@ -610,9 +575,6 @@ def super_distributor_dashboard():
         # Extract item names and sales values
         distribution_labels = [item[0] if item[0] else '' for item in sales_distribution]  # Ensure item_name is not None
         distribution_values = [float(item[1]) if item[1] is not None else 0.0 for item in sales_distribution]  # Ensure total_sales is not None
-
-        # Debugging: Print the sales distribution for verification
-        print("sales_distribution: ", sales_distribution)
 
         # Prepare the result dictionary
         sales_distribution_data = {
@@ -636,9 +598,6 @@ def super_distributor_dashboard():
         # Extract performance dates and revenues
         performance_dates = [row.sale_date.strftime('%Y-%m-%d') if row.sale_date else '' for row in daily_sales_performance]  # Ensure sale_date is not None
         total_revenues = [float(row.total_revenue) if row.total_revenue is not None else 0.0 for row in daily_sales_performance]  # Ensure total_revenue is not None
-
-        # Debugging: Print the daily sales performance for verification
-        print("daily_sales_performance: ", daily_sales_performance)
 
         # Prepare the result dictionary
         daily_sales_data = {
@@ -716,13 +675,11 @@ def distributor_dashboard():
         .group_by(Kitchen.id) \
         .order_by(func.sum(Order.total_amount).desc()) \
         .all()
-        print(sales_by_kitchen_query)
         total_sales_data = {
                 "labels": [row.kitchen_name for row in sales_by_kitchen_query],
                 "values": [float(row.total_sales) for row in sales_by_kitchen_query],
             }
         
-
         # 2. Chart for Sales by item
 
         sales_by_item_query = db.session.query(
@@ -735,10 +692,6 @@ def distributor_dashboard():
         .filter(Distributor.id == user_id) \
         .group_by(FoodItem.item_name) \
         .all()
-
-        # Debugging: Print query results to check the values
-        for row in sales_by_item_query:
-            print(row)
 
         # Convert results into a list of dictionaries
         sales_data = {
@@ -759,16 +712,11 @@ def distributor_dashboard():
         .group_by(func.date(FoodItem.created_at)) \
         .all()
 
-        # Debugging: Print query results to check the values
-        for row in quantity_sold_query:
-            print(row)
-
         # Convert results into a list of dictionaries
         quantity_sold_data = {
             "labels": [row.sale_date.strftime('%Y-%m-%d') if row.sale_date else '' for row in quantity_sold_query],  # Ensure sale_date is not None
             "values": [int(row.total_quantity) if row.total_quantity is not None else 0 for row in quantity_sold_query],  # Ensure total_quantity is not None
         }
-        print(quantity_sold_data)
 
         # Chart 3: Top Selling Item
 
@@ -809,9 +757,6 @@ def distributor_dashboard():
         distribution_labels = [item[0] if item[0] else '' for item in sales_distribution]  # Ensure item_name is not None
         distribution_values = [float(item[1]) if item[1] is not None else 0.0 for item in sales_distribution]  # Ensure total_sales is not None
 
-        # Debugging: Print the sales distribution for verification
-        print("sales_distribution: ", sales_distribution)
-
         # Prepare the result dictionary
         sales_distribution_data = {
             'labels': distribution_labels,
@@ -833,9 +778,6 @@ def distributor_dashboard():
         # Extract performance dates and revenues
         performance_dates = [row.sale_date.strftime('%Y-%m-%d') if row.sale_date else '' for row in daily_sales_performance]  # Ensure sale_date is not None
         total_revenues = [float(row.total_revenue) if row.total_revenue is not None else 0.0 for row in daily_sales_performance]  # Ensure total_revenue is not None
-
-        # Debugging: Print the daily sales performance for verification
-        print("daily_sales_performance: ", daily_sales_performance)
 
         # Prepare the result dictionary
         daily_sales_data = {
@@ -898,7 +840,6 @@ def kitchen_dashboard():
             'labels': [date.strftime('%Y-%m-%d') for date, _ in sorted(order_counts.items())],
             'values': [count for _, count in sorted(order_counts.items())]
         }
-        print(order_data)
         # Count total orders
         total_orders_count = len(orders)
 
@@ -919,8 +860,6 @@ def kitchen_dashboard():
             if status not in status_counts_dict:
                 status_counts_dict[status] = 0
 
-        # Output or use for visualization
-        print(status_counts_dict)
 
         # Define a variable to determine the type of filter ('daily', 'weekly', or 'monthly')
         filter_type = request.args.get('filter_type', 'daily')  # This can be dynamically set based on user input
@@ -993,8 +932,6 @@ def kitchen_dashboard():
             'labels': top_item_names,
             'values': top_item_quantities,
         }
-        print(top_selling_items)
-
         
 
     except Exception as e:
@@ -1015,4 +952,3 @@ def kitchen_dashboard():
                            order_data =order_data,
                            notification_check=len(notification_check)
                     )
-

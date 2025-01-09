@@ -18,19 +18,6 @@ from app import socketio
 from .user_routes import role_required
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
-"""
-ROLE_MODEL_MAP = {
-    "Admin": Admin,
-    "Manager": Manager,
-    "SuperDistributor": SuperDistributor,
-    "Distributor": Distributor,
-    "Kitchen": Kitchen,
-}
-
-def get_model_by_role(role):
-    return ROLE_MODEL_MAP.get(role)
-
-"""
 
 ################################## Route for displaying admin dashboard ##################################
 @admin_bp.route('/admin', methods=['GET'])
@@ -137,17 +124,16 @@ sales_bp = Blueprint('sales', __name__)
 def sales_report():
     # Get the filter parameter from the query string
     filter_param = request.args.get('filter', 'today')  # Default to 'today' if no filter provided
-
-    # Initialize the query
-    query = Sales.query
-
-    # Apply the filter if provided
     today = datetime.today()
     start_time, end_time = None, None
+
     total_sales_amount = 0
     total_orders_count = 0
     quantity_sold = 0
-    
+    sales_data = []
+    sales_by_date_dict = defaultdict(float)
+
+    # Define time ranges based on the filter
     if filter_param == 'today':
         start_time = datetime.combine(today, datetime.min.time())
         end_time = datetime.combine(today + timedelta(days=1), datetime.min.time())
@@ -162,43 +148,84 @@ def sales_report():
         next_month = today.month % 12 + 1
         year = today.year + (today.month // 12)
         end_time = datetime(year, next_month, 1)
+    elif filter_param == 'year':
+        start_time = datetime(today.year, 1, 1)
+        end_time = datetime(today.year + 1, 1, 1)
 
-    if start_time and end_time:
-        query = query.filter(Sales.datetime >= start_time, Sales.datetime < end_time)
+    # Query total sales, orders, and quantity
+    base_filter = Sales.datetime >= start_time if start_time else True
+    end_filter = Sales.datetime < end_time if end_time else True
 
-    # Aggregate total sales and quantity sold
-    total_sales_amount = db.session.query(db.func.sum(Order.total_amount)).scalar() or 0
-    total_orders_count = OrderItem.query.count()    
-    quantity_sold = db.session.query(db.func.sum(OrderItem.quantity)).scalar() or 0
+    total_sales_amount = (
+        db.session.query(func.sum(Order.total_amount))
+        .filter(base_filter, end_filter)
+        .scalar() or 0
+    )
+    total_orders_count = (
+        db.session.query(func.count(OrderItem.order_id))
+        .filter(base_filter, end_filter)
+        .scalar() or 0
+    )
+    quantity_sold = (
+        db.session.query(func.sum(OrderItem.quantity))
+        .filter(base_filter, end_filter)
+        .scalar() or 0
+    )
 
-    # Get sales data for the table: Join OrderItem and FoodItem
+    # Query sales data for the table
     sales_data = db.session.query(
         Sales.sale_id,
         Sales.datetime,
         FoodItem.item_name,
-        db.func.sum(OrderItem.price).label("total_price"),
-        db.func.sum(OrderItem.quantity).label("total_quantity")
+        func.sum(OrderItem.price).label("total_price"),
+        func.sum(OrderItem.quantity).label("total_quantity"),
     ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
-    .join(FoodItem, OrderItem.item_id == FoodItem.id)\
-    .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
-    .order_by(Sales.datetime.desc())\
-    .all()
+     .join(FoodItem, OrderItem.item_id == FoodItem.id)\
+     .filter(base_filter, end_filter)\
+     .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
+     .order_by(Sales.datetime.desc())\
+     .all()
 
-    # Get sales data for the line chart (sales by date)
-    sales_by_date = db.session.query(
+    sales_by_item_query = db.session.query(
+        FoodItem.item_name,
+        func.sum(OrderItem.quantity).label("total_quantity"),
+        func.sum(OrderItem.price).label("total_sales")
+    ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
+     .join(Order, OrderItem.order_id == Order.order_id)\
+     .filter(base_filter, end_filter)\
+     .group_by(FoodItem.item_name)\
+     .all()
+
+    # Convert the sales_by_item query results to a JSON-serializable format
+    sales_by_item_data = [
+        {'item_name': row.item_name, 'total_quantity': row.total_quantity, 'total_sales': float(row.total_sales)}
+        for row in sales_by_item_query
+    ]
+    print("Sales By Item Data:", sales_by_item_data)
+    # Query sales by date for the line chart
+    sales_by_date_query = db.session.query(
         func.date(Sales.datetime).label('sale_date'),
         func.sum(Order.total_amount).label('total_sales')
-    ).filter(Sales.datetime >= start_time, Sales.datetime < end_time).group_by(func.date(Sales.datetime)).all()
-
-    # Process sales data into a dictionary
-    sales_by_date_dict = defaultdict(float)
-    for sale in sales_by_date:
-        sales_by_date_dict[sale.sale_date] += float(sale.total_sales)
-
-    # Convert the sales data (for table and chart)
-    dates = [str(date) for date in sales_by_date_dict.keys()] if sales_by_date_dict else ["No Data"]
+    ).join(Order, Sales.order_id == Order.order_id)\
+    .filter(Sales.datetime >= start_time, Sales.datetime < end_time) \
+    .group_by(func.date(Sales.datetime)) \
+    .all()
+    
+    # Convert sales_by_date data to JSON-serializable format
+    sales_by_date = [
+        {'sale_date': str(row.sale_date), 'total_sales': float(row.total_sales)}
+        for row in sales_by_date_query
+    ]
+    print("Sales By Date:", sales_by_date)
+    # Process sales_by_date into a dictionary for charts
+    
+    sales_by_date_dict = {entry['sale_date']: entry['total_sales'] for entry in sales_by_date}
+    print("Sales By Date Dict:", sales_by_date_dict)
+    
+    # Prepare chart data
+    dates = list(sales_by_date_dict.keys()) if sales_by_date_dict else ["No Data"]
     sales = list(sales_by_date_dict.values()) if sales_by_date_dict else [0]
-
+    
     return render_template(
         'admin/sales_report.html',
         total_sales_amount=total_sales_amount,
@@ -208,13 +235,15 @@ def sales_report():
         sales_data=sales_data,
         dates=dates,
         sales=sales,
+        sales_by_date=sales_by_date,
+        sales_by_date_dict=dict(sales_by_date_dict),
+        sales_by_item_data=sales_by_item_data  # Pass the sales_by_item_data
+
     )
+
 
 ################################## Orders data visualization API ##################################
 orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
-
-import sqlalchemy as sa
-
 @orders_bp.route('/list', methods=['GET'])
 def order_list():
     page = request.args.get('page', 1, type=int)
@@ -350,4 +379,3 @@ def view_details(user_id):
                            distributors=distributor_data,
                            kitchens=kitchen_data,
                            )
-

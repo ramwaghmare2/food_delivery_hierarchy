@@ -71,7 +71,7 @@ def create_app():
                     print("session cleared successfully")
 
     # Schedule the task to run daily at 5:50 PM
-    schedule.every().day.at("10:45").do(send_wallet_shares)
+    schedule.every().day.at("10:52").do(send_wallet_shares)
 
     # Function to run the scheduler in a separate thread
     def run_scheduler():
