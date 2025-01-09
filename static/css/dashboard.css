@@ -56,8 +56,15 @@ body {
     padding: 10px; /* Reduced padding */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     display: flex; /* Ensures proper alignment */
-    justify-content: center; /* Centers the chart horizontally */
+    flex-direction: column;
+    justify-content: column; /* Centers the chart horizontally */
     align-items: center; /* Centers the chart vertically */
+}
+
+.chart-container h2 {
+    margin-bottom: 10px; /* Adds space between the title and the chart */
+    text-align: center;
+    width: 100%;
 }
 
 .chart-container canvas{
@@ -69,6 +76,9 @@ body {
 .charts-section{
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 
 /* Under line for cards in dashboard */
