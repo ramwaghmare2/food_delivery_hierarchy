@@ -308,7 +308,7 @@ def distrubutor_all_kitchens():
         {
             'id': kitchen.id,
             'name': kitchen.name,
-            'distributor_name': kitchen.distributors.name,
+            'distributor_name': kitchen.distributors.name if kitchen.distributors else 'N/A',
             'total_sales': calculate_total_sales([kitchen]),
             'image': kitchen.image_base64,
             'email': kitchen.email,
