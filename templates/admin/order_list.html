@@ -1,137 +1,99 @@
-{% extends 'admin/admin_base.html' %}
+{% if role == 'Admin' %}
+    {% include 'admin/admin_header.html' %}
+{% else %}
+    {% include 'manager/manager_header.html' %}
+{% endif %}
+<link href="{{ url_for('static', filename='css/sales_report.css') }}" rel="stylesheet" />
 
-{% block content %}
-<div class="container-fluid" style="background-color: rgb(93, 172, 228); min-height: 100vh; padding: 20px;">
-    <h1 class="h3 mb-4 text-gray-800 text-center" style="color: white; font-size: 2rem; text-transform: uppercase;">Order List</h1>
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid dashboard-container">
+            <header class="dashboard-header text-center my-4">
+                <h1>ORDER REPORT DASHBOARD</h1>
+            </header>
 
-    <!-- Search Form -->
-    <form method="GET" action="{{ url_for('orders.order_list') }}" style="margin-bottom: 20px;">
-        <input type="text" name="search" placeholder="Search..." value="{{ request.args.get('search', '') }}" 
-               style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
+            <div class="row dashboard-summary text-center mb-4">
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h2>Total Orders</h2>
+                        <p>{{ total_order_count }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h2>Completed Orders</h2>
+                        <p>{{ total_completed_orders }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h2>Quantity Sold</h2>
+                        <p>{{ total_quantity_sold }}</p>
+                    </div>
+                </div>
+            </div>
 
-        <select name="filter_by" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
-            <option value="all" {% if request.args.get('filter_by') == 'all' %}selected{% endif %}>All</option>
-            <option value="user_id" {% if request.args.get('filter_by') == 'user_id' %}selected{% endif %}>User ID</option>
-            <option value="order_id" {% if request.args.get('filter_by') == 'order_id' %}selected{% endif %}>Order ID</option>
-            <option value="kitchen_id" {% if request.args.get('filter_by') == 'kitchen_id' %}selected{% endif %}>Kitchen ID</option>
-        </select>
+            <div class="card shadow mt-5">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="font-weight-bold">ORDER LIST</h6>
+                    <!-- Filter Dropdown -->
+                    <form id="filter-form" method="GET" action="{{ url_for('orders.order_list') }}" class="form-inline">
+                        <select name="filter_by" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
+                            <option value="all" {% if request.args.get('filter_by') == 'all' %}selected{% endif %}>All</option>
+                            <option value="user_id" {% if request.args.get('filter_by') == 'user_id' %}selected{% endif %}>User ID</option>
+                            <option value="order_id" {% if request.args.get('filter_by') == 'order_id' %}selected{% endif %}>Order ID</option>
+                            <option value="kitchen_id" {% if request.args.get('filter_by') == 'kitchen_id' %}selected{% endif %}>Kitchen ID</option>
+                        </select>
 
-        <select name="status" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
-            <option value="" {% if not request.args.get('status') %}selected{% endif %}>Any Status</option>
-            <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
-            <option value="processing" {% if request.args.get('status') == 'processing' %}selected{% endif %}>Processing</option>
-            <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
-            <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
-        </select>
+                        <select name="status" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
+                            <option value="" {% if not request.args.get('status') %}selected{% endif %}>Any Status</option>
+                            <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="processing" {% if request.args.get('status') == 'processing' %}selected{% endif %}>Processing</option>
+                            <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
 
-        <button type="submit" style="padding: 10px 20px; font-size: 1.1rem; border-radius: 5px; background-color: white; color: navy; border: none;">Filter</button>
-    </form>    
-
-    <!-- Orders Table -->
-    {% if exception_message %}
-    <div class="alert alert-warning">
-        {{ exception_message }}
-    </div>
-    {% endif %}
-
-    {% if orders %}
-    <table class="table table-striped table-bordered" id="ordersTable" style="border: 1px solid white; color: white;">
-        <thead style="background-color: #000;">
-            <tr>
-                <th style="border: 1px solid white;">Order ID</th>
-                <th style="border: 1px solid white;">User ID</th>
-                <th style="border: 1px solid white;">Total Amount</th>
-                <th style="border: 1px solid white;">Order Status</th>
-                <th style="border: 1px solid white;">Created At</th>
-                <th style="border: 1px solid white;">Updated At</th>
-                <th style="border: 1px solid white;">Kitchen ID</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders.items %}
-            <tr>
-                <td style="border: 1px solid white;">{{ order.order_id }}</td>
-                <td style="border: 1px solid white;">{{ order.user_id }}</td>
-                <td style="border: 1px solid white;">₹ {{ order.total_amount }}</td>
-                <td style="border: 1px solid white;">{{ order.order_status }}</td>
-                <td style="border: 1px solid white;">{{ order.created_at }}</td>
-                <td style="border: 1px solid white;">{{ order.updated_at }}</td>
-                <td style="border: 1px solid white;">{{ order.kitchen_id }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p style="color: white;">No orders to display.</p>
-    {% endif %}
-
-    <!-- Pagination -->
-    <div class="pagination" style="margin-top: 20px;">
-        {% if orders.has_prev %}
-        <a href="{{ url_for('orders.order_list', page=orders.prev_num, search=request.args.get('search', ''), filter_by=request.args.get('filter_by', 'all'), status=request.args.get('status', '')) }}" style="padding: 10px; color: navy; background-color: white; text-decoration: none; border-radius: 5px; margin-right: 10px;">Previous</a>
-        {% endif %}
-        {% if orders.has_next %}
-        <a href="{{ url_for('orders.order_list', page=orders.next_num, search=request.args.get('search', ''), filter_by=request.args.get('filter_by', 'all'), status=request.args.get('status', '')) }}" style="padding: 10px; color: navy; background-color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">Next</a>
-        {% endif %}
-    </div>
+                        <button type="submit" class="btn btn-primary">Apply Filter</button>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="OrderTable">
+                        <thead class="thead-dark text-center">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>User ID</th>
+                                <th>Total Amount</th>
+                                <th>Order Status</th>
+                                <th>Created At</th>
+                                <th>Updated At</th>
+                                <th>Kitchen ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if orders %}
+                                {% for order in orders %}
+                                    <tr>
+                                        <td>{{ order.order_id }}</td>
+                                        <td>{{ order.user_id }}</td>
+                                        <td>₹ {{ order.total_amount }}</td>
+                                        <td>{{ order.order_status }}</td>
+                                        <td>{{ order.created_at }}</td>
+                                        <td>{{ order.updated_at }}</td>
+                                        <td>{{ order.kitchen_id }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No sales data available</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <div class="d-flex float-right" id="pagination-controls"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='sales_report.js') }}"></script>
+{% include 'admin/admin_footer.html' %}
 </div>
-
-<!-- JavaScript for Search functionality -->
-<script>
-    document.getElementById("searchBtn").addEventListener("click", function(event) {
-        event.preventDefault();
-        var searchQuery = document.getElementById("searchInput").value;
-
-        var rows = document.querySelectorAll("#ordersTable tbody tr");
-        rows.forEach(function(row) {
-            var orderId = row.cells[0].textContent.toLowerCase();
-            var customerName = row.cells[1].textContent.toLowerCase();
-
-            if (orderId.includes(searchQuery.toLowerCase()) || customerName.includes(searchQuery.toLowerCase())) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
-        });
-    });
-</script>
-
-<!-- Optional: Responsive Design CSS -->
-<style>
-    body {
-        background-color: rgb(93, 172, 228);
-        color: white;
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-    }
-
-    .container-fluid {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    table {
-        width: 100%;
-        margin-bottom: 1rem;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 12px;
-        text-align: left;
-    }
-
-    th {
-        color: rgb(253, 251, 251);
-    }
-
-    tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .pagination a:hover {
-        background-color: lightgray;
-    }
-</style>
-{% endblock %}

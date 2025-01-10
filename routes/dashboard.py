@@ -199,7 +199,8 @@ def manager_dashboard():
             .filter(SuperDistributor.manager_id == user_id)  
             .scalar() or 0 
         )
-
+        
+        print("Total Sales Amount: ", total_sales_amount)
         total_orders_count = (
             db.session.query(db.func.count(Order.order_id))  
             .join(Kitchen, Order.kitchen_id == Kitchen.id)  
@@ -296,7 +297,6 @@ def manager_dashboard():
             "labels": [item[0] for item in (sales_by_item_query or [])],
             "values": [float(item[1]) for item in (sales_by_item_query or [])],
         }
-
 
         # Query for Sales Over Time (grouped by date)
         sales_over_time_query = (

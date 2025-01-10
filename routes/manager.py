@@ -373,7 +373,7 @@ def manager_home():
             )
             .join(Order, Sales.order_id == Order.order_id)
             .join(Kitchen, Order.kitchen_id == Kitchen.id)
-            .filter(Kitchen.manager_id == user_id)
+            .filter(Kitchen.distributor_id == user_id)
             .group_by(db.func.date_format(Sales.datetime, '%Y-%m'))
             .order_by(db.func.date_format(Sales.datetime, '%Y-%m'))
             .all()

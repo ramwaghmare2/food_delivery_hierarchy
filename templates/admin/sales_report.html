@@ -1,14 +1,19 @@
-{% include 'admin/admin_header.html' %}
+{% if role == 'Admin' %}
+    {% include 'admin/admin_header.html' %}
+{% else %}
+    {% include 'manager/manager_header.html' %}
+{% endif %}
+
 <link href="{{ url_for('static', filename='/css/sales_report.css') }}" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+ 
 <div id="layoutSidenav_content">
     <main>
         <div class="container-fluid dashboard-container">
             <header class="dashboard-header text-center my-4">
                 <h1>SALES REPORT DASHBOARD</h1>
             </header>
-
+ 
             <div class="row dashboard-summary text-center mb-4">
                 <div class="col-md-4">
                     <div class="card p-3">
@@ -29,7 +34,7 @@
                     </div>
                 </div>
             </div>
-
+ 
             <!-- Sales Data Table -->
             <div class="card shadow mt-5">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
@@ -79,30 +84,103 @@
                     <div class="d-flex float-right" id="pagination-controls"></div>
                 </div>
             </div>
-
+ 
             <!-- Charts -->
-            <div id="chart-data" 
-                 data-sales-by-date="{{ sales_by_date | tojson | safe }}"
-                 data-sales-by-item="{{ sales_by_date_dict | tojson | safe }}">
-            </div>
             <div class="row mt-5">
                 <div class="col-md-6">
                     <div class="chart-container">
-                        <canvas id="sales-bar-chart"></canvas>
+                        <canvas id="salesByDateChart"></canvas>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="chart-container">
-                        <canvas id="sales-line-chart"></canvas>
+                        <canvas id="salesByItemChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-    <div id="chart-data"
-        data-sales-by-date="{{ sales_by_date | tojson }}"
-        data-sales-by-item="{{ sales_by_item_data | tojson }}">
-    </div>
-    <script src="/static/js/sales_report.js"></script>
     </main>
+    <script src="{{ url_for('static', filename='sales_report.js') }}"></script>
+ 
 {% include 'admin/admin_footer.html' %}
 </div>
+<script>
+window.onload = function() {
+    // Data for Bar Chart (Sales by Date)
+    var salesByDateData = {
+        labels: {{ dates|tojson }},
+        datasets: [{
+            label: 'Total Sales',
+            data: {{ sales|tojson }},
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+ 
+    // Bar Chart for Sales by Date
+    var ctxBar = document.getElementById('salesByDateChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: salesByDateData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Sales by Date'
+                }
+            }
+        }
+    });
+ 
+    // Data for Line Chart (Sales by Item)
+    var salesByItemData = {
+        labels: {{ sales_by_item_data|map(attribute='item_name')|list|tojson }},
+        datasets: [{
+            label: 'Sales by Item',
+            data: {{ sales_by_item_data|map(attribute='total_sales')|list|tojson }},
+            fill: false,
+            borderColor: 'rgb(54, 162, 235)',
+            tension: 0.1
+        }]
+    };
+ 
+    // Line Chart for Sales by Item
+    var ctxLine = document.getElementById('salesByItemChart').getContext('2d');
+    new Chart(ctxLine, {
+        type: 'line',
+        data: salesByItemData,
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Sales by Item (Line Chart)'
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Item'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Total Sales'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+};
+
+</script>

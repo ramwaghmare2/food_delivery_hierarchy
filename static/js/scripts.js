@@ -87,6 +87,8 @@ document.addEventListener('DOMContentLoaded', function () {
     paginate();
 });
 
+
+// Password Toggle Script
 function togglePassword() {
     var passwordField = document.getElementById("password");
     var eyeIcon = document.getElementById("eye-icon");
@@ -119,8 +121,6 @@ function toggleRePassword() {
     }
 }
 
-
-
 // Example: Toggle notifications
 const bellLink = document.querySelector('.nav-link');
 
@@ -132,4 +132,3 @@ if (hasNotifications) {
 } else {
     bellLink.classList.remove('has-notifications');
 }
-

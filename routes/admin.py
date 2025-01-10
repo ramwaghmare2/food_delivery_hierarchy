@@ -16,6 +16,9 @@ from functools import wraps
 from sqlalchemy import func
 from app import socketio
 from .user_routes import role_required
+from sqlalchemy import and_
+from utils.services import ManagerSales
+
 
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 
@@ -122,17 +125,21 @@ def admin_home():
 sales_bp = Blueprint('sales', __name__)
 @sales_bp.route('/sales_report', methods=['GET'])
 def sales_report():
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
     # Get the filter parameter from the query string
     filter_param = request.args.get('filter', 'today')  # Default to 'today' if no filter provided
     today = datetime.today()
     start_time, end_time = None, None
-
+ 
     total_sales_amount = 0
     total_orders_count = 0
     quantity_sold = 0
     sales_data = []
     sales_by_date_dict = defaultdict(float)
-
+ 
     # Define time ranges based on the filter
     if filter_param == 'today':
         start_time = datetime.combine(today, datetime.min.time())
@@ -151,81 +158,90 @@ def sales_report():
     elif filter_param == 'year':
         start_time = datetime(today.year, 1, 1)
         end_time = datetime(today.year + 1, 1, 1)
-
-    # Query total sales, orders, and quantity
-    base_filter = Sales.datetime >= start_time if start_time else True
-    end_filter = Sales.datetime < end_time if end_time else True
-
-    total_sales_amount = (
-        db.session.query(func.sum(Order.total_amount))
-        .filter(base_filter, end_filter)
-        .scalar() or 0
-    )
-    total_orders_count = (
-        db.session.query(func.count(OrderItem.order_id))
-        .filter(base_filter, end_filter)
-        .scalar() or 0
-    )
-    quantity_sold = (
-        db.session.query(func.sum(OrderItem.quantity))
-        .filter(base_filter, end_filter)
-        .scalar() or 0
-    )
-
+ 
+    # Use SQLAlchemy 'and_' for combining filters
+    filter_conditions = []
+    if start_time:
+        filter_conditions.append(Sales.datetime >= start_time)
+    if end_time:
+        filter_conditions.append(Sales.datetime < end_time)
+ 
+    # Admin Query total sales, orders, and quantity
+    total_sales_amount_query = db.session.query(func.sum(Order.total_amount))
+    if filter_conditions:
+        total_sales_amount_query = total_sales_amount_query.filter(and_(*filter_conditions))
+    total_sales_amount = total_sales_amount_query.scalar() or 0
+ 
+    total_orders_count_query = db.session.query(func.count(OrderItem.order_id))
+    if filter_conditions:
+        total_orders_count_query = total_orders_count_query.filter(and_(*filter_conditions))
+    total_orders_count = total_orders_count_query.scalar() or 0
+ 
+    quantity_sold_query = db.session.query(func.sum(OrderItem.quantity))
+    if filter_conditions:
+        quantity_sold_query = quantity_sold_query.filter(and_(*filter_conditions))
+    quantity_sold = quantity_sold_query.scalar() or 0
+ 
+    # Manager Query total sales, orders, and quantity
+    sales = ManagerSales()
+    manager_total_sales_amount = sales.cpunt_func(user_id)
+    print("manager_total_sales_amount: ", manager_total_sales_amount)
+    
     # Query sales data for the table
-    sales_data = db.session.query(
+    sales_data_query = db.session.query(
         Sales.sale_id,
         Sales.datetime,
         FoodItem.item_name,
         func.sum(OrderItem.price).label("total_price"),
         func.sum(OrderItem.quantity).label("total_quantity"),
     ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
-     .join(FoodItem, OrderItem.item_id == FoodItem.id)\
-     .filter(base_filter, end_filter)\
-     .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
-     .order_by(Sales.datetime.desc())\
-     .all()
-
+     .join(FoodItem, OrderItem.item_id == FoodItem.id)
+   
+    if filter_conditions:
+        sales_data_query = sales_data_query.filter(and_(*filter_conditions))
+    sales_data_query = sales_data_query.group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
+                                       .order_by(Sales.datetime.desc())
+    sales_data = sales_data_query.all()
+ 
     sales_by_item_query = db.session.query(
         FoodItem.item_name,
         func.sum(OrderItem.quantity).label("total_quantity"),
         func.sum(OrderItem.price).label("total_sales")
     ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
-     .join(Order, OrderItem.order_id == Order.order_id)\
-     .filter(base_filter, end_filter)\
-     .group_by(FoodItem.item_name)\
-     .all()
-
+     .join(Order, OrderItem.order_id == Order.order_id)
+   
+    if filter_conditions:
+        sales_by_item_query = sales_by_item_query.filter(and_(*filter_conditions))
+    sales_by_item_query = sales_by_item_query.group_by(FoodItem.item_name).all()
+ 
     # Convert the sales_by_item query results to a JSON-serializable format
     sales_by_item_data = [
         {'item_name': row.item_name, 'total_quantity': row.total_quantity, 'total_sales': float(row.total_sales)}
         for row in sales_by_item_query
     ]
-    print("Sales By Item Data:", sales_by_item_data)
+ 
     # Query sales by date for the line chart
     sales_by_date_query = db.session.query(
         func.date(Sales.datetime).label('sale_date'),
         func.sum(Order.total_amount).label('total_sales')
-    ).join(Order, Sales.order_id == Order.order_id)\
-    .filter(Sales.datetime >= start_time, Sales.datetime < end_time) \
-    .group_by(func.date(Sales.datetime)) \
-    .all()
-    
+    ).join(Order, Sales.order_id == Order.order_id)
+    if filter_conditions:
+        sales_by_date_query = sales_by_date_query.filter(and_(*filter_conditions))
+    sales_by_date_query = sales_by_date_query.group_by(func.date(Sales.datetime)).all()
+   
     # Convert sales_by_date data to JSON-serializable format
     sales_by_date = [
         {'sale_date': str(row.sale_date), 'total_sales': float(row.total_sales)}
         for row in sales_by_date_query
     ]
-    print("Sales By Date:", sales_by_date)
+   
     # Process sales_by_date into a dictionary for charts
-    
     sales_by_date_dict = {entry['sale_date']: entry['total_sales'] for entry in sales_by_date}
-    print("Sales By Date Dict:", sales_by_date_dict)
-    
+   
     # Prepare chart data
     dates = list(sales_by_date_dict.keys()) if sales_by_date_dict else ["No Data"]
     sales = list(sales_by_date_dict.values()) if sales_by_date_dict else [0]
-    
+   
     return render_template(
         'admin/sales_report.html',
         total_sales_amount=total_sales_amount,
@@ -235,18 +251,21 @@ def sales_report():
         sales_data=sales_data,
         dates=dates,
         sales=sales,
+        role=role,
+        user_name=user.name,
+        encoded_image=encoded_image,
         sales_by_date=sales_by_date,
         sales_by_date_dict=dict(sales_by_date_dict),
         sales_by_item_data=sales_by_item_data  # Pass the sales_by_item_data
-
     )
-
-
 ################################## Orders data visualization API ##################################
 orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
 @orders_bp.route('/list', methods=['GET'])
 def order_list():
-    page = request.args.get('page', 1, type=int)
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
     search_query = request.args.get('search', '', type=str)
     filter_by = request.args.get('filter_by', 'all')
     order_status = request.args.get('status', '', type=str)
@@ -273,18 +292,30 @@ def order_list():
 
     if order_status:
         if order_status in ['pending', 'processing', 'cancelled', 'completed']:
-            status_query = Order.query.filter(Order.order_status == order_status)
-            query = query.intersect(status_query)
+            query = query.filter(Order.order_status == order_status)
             exception_message = f"No orders available with status '{order_status}'"
         else:
-            exception_message = f"Invalid status filter: '{order_status}"
+            exception_message = f"Invalid status filter: '{order_status}'"
 
-    orders = query.paginate(page=page, per_page=10)
+    orders = query.all()  # Fetch all records instead of paginated results
 
-    if not orders.items:
+    total_order_count = Order.query.count()
+    total_quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
+    total_completed_orders = Order.query.filter(Order.order_status == 'completed').count()
+
+    if not orders:
         return render_template('admin/order_list.html', orders=None, exception_message=exception_message)
     
-    return render_template('admin/order_list.html', orders=orders, exception_message=None)
+    return render_template('admin/order_list.html', 
+                           orders=orders, 
+                           exception_message=None,
+                           total_order_count=total_order_count,
+                           total_quantity_sold=total_quantity_sold,
+                           total_completed_orders=total_completed_orders,
+                           user_name=user.name,
+                           role=role,
+                           encoded_image=encoded_image,
+                           )
 
 
 ################################## View Details ##################################
