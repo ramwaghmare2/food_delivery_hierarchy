@@ -71,6 +71,12 @@
                                     <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
                                 </div>
                                 {% endif %}
+                            </p>  
+                            <p class="text-center">
+                                <b>{{ user_name }}</b><br>
+                                {% if role == 'Admin' %}
+                                    <span class="green-dot"></span>
+                                {% endif %}
                             </p>                            
                             
                                 <!-- Admin Home Section -->

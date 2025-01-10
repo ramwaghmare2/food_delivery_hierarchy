@@ -1,12 +1,8 @@
-from models.manager import Manager
-from models.distributor import Distributor
-from models.super_distributor import SuperDistributor
-from models.kitchen import Kitchen
-from models.admin import Admin, db
-from models import Sales, Order
+from models import db, Sales, Order, OrderItem, FoodItem, Manager, Distributor, SuperDistributor, Kitchen, Admin
 from sqlalchemy import func, and_
 from base64 import b64encode
 from datetime import datetime, time
+from flask import sessions
 
 def get_model_counts():
     """Returns a dictionary with counts of all models."""
@@ -85,3 +81,56 @@ def today_sale(user_id):
          ).scalar()
     
     return today_total_sales
+
+
+class ManagerSales():
+    def cpunt_func(self, user_id):
+        total_sales_amount = (
+            db.session.query(db.func.sum(Order.total_amount))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0 
+        )
+
+        total_orders_count = (
+            db.session.query(db.func.count(Order.order_id))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id) 
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id) 
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0  
+        )
+
+        quantity_sold = (
+            db.session.query(db.func.sum(OrderItem.quantity))
+            .join(Order, OrderItem.order_id == Order.order_id)  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0  
+        )
+
+        sales_data = (
+            db.session.query(
+                Sales.sale_id,
+                Sales.datetime,
+                FoodItem.item_name,
+                db.func.sum(OrderItem.price).label("total_price"),
+                db.func.sum(OrderItem.quantity).label("total_quantity"),
+            )
+            .join(Order, Sales.order_id == Order.order_id) 
+            .join(OrderItem, Order.order_id == OrderItem.order_id)
+            .join(FoodItem, OrderItem.item_id == FoodItem.id)
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .join(Manager, SuperDistributor.manager_id == Manager.id)
+            .filter(Manager.id == user_id)
+            .group_by(Sales.sale_id, Sales.datetime, FoodItem.item_name)
+            .all()
+        )
+        return total_sales_amount, total_orders_count, quantity_sold, sales_data
+MS = ManagerSales()

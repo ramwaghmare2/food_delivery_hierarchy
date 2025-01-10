@@ -14,7 +14,6 @@ from .activity_log_service import log_user_activity
 import uuid
 from utils.notification_service import check_notification, create_notification, get_notification_targets
 
-
 user_bp = Blueprint('user_bp', __name__, static_folder='../static')
 ################################## globally defined role_model_map ##################################
 def get_model_by_role(role):
