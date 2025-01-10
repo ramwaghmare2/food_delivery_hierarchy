@@ -129,6 +129,10 @@ def sales_report():
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
+    encoded_image = get_image(role, user_id)
     # Get the filter parameter from the query string
     filter_param = request.args.get('filter', 'today')  # Default to 'today' if no filter provided
     today = datetime.today()
@@ -188,6 +192,7 @@ def sales_report():
     print("manager_total_sales_amount: ", manager_total_sales_amount)
     
     # Query sales data for the table
+    sales_data_query = db.session.query(
     sales_data_query = db.session.query(
         Sales.sale_id,
         Sales.datetime,
