@@ -26,7 +26,7 @@
         </style>
     </head>
     <body class="sb-nav-fixed">
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark">
             <!-- Navbar Brand-->
             <a class="navbar-brand ps-3" href="{{ url_for('admin_bp.admin_home') }}">FDA</a>
             <!-- Sidebar Toggle-->
@@ -67,16 +67,13 @@
                         <div class="nav">
                             <p class="text-center">
                                 {% if encoded_image %}
-                                <div>
-                                    <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
-                                </div>
+                                <div class="profile-image-wrapper">
+                                    <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image">
+                                </div>                                
                                 {% endif %}
                             </p>  
                             <p class="text-center">
                                 <b>{{ user_name }}</b><br>
-                                {% if role == 'Admin' %}
-                                    <span class="green-dot"></span>
-                                {% endif %}
                             </p>                            
                             
                                 <!-- Admin Home Section -->

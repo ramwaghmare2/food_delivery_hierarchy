@@ -25,7 +25,7 @@
         </style>
     </head>
     <body class="sb-nav-fixed">
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark">
             <!-- Navbar Brand-->
             <a class="navbar-brand ps-3" href="{{ url_for('super_distributor.super_distributor')}}">FDA</a>
             <!-- Sidebar Toggle-->
@@ -75,41 +75,38 @@
                             </p>
                             <p class="text-center">
                                 <b>{{ user_name }}</b><br>
-                                {% if role == 'SuperDistributor' %}
-                                    <span class="green-dot"></span>
-                                {% endif %}
                             </p>
                             <a class="nav-link" href="{{ url_for('super_distributor.super_distributor')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                                Dashboard
+                                <strong>Dashboard</strong>
                             </a> 
                             <a class="nav-link" href="{{ url_for('dashboard.super_distributor_dashboard')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
-                                Statistics
+                                <strong>Statistics</strong>
                             </a>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
                                 <div class="sb-nav-link-icon"><i class="fas fa-truck-loading"></i></div>
-                                Distributor
+                                <strong>Distributor</strong>
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="{{ url_for('distributor.all_distributor') }}">List</a>
-                                        <a class="nav-link" href="{{ url_for('super_distributor.add_distributor') }}">Add</a>
+                                    <a class="nav-link" href="{{ url_for('distributor.all_distributor') }}">Distributor List</a>
+                                        <a class="nav-link" href="{{ url_for('super_distributor.add_distributor') }}">Add Distributor</a>
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
                                 <div class="sb-nav-link-icon"><i class="fas fa-utensils"></i></div>
-                                Kitchens
+                                <strong>Kitchens</strong>
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav accordion" id="sidenavAccordionPages">
                                     <a class="nav-link collapsed" href="{{ url_for('distributor.distrubutor_all_kitchens') }}">
-                                        List
+                                        Kitchen List
                                     </a>
                                     <a class="nav-link collapsed" href="{{ url_for('kitchen.create_kitchen') }}">
-                                        Add
+                                        Add Kitchen
                                     </a>
                                 </nav>
                             </div>

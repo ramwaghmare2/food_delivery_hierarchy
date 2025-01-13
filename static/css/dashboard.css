@@ -86,7 +86,7 @@ body {
 .dashboard-summary .card p {
     font-size: 2em;
     font-weight: bold;
-    color: #666565;
+    color: #333333;
     position: relative; /* Required for the pseudo-element */
 }
 
@@ -97,15 +97,14 @@ body {
     bottom: -5px; /* Adjust to position the underline */
     width: 0; /* Initially, the underline has no width */
     height: 3px; /* Thickness of the underline */
-    background-color: rgb(199, 38, 185);
+    background-color: #003366;
     transition: width 0.3s ease-in-out; /* Add transition for smooth animation */
 }
 
 .dashboard-summary .card p:hover::after {
     width: 100%; /* On hover, the underline expands to full width */
 }
-.dashboard-container {
-    background-color: #f8f9fa; /* Light background for the dashboard */
+.dashboard-container { /* Light background for the dashboard */
     padding: 30px;
     border-radius: 10px;
 }

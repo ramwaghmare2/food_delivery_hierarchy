@@ -10974,6 +10974,7 @@ body {
   padding-left: 0;
   height: 56px;
   z-index: 1039;
+  background-color: #003366;
 }
 .sb-topnav .navbar-brand {
   width: 225px;
@@ -11033,58 +11034,58 @@ body {
 }
 
 .sb-sidenav-dark {
-  background-color: #212529;
-  color: rgba(255, 255, 255, 0.5);
+  background-color: #d7d7d7;
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .sb-sidenav-menu-heading {
-  color: rgba(255, 255, 255, 0.25);
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .nav-link {
-  color: rgba(255, 255, 255, 0.5);
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-nav-link-icon {
-  color: #ffffff;
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-sidenav-collapse-arrow {
-  color: rgba(255, 255, 255, 0.25);
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .nav-link:hover {
-  color: #fff;
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .nav-link.active {
-  color: #fff;
+  color: #003366;
 }
 .sb-sidenav-dark .sb-sidenav-menu .nav-link.active .sb-nav-link-icon {
-  color: #ffffff
+  color: #003366
 }
 .sb-sidenav-dark .sb-sidenav-footer {
-  background-color: #343a40;
+  background-color: #f0f0f0;
 }
 
 .sb-sidenav-light {
   background-color: #f8f9fa;
-  color: #212529;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .sb-sidenav-menu-heading {
-  color: #adb5bd;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .nav-link {
-  color: #212529;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .nav-link .sb-nav-link-icon {
-  color: #ffffff;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .nav-link .sb-sidenav-collapse-arrow {
-  color: #adb5bd;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .nav-link:hover {
-  color: #0d6efd;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .nav-link.active {
-  color: #0d6efd;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-menu .nav-link.active .sb-nav-link-icon {
-  color: #ffffff;
+  color: #003366;
 }
 .sb-sidenav-light .sb-sidenav-footer {
   background-color: #e9ecef;
@@ -11844,3 +11845,25 @@ body {
   .nav-link.has-notifications .notification-dot {
   display: block;
   }
+
+.profile-image-wrapper {
+  display: inline-block;
+  margin-left: 30%;
+  padding: 10px;  /* Space between the image and the circle border */
+  background-color: #d7d7d7;  /* Optional: Background color inside the circle */
+  border-radius: 50%;  /* Make the wrapper circular */
+  border: 2px solid #003366; /* Green border (can change to any color) */
+  width: 90px;   /* Size of the circular border */
+  height: 90px;  /* Size of the circular border */
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* Center the image inside the wrapper */
+}
+
+.profile-image {
+  width: 80px;   /* Image size (slightly smaller than the wrapper) */
+  height: 80px;  /* Image size (slightly smaller than the wrapper) */
+  border-radius: 50%; /* Make the image circular */
+  object-fit: cover;  /* Ensures the image covers the circle without distortion */
+}
+

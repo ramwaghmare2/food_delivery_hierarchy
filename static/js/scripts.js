@@ -26,38 +26,40 @@ window.addEventListener('DOMContentLoaded', event => {
 });
 
 
-// Pagination Script
 document.addEventListener('DOMContentLoaded', function () {
-    const rowsPerPage = 10;
-    const rows = document.querySelectorAll('#OrderTable tbody tr');
-    const totalRows = rows.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage);
-    const paginationControls = document.getElementById('pagination-controls');
+    const rowsPerPage = 10;  // Number of rows per page
+    const rows = document.querySelectorAll('#OrderTable tbody tr');  // All rows in the table body
+    const totalRows = rows.length;  // Total number of rows
+    const totalPages = Math.ceil(totalRows / rowsPerPage);  // Total pages
+    const paginationControls = document.getElementById('pagination-controls');  // Pagination controls div
 
-    let currentPage = 1;
+    let currentPage = 1;  // Current page is initially 1
 
+    // Function to paginate the table
     function paginate() {
-        // Hide all rows
+        // Hide all rows initially
         rows.forEach(row => row.style.display = 'none');
 
-        // Show rows for the current page
+        // Calculate the start and end indexes for the current page
         const startIdx = (currentPage - 1) * rowsPerPage;
         const endIdx = startIdx + rowsPerPage;
+
+        // Show only the rows for the current page
         for (let i = startIdx; i < endIdx && i < rows.length; i++) {
-            rows[i].style.display = '';
+            rows[i].style.display = '';  // Display the row
         }
 
         // Update pagination controls
-        paginationControls.innerHTML = ''; // Clear existing controls
+        paginationControls.innerHTML = '';  // Clear existing controls
 
-        // Create Previous Arrow
+        // Create Previous Button
         const prevButton = document.createElement('button');
         prevButton.textContent = '<';
         prevButton.classList.add('arrow');
-        if (currentPage === 1) prevButton.classList.add('disabled');
+        if (currentPage === 1) prevButton.classList.add('disabled');  // Disable if on first page
         prevButton.onclick = function () {
             if (currentPage > 1) {
-                currentPage--;
+                currentPage--;  // Go to previous page
                 paginate();
             }
         };
@@ -65,27 +67,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Display Current Page Number
         const pageDisplay = document.createElement('span');
-        pageDisplay.textContent = `${currentPage}`;
+        pageDisplay.textContent = `Page ${currentPage} of ${totalPages}`;
         pageDisplay.classList.add('page-display');
         paginationControls.appendChild(pageDisplay);
 
-        // Create Next Arrow
+        // Create Next Button
         const nextButton = document.createElement('button');
         nextButton.textContent = '>';
         nextButton.classList.add('arrow');
-        if (currentPage === totalPages) nextButton.classList.add('disabled');
+        if (currentPage === totalPages) nextButton.classList.add('disabled');  // Disable if on last page
         nextButton.onclick = function () {
             if (currentPage < totalPages) {
-                currentPage++;
+                currentPage++;  // Go to next page
                 paginate();
             }
         };
         paginationControls.appendChild(nextButton);
     }
 
-    // Initial pagination
+    // Initialize pagination when the page is loaded
     paginate();
 });
+
 
 
 // Password Toggle Script
