@@ -31,7 +31,7 @@
         </style>
     </head>
     <body class="sb-nav-fixed">
-        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark">
             <!-- Navbar Brand-->
             <a class="navbar-brand ps-3" href="{{ url_for('manager.manager_home') }}">FDA</a>
             <!-- Sidebar Toggle-->
@@ -79,27 +79,24 @@
                             </p>
                             <p class="text-center">
                                 <b>{{ user_name }}</b><br>
-                                {% if role == 'Manager' %}
-                                    <span class="green-dot"></span>
-                                {% endif %}
                             </p>                            
                             
                                 <!-- Super Distributor Home -->
                                 <a class="nav-link" href="{{ url_for('manager.manager_home')}}">
                                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                                    Dashboard
+                                    <strong>Dashboard</strong>
                                 </a>
 
                                 <!-- Super Distributor Dashboard -->
                                 <a class="nav-link" href="{{ url_for('dashboard.manager_dashboard')}}">
                                     <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
-                                    Statistics
+                                    <strong>Statistics</strong>
                                 </a>
 
                                 <!-- Super Distributor Section -->
                                 <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseSuperDistributor" aria-expanded="false" aria-controls="collapseSuperDistributor">
                                     <div class="sb-nav-link-icon"><i class="fas fa-warehouse"></i></div>
-                                    Super Distributor
+                                    <strong>Super Distributor</strong>
                                     <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                                 </a>
                                 <div class="collapse" id="collapseSuperDistributor" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
@@ -112,7 +109,7 @@
                                 <!-- Distributor Section -->
                                 <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseDistributor" aria-expanded="false" aria-controls="collapseDistributor">
                                     <div class="sb-nav-link-icon"><i class="fas fa-truck-loading"></i></div>
-                                    Distributor
+                                    <strong>Distributor</strong>
                                     <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                                 </a>
                                 <div class="collapse" id="collapseDistributor" aria-labelledby="headingThree" data-bs-parent="#sidenavAccordion">
@@ -125,7 +122,7 @@
                                 <!-- Kitchens Section -->
                                 <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseKitchens" aria-expanded="false" aria-controls="collapseKitchens">
                                     <div class="sb-nav-link-icon"><i class="fas fa-utensils"></i></div>
-                                    Kitchens
+                                    <strong>Kitchens</strong>
                                     <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                                 </a>
                                 <div class="collapse" id="collapseKitchens" aria-labelledby="headingFour" data-bs-parent="#sidenavAccordion">
@@ -142,7 +139,7 @@
                         <!-- Cuisine Section -->
                         <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseCuisine" aria-expanded="false" aria-controls="collapseKitchens">
                             <div class="sb-nav-link-icon"><i class="fas fa-pizza-slice"></i></div>
-                            Food & Dining
+                            <strong>Food & Dining</strong>
                             <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                         </a>
                         <div class="collapse" id="collapseCuisine" aria-labelledby="headingFour" data-bs-parent="#sidenavAccordion">

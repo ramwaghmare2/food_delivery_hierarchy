@@ -23,7 +23,7 @@
             </div>
             <section class="charts-section">
                 <div class="chart-container" >
-                    <canvas id="donutChart" style=" height:50% ;width: 70%; margin:auto;"></canvas>
+                    <canvas id="donutChart"></canvas>
                 </div>
                 <div class="chart-container" style="position: relative;">
                     <!-- Filter Dropdown in the top-right corner -->
@@ -59,7 +59,7 @@
             // Donut chart configuration
             const ctx = document.getElementById('donutChart').getContext('2d');
             const donutChart = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -181,7 +181,7 @@
 <script>
     const topSellingItemsCtx = document.getElementById("topSellingItemsChart").getContext("2d");
         new Chart(topSellingItemsCtx, {
-            type: "bar",
+            type: "line",
             data: {
                 labels: {{ top_selling_items['labels'] | tojson }},
                 datasets: [{

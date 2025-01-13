@@ -37,38 +37,12 @@ def distributor_home():
         # Get the filter type (if any)
         filter_type = request.args.get('filter', 'today')
 
-        # Get the current date and calculate other date ranges for the filters
-        today = datetime.today()
-        yesterday = today - timedelta(days=1)
-        start_of_month = today.replace(day=1)
-        start_of_year = today.replace(month=1, day=1)
-
-        # Define the filter date ranges
-        if filter_type == 'today':
-            start_date = today.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_date = today.replace(hour=23, minute=59, second=59, microsecond=999999)
-        elif filter_type == 'yesterday':
-            start_date = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_date = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
-        elif filter_type == 'monthly':
-            start_date = start_of_month
-            end_date = today.replace(hour=23, minute=59, second=59, microsecond=999999)
-        elif filter_type == 'yearly':
-            start_date = start_of_year
-            end_date = today.replace(hour=23, minute=59, second=59, microsecond=999999)
-        else:
-            start_date = None
-            end_date = None
-
         # Fetch all active kitchens under this distributor
         kitchens = Kitchen.query.filter_by(distributor_id=user_id, status="activated").all()
 
         # Fetch orders based on the selected filter
         kitchen_ids = [kitchen.id for kitchen in kitchens]
         query = Order.query.filter(Order.kitchen_id.in_(kitchen_ids))
-
-        if start_date and end_date:
-            query = query.filter(Order.created_at >= start_date, Order.created_at <= end_date)
 
         orders = query.all()
 
@@ -83,9 +57,6 @@ def distributor_home():
         .join(OrderItem, Order.order_id == OrderItem.order_id) \
         .join(FoodItem, OrderItem.item_id == FoodItem.id) \
         .filter(Order.kitchen_id.in_(kitchen_ids))
-
-        if start_date and end_date:
-            total_sales_data = total_sales_data.filter(Sales.datetime.between(start_date, end_date))
 
         # Order by datetime for recent sales first
         total_sales_data = total_sales_data.order_by(Sales.datetime.asc()).all()

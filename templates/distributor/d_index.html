@@ -76,10 +76,7 @@
                     </div>
                 </div>
             </div>
-            
-            <ol class="breadcrumb mt-2 mb-2">
-                <li class="breadcrumb-item active">Sales Data</li>
-            </ol>
+            <br>
             <!-- Totals Table -->
             <div class="card1 shadow">
                 <div class="card-header1 py-3">
@@ -100,21 +97,6 @@
                     </tbody>
                 </table>
             </div>
-            <br>
-
-    <label for="filter" class="form-label">Filter By:</label>
-            <form method="GET" href="{{ url_for('distributor.distributor_home') }}" style="width:300px;display: flex; align-items: center;">
-                
-                <select name="filter" id="filter" class="form-select">
-                    <option value="all" {% if filter_type == 'all' %}selected{% endif %}>All</option>
-                    <option value="today" {% if filter_type == 'today' %}selected{% endif %}>Today</option>
-                    <option value="yesterday" {% if filter_type == 'yesterday' %}selected{% endif %}>Yesterday</option>
-                    <option value="monthly" {% if filter_type == 'monthly' %}selected{% endif %}>Monthly</option>
-                    <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
-                </select>
-                <button type="submit" class="btn btn-primary" style="margin-left: 10px;">Apply</button>
-            </form>
-
             <br>
     <!-- Sales Data Table -->
 

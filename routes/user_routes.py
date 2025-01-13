@@ -156,7 +156,8 @@ def login():
                 return jsonify({"error": "Unsupported hash format"}), 500
 
             if not password_valid:
-                return jsonify({"error": f"Incorrect password for {role}."}), 401
+                flash(f"Incorrect password for {role}.", 'danger')
+                return redirect(url_for('user_bp.login'))
 
             # Re-hash the password to unify it to pbkdf2:sha256 if necessary
             if not user.password.startswith('pbkdf2:sha256'):

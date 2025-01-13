@@ -2,7 +2,7 @@
 <div id="layoutSidenav_content">
     <br>
     <main>
-        <div class="sd-container" >
+        <div class="sd-container bg-light" >
             <h2 class="sd-form">Add Food Item</h2>
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -41,8 +41,8 @@
                     <input type="file" class="form-control-file" id="image" name="image">
                 </div>
                 <br>
-                <div class="sd-buttons">
-                    <button type="submit" class="sd-submit">Submit</button>
+                <div class="sd-buttons" >
+                    <button style="background-color: #003366;" type="submit" class="sd-submit">Submit</button>
                 </div>
             </form>
         </div>

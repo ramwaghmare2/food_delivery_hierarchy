@@ -193,7 +193,6 @@ def sales_report():
     
     # Query sales data for the table
     sales_data_query = db.session.query(
-    sales_data_query = db.session.query(
         Sales.sale_id,
         Sales.datetime,
         FoodItem.item_name,
