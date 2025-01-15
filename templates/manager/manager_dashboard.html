@@ -58,8 +58,24 @@
         datasets: [{
             label: 'Total Sales',
             data: {{ total_sales_data['values']|tojson }},
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: [ 
+                        'rgba(0, 51, 102, 0.9)',
+                            'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
+                    'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
+                    'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
+                    'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
+                     // Bright Blue (Optional)
+                    'rgba(0, 204, 255, 0.7)'   // Cyan (Optional)
+                ],
+                borderColor: [
+                'rgba(0, 51, 102, 1)',
+                    'rgba(0, 128, 255, 1)',    // Deep Navy Blue
+                    'rgba(0, 76, 153, 1)',    // Medium Blue
+                    'rgba(0, 102, 204, 1)',   // Sky Blue
+                    'rgba(51, 153, 255, 1)',  // Light Blue
+                       // Bright Blue
+                    'rgba(0, 204, 255, 1)'    // Cyan
+                ],
             borderWidth: 1
         }]
     };
@@ -90,8 +106,15 @@
         datasets: [{
             label: 'Sales by Item',
             data: {{ sales_by_item['values']|default([])|tojson }},
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: [
+                        'rgba(0, 51, 102, 0.9)',
+                            'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
+                            'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
+                            'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
+                            'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
+                            // Bright Blue (Optional)
+                            'rgba(0, 204, 255, 0.7)' 
+                    ],
             borderWidth: 1
         }]
     };
@@ -116,8 +139,8 @@
         datasets: [{
             label: 'Total Sales',
             data: {{ sales_over_time['values'] | tojson }},  // Pass the values (total sales)
-            borderColor: 'rgba(75, 192, 192, 1)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(0, 102, 204, 0.8)',
+            backgroundColor: 'rgba(0, 102, 204, 1)',
             fill: false,
             tension: 0.1
         }]
@@ -169,8 +192,8 @@
         datasets: [{
             label: 'Top Selling Items',
             data: {{ top_selling_items['values']|default([])|tojson }},
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',  // Orange color with transparency
-            borderColor: 'rgba(255, 159, 64, 1)',  // Solid border color for bars
+            backgroundColor: 'rgba(51, 153, 255, 0.7)', // Orange color with transparency
+            borderColor: 'rgba(51, 153, 255, 1)',  // Solid border color for bars
             borderWidth: 1
         }]
     };
@@ -220,8 +243,8 @@ var dailySalesPerformanceData = {
     datasets: [{
         label: 'Daily Sales Revenue',
         data: {{ daily_sales_performance['values']|tojson }},
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor:  'rgba(0, 204, 255, 0.7)', 
+        borderColor:  'rgba(0, 204, 255, 1)', 
         borderWidth: 1
     }]
 };
@@ -255,29 +278,23 @@ var salesDistributionData = {
         label: 'Sales Distribution',
         data: {{ sales_distribution['values']|default([])|tojson }},
         backgroundColor: [
-            'rgba(54, 162, 235, 0.2)',
-            'rgba(255, 99, 132, 0.2)',
-            'rgba(255, 159, 64, 0.2)',
-            'rgba(75, 192, 192, 0.2)',
-            'rgba(153, 102, 255, 0.2)',
-            'rgba(255, 159, 64, 0.2)',
-            'rgba(255, 99, 132, 0.2)',
-            'rgba(54, 162, 235, 0.2)',
-            'rgba(75, 192, 192, 0.2)',
-            'rgba(153, 102, 255, 0.2)',
-        ],
-        borderColor: [
-            'rgba(54, 162, 235, 1)',
-            'rgba(255, 99, 132, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(255, 99, 132, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(153, 102, 255, 1)',
-        ],
+                        'rgba(0, 51, 102, 0.9)',
+                            'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
+                            'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
+                            'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
+                            'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
+                            // Bright Blue (Optional)
+                            'rgba(0, 204, 255, 0.7)' 
+                    ],
+        borderColor:[
+                        'rgba(0, 51, 102, 1)',
+                            'rgba(0, 128, 255, 1)',  // Deep Navy Blue (Completed)
+                            'rgba(0, 76, 153, 1)',  // Medium Blue (Cancelled)
+                            'rgba(0, 102, 204, 1)', // Sky Blue (Pending)
+                            'rgba(51, 153, 255, 1)', // Light Blue (Processing)
+                            // Bright Blue (Optional)
+                            'rgba(0, 204, 255, 1)' 
+                    ],
         borderWidth: 1
     }]
 };

@@ -1,6 +1,7 @@
 # models/notification.py
 from . import db
 from datetime import datetime
+import pytz
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
@@ -11,7 +12,7 @@ class Notification(db.Model):
     notification_type = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
     def to_dict(self):
         return {

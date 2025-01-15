@@ -1,6 +1,7 @@
 from . import db
 from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
+import pytz
 
 class FoodItem(db.Model):
     __tablename__ = 'food_items'
@@ -12,8 +13,8 @@ class FoodItem(db.Model):
     available = db.Column(db.Boolean, default=True)
     cuisine_id = db.Column(db.Integer, db.ForeignKey('cuisines.id'), nullable=False)
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     image = db.Column(LONGBLOB, nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated', server_default='activated')
 

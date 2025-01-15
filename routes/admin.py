@@ -13,7 +13,7 @@ from models.order import OrderItem
 from extensions import bcrypt
 from base64 import b64encode
 from functools import wraps
-from sqlalchemy import func
+from sqlalchemy import func ,desc
 from app import socketio
 from .user_routes import role_required
 from sqlalchemy import and_
@@ -73,12 +73,13 @@ def admin_home():
             Sales.sale_id,
             Sales.datetime,
             FoodItem.item_name,
-            func.sum(OrderItem.price).label("total_price"),
-            func.sum(OrderItem.quantity).label("total_quantity")
-        ).join(OrderItem, Sales.item_id == OrderItem.item_id)\
-        .join(FoodItem, OrderItem.item_id == FoodItem.id)\
-        .group_by(Sales.sale_id, FoodItem.item_name, Sales.datetime)\
-        .order_by(Sales.datetime.desc())\
+            OrderItem.price,
+            OrderItem.quantity,
+            Order.order_id
+        ).join(Order, Sales.order_id == Order.order_id) \
+        .join(OrderItem, Order.order_id == OrderItem.order_id) \
+        .join(FoodItem, OrderItem.item_id == FoodItem.id) \
+        .order_by(desc(Sales.sale_id))\
         .all()
 
         # Monthly sales

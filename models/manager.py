@@ -2,6 +2,7 @@ from . import db
 from datetime import datetime, timezone
 from extensions import bcrypt
 from sqlalchemy.dialects.mysql import LONGBLOB
+import pytz
 
 class Manager(db.Model):
     __tablename__ = 'managers'
@@ -11,8 +12,8 @@ class Manager(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     contact = db.Column(db.String(20), nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     online_status = db.Column(db.Boolean, nullable=True, default=False)

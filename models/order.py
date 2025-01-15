@@ -1,5 +1,6 @@
 from . import db
 from datetime import datetime, timezone
+import pytz
 
 class Order(db.Model):
     __tablename__ = 'orders'
@@ -9,8 +10,8 @@ class Order(db.Model):
     kitchen_id = db.Column(db.Integer, db.ForeignKey('kitchens.id'), nullable=False)
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     order_status = db.Column(db.Enum('Pending', 'Processing', 'Completed', 'Cancelled'), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
     # Relationships
     sales = db.relationship('Sales', backref='orders', lazy=True)

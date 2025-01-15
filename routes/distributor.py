@@ -495,6 +495,7 @@ def distributor_orders():
                 start_date = today.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
                 query = query.filter(Order.created_at >= start_date)
 
+        query = query.order_by(Order.created_at.desc())
         orders = query.all()
 
         # Prepare order data for rendering
