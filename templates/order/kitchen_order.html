@@ -12,17 +12,20 @@
     <main>
         <div class="container px-4">
             <div class="container my-4">
-                <h2 class="text-center text-primary animate__animated animate__fadeInDown">TOTAL ORDERS</h2>
+                <h2 class="text-center animate__animated animate__fadeInDown">TOTAL ORDERS</h2>
                 <p class="text-muted text-center"></p>
-                {% with messages = get_flashed_messages() %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                            <p>{{ message }}</p>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                {% endwith %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
                 <!-- Filters -->
                 <div class="row mb-4">
                     <form class="row g-3" method="GET" action="{{ url_for('order.kitchen_orders') }}">
@@ -87,7 +90,7 @@
                                     {% else %}
                                     <th>Kitchen Name</th>
                                     {% endif %}
-                                    <th>Created At</th>
+                                    <th>Ordered At</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>

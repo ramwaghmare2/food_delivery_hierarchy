@@ -1,7 +1,8 @@
 from . import db
 from extensions import bcrypt
 from sqlalchemy.dialects.mysql import LONGBLOB
-
+from datetime import datetime, timezone
+import pytz
 
 class Kitchen(db.Model):
     __tablename__ = 'kitchens'
@@ -22,6 +23,7 @@ class Kitchen(db.Model):
     image = db.Column(LONGBLOB,nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     online_status = db.Column(db.Boolean, nullable=True, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     
     food_items = db.relationship('FoodItem', backref='kitchen', lazy=True)
     sales = db.relationship('Sales', backref='kitchen', lazy=True)

@@ -116,7 +116,7 @@
                         <div class="nav">
                             <p class="text-center">
                                 {% if encoded_image %}
-                                <div>
+                                <div class="profile-image-wrapper">
                                     <img src="data:image/jpeg;base64,{{ encoded_image }}" alt="Profile Image" class="profile-image" style="width: 80px; height: 80px;">
                                 </div>
                                 {% endif %}
@@ -125,15 +125,15 @@
                                 </p> 
                             <a class="nav-link" href="{{ url_for('kitchen.kitchen_home')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                                <strong>Dashboard</strong>
+                                Dashboard
                             </a>
                             <a class="nav-link" href="{{ url_for('dashboard.kitchen_dashboard')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
-                                <strong>Statistics</strong>
+                                Statistics
                             </a>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsemenu" aria-expanded="false" aria-controls="collapsePages">
                                 <div class="sb-nav-link-icon"><i class="fas fa-pizza-slice"></i></div>
-                                <strong>Food & Dining</strong>
+                                Food & Dining
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapsemenu" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
@@ -148,7 +148,7 @@
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
                                 <div class="sb-nav-link-icon"><i class="fas fa-shopping-basket"></i></div>
-                                <strong>Orders</strong>
+                                Orders
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">

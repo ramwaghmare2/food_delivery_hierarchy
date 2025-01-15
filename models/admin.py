@@ -2,6 +2,7 @@ from . import db
 from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 import uuid
+import pytz
 
 # Avoid circular imports by importing inside the class definition or method
 class Admin(db.Model):
@@ -12,12 +13,12 @@ class Admin(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     contact = db.Column(db.String(20), nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     image = db.Column(LONGBLOB, nullable=True)
     status = db.Column(db.Boolean, nullable=True, default=False)
     online_status = db.Column(db.Boolean, default=False)
-    last_seen = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    last_seen = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
     def __repr__(self):
         return f'<Admin {self.name}>'
@@ -27,5 +28,5 @@ class Admin(db.Model):
         return str(uuid.uuid4())
     
     def update_last_seen(self):
-        self.last_seen = datetime.now(timezone.utc)
+        self.last_seen = datetime.now(pytz.timezone('Asia/Kolkata'))
         

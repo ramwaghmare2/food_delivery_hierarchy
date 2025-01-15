@@ -445,6 +445,7 @@ def kitchen_orders( ):
             start_date = today.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
             query = query.filter(Order.created_at >= start_date)
 
+        query = query.order_by(Order.created_at.desc())
         # Fetch the filtered orders
         orders = query.all()
         # return {"orders": [order.to_dict() for order in orders]}  # Assuming to_dict() is implemented
@@ -492,7 +493,7 @@ def kitchen_orders( ):
         if role == 'SuperDistributor':
             return redirect(url_for('super_distributor.super_distributor'))
         else:
-            return redirect(url_for('kitchen.kitchen_dashboard'))
+            return redirect(url_for('kitchen.kitchen_home'))
     
 
 

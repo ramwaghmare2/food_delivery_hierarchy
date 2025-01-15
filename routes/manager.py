@@ -361,6 +361,7 @@ def manager_home():
             .join(Manager, SuperDistributor.manager_id == Manager.id)
             .filter(Manager.id == user_id)
             .group_by(Sales.sale_id, Sales.datetime, FoodItem.item_name)
+            .order_by(Order.order_id.desc())
             .all()
         )
 

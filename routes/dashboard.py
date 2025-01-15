@@ -76,8 +76,8 @@ def admin_dashboard():
         .group_by(FoodItem.item_name).all()
 
         sales_by_item = {
-            "labels": [item[0] for item in sales_by_item_query],
-            "values": [float(item[1]) for item in sales_by_item_query]
+            "labels": [item[0] for item in sales_by_item_query[:10]],
+            "values": [float(item[1]) for item in sales_by_item_query[:10]]
         }
 
         # Chart 3: Quantity Sold Over Time
@@ -101,8 +101,8 @@ def admin_dashboard():
         .order_by(func.sum(OrderItem.quantity).desc())\
         .limit(10).all()
 
-        top_item_names = [item[0] for item in top_selling_items_query]
-        top_item_quantities = [int(item[1]) for item in top_selling_items_query]
+        top_item_names = [item[0] for item in top_selling_items_query[:10]]
+        top_item_quantities = [int(item[1]) for item in top_selling_items_query[:10]]
 
         top_selling_items = {
             'labels': top_item_names,

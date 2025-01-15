@@ -9,18 +9,26 @@ document.addEventListener("DOMContentLoaded", function () {
         data: {
             labels: totalSalesData.labels,
             datasets: [{
-                label: "Total Sales by Admin",
+                label: "Total Sales by Manager",
                 data: totalSalesData.values,
-                backgroundColor: [
-                    "rgba(75, 192, 192, 0.6)",
-                    "rgba(54, 162, 235, 0.6)",
-                    "rgba(255, 99, 132, 0.6)"
-                ],
-                borderColor: [
-                    "rgba(75, 192, 192, 1)",
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255, 99, 132, 1)"
-                ],
+                backgroundColor: [ 
+                    'rgba(0, 51, 102, 0.9)',
+                        'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
+                'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
+                'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
+                'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
+                 // Bright Blue (Optional)
+                'rgba(0, 204, 255, 0.7)'   // Cyan (Optional)
+            ],
+            borderColor: [
+            'rgba(0, 51, 102, 1)',
+                'rgba(0, 128, 255, 1)',    // Deep Navy Blue
+                'rgba(0, 76, 153, 1)',    // Medium Blue
+                'rgba(0, 102, 204, 1)',   // Sky Blue
+                'rgba(51, 153, 255, 1)',  // Light Blue
+                   // Bright Blue
+                'rgba(0, 204, 255, 1)'    // Cyan
+            ],
                 borderWidth: 1
             }]
         },
@@ -43,8 +51,8 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: "Sales by Item",
                 data: salesByItemData.values,
-                backgroundColor: "rgba(75, 192, 192, 0.6)",
-                borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(0, 102, 204, 0.8)",
+                borderColor: "rgba(0, 102, 204, 1)",
                 borderWidth: 1
             }]
         }
@@ -59,8 +67,8 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: "Quantity Sold Over Time",
                 data: quantitySoldOverTimeData.values,
-                backgroundColor: "rgba(153, 102, 255, 0.6)",
-                borderColor: "rgba(153, 102, 255, 1)",
+                backgroundColor: "rgba(0, 204, 255, 0.7)",
+                borderColor: "rgba(0, 204, 255, 1)",
                 borderWidth: 2,
                 fill: true
             }]
@@ -76,8 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: "Top Selling Items",
                 data: topSellingItemsData.values,
-                backgroundColor: "rgba(255, 159, 64, 0.6)",
-                borderColor: "rgba(255, 159, 64, 1)",
+                backgroundColor: "rgba(0, 76, 153, 0.8)",
+                borderColor: "rgba(0, 76, 153, 1)",
                 borderWidth: 1
             }]
         }
@@ -92,14 +100,15 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: "Sales Distribution",
                 data: salesDistributionData.values,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',   // Pink
-                    'rgba(54, 162, 235, 0.6)',   // Blue
-                    'rgba(255, 206, 86, 0.6)',   // Yellow
-                    'rgba(75, 192, 192, 0.6)',   // Green
-                    'rgba(153, 102, 255, 0.6)',  // Purple
-                    'rgba(255, 159, 64, 0.6)'
-                ]
+                backgroundColor: [ 
+                    'rgba(0, 51, 102, 0.9)',
+                        'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
+                'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
+                'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
+                'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
+                 // Bright Blue (Optional)
+                'rgba(0, 204, 255, 0.7)'   // Cyan (Optional)
+            ]
             }]
         }
     });
@@ -113,8 +122,8 @@ document.addEventListener("DOMContentLoaded", function () {
             datasets: [{
                 label: "Daily Revenue",
                 data: dailySalesPerformanceData.values,
-                backgroundColor: "rgba(255, 205, 86, 0.6)",
-                borderColor: "rgba(255, 205, 86, 1)",
+                backgroundColor: "rgba(51, 153, 255, 0.7)",
+                borderColor: "rgba(51, 153, 255, 1)",
                 borderWidth: 2,
                 fill: true
             }]

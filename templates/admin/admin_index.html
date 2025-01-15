@@ -176,21 +176,15 @@
                 </tr>
             </thead>
             <tbody class="text-center">
-                {% if sales_data %}
-                            {% for sale_id, datetime, item_name, price, quantity in sales_data %}
-                            <tr>
-                                <td>{{ sale_id }}</td>
-                                <td>{{ item_name }}</td>
-                                <td>₹ {{ price }}</td>
-                                <td>{{ quantity }}</td>
-                                <td>{{ datetime.strftime('%Y-%m-%d %H:%M:%S') if datetime else 'N/A' }}</td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center">No sales data available</td>
-                            </tr>
-                        {% endif %}
+              {% for sale in sales_data %}
+              <tr>
+                  <td>{{ sale.sale_id }}</td>
+                  <td>{{ sale.item_name }}</td>
+                  <td>{{ sale.price }}</td>
+                  <td>{{ sale.quantity }}</td>
+                  <td>{{ sale.datetime }}</td>
+              </tr>
+          {% endfor %}
             </tbody>
         </table>
         <!-- Pagination Controls -->

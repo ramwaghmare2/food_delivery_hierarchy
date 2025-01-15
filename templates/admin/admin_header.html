@@ -158,15 +158,18 @@
                                     </nav>
                                 </div>
                                 <a class="nav-link collapsed" href="{{ url_for('royalty.add_royalty') }}" aria-controls="collapseKitchens">
-                                    <div class="sb-nav-link-icon"><img src="{{ url_for('static', filename='images/Pi7_royalties.png') }}" alt="Royalty Sharing Icon" style="width: 24px; height: 24px; margin-left: -9px;"></i></div>
+                                    <div class="sb-nav-link-icon"><i class="fas fa-hand-holding-usd"></i></div>
                                     Royalty Sharing
                                     <div class=""></i></div>
                                 </a>
                                 </div>
                                 
                                 <div class="sb-sidenav-footer">
-                                    <div class="small">Logged in as:</div>
-                                    {{ role }}
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa-solid fa-arrow-right-to-bracket mr-2"></i>
+                                        <span class="small text-muted">Logged in as :</span>
+                                    </div>
+                                    <span class="font-weight-bold ml-4">{{ role }}</span>
                                 </div>
                             </div>
                         </nav>
