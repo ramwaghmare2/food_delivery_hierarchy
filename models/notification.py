@@ -1,8 +1,9 @@
-# models/notification.py
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime
 import pytz
 
+###################################### Notification Model #############################################
 class Notification(db.Model):
     __tablename__ = 'notifications'
 
@@ -14,6 +15,7 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
+    ###################################### Function to return Notification as Dictionary ##############
     def to_dict(self):
         return {
             'id': self.id,

@@ -1,5 +1,7 @@
+###################################### Importing Required Libraries ###################################
 import os
 
+###################################### Configuration Class ############################################
 class Config:
     # SQLAlchemy Configuration
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'mysql+pymysql://root:root@localhost/hierarchical_db')  # Database connection string for SQLAlchemy

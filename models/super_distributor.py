@@ -1,8 +1,10 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 import pytz
 
+###################################### SuperDistributor Model #########################################
 class SuperDistributor(db.Model):
     __tablename__ = 'super_distributors'
     
@@ -18,8 +20,9 @@ class SuperDistributor(db.Model):
     image = db.Column(LONGBLOB, nullable=True)
     online_status = db.Column(db.Boolean, nullable=True, default=False)
     
-    # Relationship with Distributor
+    ###################################### Relationship with Distributor Model ########################
     distributors = db.relationship('Distributor', back_populates='super_distributor_relation', lazy=True)
 
+    ###################################### SuperDistributor Model Constructor #########################
     def __repr__(self):
         return f'<SuperDistributor {self.name}>'

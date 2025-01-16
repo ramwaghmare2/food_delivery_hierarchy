@@ -1,10 +1,11 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 import uuid
 import pytz
 
-# Avoid circular imports by importing inside the class definition or method
+###################################### Admin Model ####################################################
 class Admin(db.Model):
     __tablename__ = 'admins'
 
@@ -20,13 +21,16 @@ class Admin(db.Model):
     online_status = db.Column(db.Boolean, default=False)
     last_seen = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
+    ###################################### Admin Model Constructor ####################################
     def __repr__(self):
         return f'<Admin {self.name}>'
     
+    ###################################### Decrator for session token #################################
     @staticmethod
     def generate_session_token():
         return str(uuid.uuid4())
     
+    ###################################### Update Last See ############################################
     def update_last_seen(self):
         self.last_seen = datetime.now(pytz.timezone('Asia/Kolkata'))
         

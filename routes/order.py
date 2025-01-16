@@ -1,22 +1,19 @@
-# food_delivery_app/app/routes/order.py
-
-from flask import Blueprint, request, jsonify, session, redirect, render_template, url_for, flash
-from sqlalchemy import or_
-# from models import Order, OrderItem, MenuItem, User
+###################################### Importing Required Libraries ###################################
 from models import Order, FoodItem, OrderItem, Sales, SuperDistributor, Distributor, Kitchen, Manager
-from models.order import db
+from flask import Blueprint, request, jsonify, session, redirect, render_template, url_for, flash
+from utils.notification_service import check_notification
 from werkzeug.exceptions import NotFound
 from datetime import datetime, timedelta
-from decimal import Decimal
-from models import Customer, FoodItem, Order
-from base64 import b64encode
-from utils.notification_service import check_notification
 from utils.services import get_image
+from models import FoodItem, Order
+from models.order import db
+from base64 import b64encode
+from sqlalchemy import or_
 
+###################################### Blueprint For Order ############################################
 order_bp = Blueprint('order', __name__, static_folder='../static')
 
-# Method to place new order
-
+###################################### Route for Place Order ##########################################
 @order_bp.route('/place-order/<int:item_id>', methods=['GET','POST'])
 def place_order(item_id):
     try:
@@ -99,7 +96,7 @@ def place_order(item_id):
         return jsonify({'error': str(e)}), 400
 
 
-# Method to get Order Details by order_id.
+###################################### Route for Order Details ########################################
 @order_bp.route('/<int:order_id>', methods=['GET'])
 def get_order(order_id):
     try:
@@ -127,7 +124,7 @@ def get_order(order_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-################################## Method to get Order Details by user_id. ##################################
+###################################### Route for Order Details ########################################
 @order_bp.route('/user/<int:user_id>', methods=['GET'])
 def get_orders_by_user_id(user_id):
     try:
@@ -153,7 +150,7 @@ def get_orders_by_user_id(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-################################## Method to get orders of login user ##################################
+###################################### Route for Order Details ########################################
 @order_bp.route('/my-orders', methods=['GET'])
 def get_orders_login_user():
     try:
@@ -197,7 +194,7 @@ def get_orders_login_user():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-################################## Method to Delete the Order along with Order items ##################################
+###################################### Method to Delete the Order along with Order items ##################################
 @order_bp.route('/delete/<int:order_id>', methods=['GET'])
 def cancel_order(order_id):
     try:
@@ -230,7 +227,7 @@ def cancel_order(order_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 400  
 
-################################## Route for Order Cart ##################################
+###################################### Route for Order Cart ###########################################
 @order_bp.route('/cart-order', methods=['GET', 'POST'])
 def order_cart():
     
@@ -360,6 +357,7 @@ def order_cart():
         return redirect(url_for('order.get_cart'))
 
 
+###################################### Route for Kitchen Orders #######################################
 @order_bp.route('/kitchen-order', methods=['GET', 'POST'])
 def kitchen_orders( ):
     try:
@@ -495,8 +493,7 @@ def kitchen_orders( ):
         else:
             return redirect(url_for('kitchen.kitchen_home'))
     
-
-
+###################################### Route for Update Order Status ##################################
 @order_bp.route('/update-status/<int:order_id>', methods=['GET'])
 def update_status(order_id):
     try:
@@ -520,7 +517,7 @@ def update_status(order_id):
         return redirect(url_for('order.kitchen_orders', kitchen_id=user_id))
 
 
-################################## Routes for Cart ##################################
+###################################### Routes for Cart ################################################
 @order_bp.route('/cart/<int:item_id>', methods=['GET', 'POST'])
 def add_to_cart(item_id):
 
@@ -586,7 +583,7 @@ def add_to_cart(item_id):
         
     return render_template('order/add_cart.html', item=item)
 
-
+###################################### Route for View Cart ############################################
 @order_bp.route('/cart', methods=['GET'])
 def get_cart():
     try:
@@ -623,7 +620,7 @@ def get_cart():
         flash(f"Unexpected Error: {str(e)}")
         return redirect(url_for('customer.customer_dashboard'))
     
-
+###################################### Route for Delete Cart ##########################################
 @order_bp.route('/delete-cart/<int:item_id>', methods=['GET'])
 def delete_item_cart(item_id):
     try:

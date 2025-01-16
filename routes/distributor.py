@@ -1,23 +1,21 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, redirect, render_template, url_for, request, flash, session, current_app
-from models.kitchen import Kitchen
-from models.distributor import Distributor
-from models import db, SuperDistributor  ,Order ,OrderItem ,Sales, FoodItem
-import bcrypt
-from utils.notification_service import check_notification, create_notification
-import json
 from utils.services import get_model_counts, allowed_file ,get_image, get_user_query
+from utils.notification_service import check_notification, create_notification
+from models import db, SuperDistributor  ,Order ,OrderItem ,Sales, FoodItem
+from models.distributor import Distributor
+from models.kitchen import Kitchen
+from datetime import datetime, timedelta
 from base64 import b64encode
 from sqlalchemy import func
-
-distributor_bp = Blueprint('distributor', __name__, template_folder='../templates/distributor', static_folder='../static')
-
-################################## Route for distributor dashboard ##################################
-
+import bcrypt
 import json
 import logging
 
-from datetime import datetime, timedelta
+###################################### Blueprint For Distributor ######################################
+distributor_bp = Blueprint('distributor', __name__, template_folder='../templates/distributor', static_folder='../static')
 
+###################################### Route for distributor dashboard ################################
 @distributor_bp.route('/', methods=['GET', 'POST'])
 def distributor_home():
     user_id = session.get('user_id')
@@ -144,7 +142,7 @@ def distributor_home():
         return redirect(url_for('distributor.distributor_home'))
 
 
-################################## Route for display all distributor ##################################
+###################################### Route for display all distributor ##############################
 @distributor_bp.route('/all-distributor', methods=['GET'])
 def all_distributor():
     role = session.get('role')
@@ -200,7 +198,7 @@ def all_distributor():
         notification_check=len(notification_check)
     )
 
-################################## Route to display all kitchens ##################################
+###################################### Route to display all kitchens ##################################
 @distributor_bp.route('/all-kitchens', methods=['GET'])
 def distrubutor_all_kitchens():
     role = session.get('role')
@@ -306,7 +304,7 @@ def distrubutor_all_kitchens():
     )
 
 
-################################## Route for delete the distributor ##################################
+###################################### Route for delete the distributor ###############################
 @distributor_bp.route('/delete/<int:distributor_id>', methods=['GET', 'POST'])
 def delete_distributor(distributor_id):
     user_id = session.get('user_id')
@@ -334,7 +332,7 @@ def delete_distributor(distributor_id):
     return redirect(url_for('distributor.all_distributor'))
 
 
-# Route for delete the Distributor
+###################################### Route for lock the distributor #################################
 @distributor_bp.route('/lock/<int:distributor_id>', methods=['GET'])
 def lock_distributor(distributor_id):
     user_id = session.get('user_id')
@@ -371,11 +369,11 @@ def lock_distributor(distributor_id):
     return redirect(url_for('distributor.all_distributor'))
 
 
-################################## Function for image storage ##################################
+###################################### Function for image storage #####################################
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
-################################## Route for edit the distributor ##################################
+###################################### Route for edit the distributor #################################
 @distributor_bp.route('/edit/<int:distributor_id>', methods=['GET', 'POST'])
 def edit_distributor(distributor_id):
     distributor = Distributor.query.get_or_404(distributor_id)
@@ -441,7 +439,8 @@ def edit_distributor(distributor_id):
                            user_name=user.name,
                            notification_check=len(notification_check))
 
-################################## Route for Display orders related to distributor ##################################
+
+###################################### Route for Display orders related to distributor ################
 @distributor_bp.route('/distributor-orders', methods=['GET'])
 def distributor_orders():
     try:
@@ -545,7 +544,7 @@ def distributor_orders():
         return redirect(url_for('distributor.distributor_home'))
 
 
-
+###################################### Route for view details of distributor ##########################
 @distributor_bp.route('/view-details/<int:user_id>', methods=['GET'])
 def view_details(user_id):
     id = session.get('user_id')

@@ -1,14 +1,17 @@
-from flask import request, jsonify, Blueprint, render_template, redirect, url_for, session
-from models.royalty import RoyaltySettings, RoyaltyWallet
-from models import Sales, Order, db ,Kitchen, SuperDistributor ,Distributor,Manager,Admin
-from utils.notification_service import check_notification
+###################################### Importing Required Libraries ###################################
+from models import db ,Kitchen, SuperDistributor ,Distributor,Manager,Admin
 from utils.services import get_image, get_user_query, today_sale
+from models.royalty import RoyaltySettings, RoyaltyWallet
+from utils.notification_service import check_notification
+from flask import Blueprint, render_template, session
+from datetime import datetime, timedelta
 from decimal import Decimal
-from datetime import datetime, time, timedelta
 from sqlalchemy import func
 
+###################################### Blueprint For Wallet ###########################################
 wallet_bp = Blueprint('wallet', __name__, static_folder='../static')
 
+###################################### Route for View Wallet ##########################################
 @wallet_bp.route('/view', methods=['GET'])
 def view_wallet():
     session_role = session.get('role')
@@ -107,6 +110,8 @@ def view_wallet():
                            notification_check=len(notification_check)
                            )
 
+
+###################################### ROute for View All Wallets #####################################
 @wallet_bp.route('/all', methods=['GET'])
 def view_all_wallets():
     # Get the logged-in user's ID and role
@@ -159,15 +164,3 @@ def view_all_wallets():
                            yesterday_wallet=yesterday_wallet,
                            wallet_data=wallet_data,
                            notification_check=len(notification_check))
-
-
-"""
-# Initialization
-@app.before_first_request
-def create_tables():
-    db.create_all()
-    if not RoyaltySettings.query.first():
-        db.session.add(RoyaltySettings(royalty_percentage=20.0))
-        db.session.commit()
-        
-"""

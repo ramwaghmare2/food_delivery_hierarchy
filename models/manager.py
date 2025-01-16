@@ -1,9 +1,11 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 from extensions import bcrypt
 from sqlalchemy.dialects.mysql import LONGBLOB
 import pytz
 
+###################################### Manager Model ##################################################
 class Manager(db.Model):
     __tablename__ = 'managers'
     
@@ -18,18 +20,19 @@ class Manager(db.Model):
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated')
     online_status = db.Column(db.Boolean, nullable=True, default=False)
     
-
+    ###################################### Relationship with SuperDistributor Model ###################
     super_distributors = db.relationship('SuperDistributor', backref='manager', lazy=True)
     
 
-    # Method to hash password
+    ###################################### Function to set password ###################################
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
     
-    # Method to check password
+    ###################################### Function to check passowrd #################################
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
 
+    ###################################### Manager Model Constructor ##################################
     def __repr__(self):
         return f'<Manager {self.name}>'
     

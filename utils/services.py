@@ -1,9 +1,10 @@
+###################################### Importing Required Libraries ###################################
 from models import db, Sales, Order, OrderItem, FoodItem, Manager, Distributor, SuperDistributor, Kitchen, Admin
 from sqlalchemy import func, and_
 from base64 import b64encode
 from datetime import datetime, time
-from flask import sessions
 
+###################################### Get Model Counts ###############################################
 def get_model_counts():
     """Returns a dictionary with counts of all models."""
     return {
@@ -13,13 +14,12 @@ def get_model_counts():
         'kitchen_count': Kitchen.query.filter_by(status='activated').count(),
     }
 
-# Function for image storage
+###################################### Allowed File Function ##########################################
 def allowed_file(filename):
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
-################################## globally defined role_model_map ##################################
-
+################################## globally defined role_model_map ####################################
 ROLE_MODEL_MAP = {
     "Admin": Admin,
     "Manager": Manager,
@@ -28,10 +28,11 @@ ROLE_MODEL_MAP = {
     "Kitchen": Kitchen,
 }
 
+###################################### Get Model By Role ##############################################
 def get_model_by_role(role):
     return ROLE_MODEL_MAP.get(role)
 
-
+###################################### Get Image Function #############################################
 def get_image(role,user_id):
 
     user_model = ROLE_MODEL_MAP.get(role)
@@ -49,7 +50,7 @@ def get_image(role,user_id):
         
     return encoded_image
 
-
+###################################### Check Notification Function ####################################
 def get_user_query(role, user_id):
        
     model = ROLE_MODEL_MAP.get(role)
@@ -61,9 +62,8 @@ def get_user_query(role, user_id):
 
     return user
 
-
+###################################### Today Sale Function ############################################
 def today_sale(user_id):
-
     
     today_start = datetime.combine(datetime.today(), time.min)  # Midnight
     today_end = datetime.combine(datetime.today(), time.max)   # 11:59 PM
@@ -82,7 +82,7 @@ def today_sale(user_id):
     
     return today_total_sales
 
-
+###################################### Class For Manager Sales ########################################
 class ManagerSales():
     def cpunt_func(self, user_id):
         total_sales_amount = (
