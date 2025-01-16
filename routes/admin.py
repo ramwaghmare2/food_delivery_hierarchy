@@ -301,12 +301,14 @@ def order_list():
             exception_message = f"No orders available with status '{order_status}'"
         else:
             exception_message = f"Invalid status filter: '{order_status}'"
-
+    query = query.order_by(Order.created_at.desc())
     orders = query.all()  # Fetch all records instead of paginated results
 
     total_order_count = Order.query.count()
     total_quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
     total_completed_orders = Order.query.filter(Order.order_status == 'completed').count()
+    total_cancelled_orders = Order.query.filter(Order.order_status == 'cancelled').count()
+    total_pending_orders = Order.query.filter(Order.order_status == 'pending').count()
 
     if not orders:
         return render_template('admin/order_list.html', orders=None, exception_message=exception_message)
@@ -317,6 +319,8 @@ def order_list():
                            total_order_count=total_order_count,
                            total_quantity_sold=total_quantity_sold,
                            total_completed_orders=total_completed_orders,
+                           total_cancelled_orders=total_cancelled_orders,
+                           total_pending_orders=total_pending_orders,
                            user_name=user.name,
                            role=role,
                            encoded_image=encoded_image,

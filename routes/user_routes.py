@@ -135,7 +135,8 @@ def login():
             user = model.query.filter_by(email=email).first()
 
             if not user:
-                return jsonify({"error": f"No {role} found with this email."}), 404
+                flash(f"No {role} found with this email.", 'danger')
+                return redirect(url_for('user_bp.login'))
 
             if role != 'Admin' and (user.status == 'deactivated' or user.status == ''):
                 flash('User is Not Active', 'danger')
@@ -153,7 +154,8 @@ def login():
                 # Validate scrypt hash
                 password_valid = check_password_hash(user.password, password)
             else:
-                return jsonify({"error": "Unsupported hash format"}), 500
+                flash("Unsupported hash format", 'danger')
+                return redirect(url_for('user_bp.login'))
 
             if not password_valid:
                 flash(f"Incorrect password for {role}.", 'danger')
@@ -210,7 +212,8 @@ def login():
         return render_template('admin/login.html')
 
     except Exception as e:
-        return handle_error(e)
+        flash(f"{handle_error(e)}.", 'danger')
+        return redirect(url_for('user_bp.login'))
 
 
 ################################## Logout Route  ##################################
