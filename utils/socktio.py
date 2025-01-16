@@ -1,3 +1,4 @@
+###################################### Importing Required Libraries ###################################
 from models import db
 from flask import  request, jsonify, session, Blueprint
 from flask_socketio import emit
@@ -5,10 +6,11 @@ from datetime import datetime, timezone
 from app import socketio
 from utils.services import ROLE_MODEL_MAP
 
+###################################### Blueprint For User #############################################
 user_bp = Blueprint('user_bp', __name__, static_folder='../static')
 
 
-################################## Handel Connect Disconnect ##################################
+###################################### Handel Connect Disconnect ######################################
 @socketio.on('connect')
 def handle_connect():
     try:
@@ -38,7 +40,7 @@ def handle_connect():
     except Exception as e:
         print(f"Error in handle_connect: {str(e)}")
 
-
+###################################### Handel Disconnect ##############################################
 @socketio.on('disconnect')
 def handle_disconnect():
     reasone = request.args.get('reason', 'unknown')
@@ -70,6 +72,7 @@ def handle_disconnect():
     except Exception as e:
         print(f"Error in handle_disconnect: {str(e)}")
 
+###################################### Update User Status #############################################
 @user_bp.route('/update-status', methods=['POST'])
 def update_status():
     try:

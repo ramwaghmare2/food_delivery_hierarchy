@@ -1,7 +1,9 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime
 import pytz
 
+###################################### Sales Model ####################################################
 class Sales(db.Model):
     __tablename__ = 'sales'
 
@@ -13,5 +15,6 @@ class Sales(db.Model):
     payment_mode = db.Column(db.Enum('COD', 'UPI', 'Credit Card', 'Debit Card'), nullable=True)
     datetime = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
+    ###################################### Sales Model Constructor ####################################
     def __repr__(self):
         return f'<Sales sale_id={self.sale_id}, order_id={self.order_id}>'

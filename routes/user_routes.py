@@ -1,21 +1,24 @@
-from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
+from utils.notification_service import check_notification, create_notification, get_notification_targets
+from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_socketio import emit
 from utils.services import allowed_file, get_image, get_user_query
+from .activity_log_service import log_user_activity
+from models.activitylog import ActivityLog
 from sqlalchemy.exc import IntegrityError
-from utils.helpers import handle_error 
 from datetime import datetime, timezone
+from utils.helpers import handle_error 
+from flask_socketio import emit
 from extensions import bcrypt
 from base64 import b64encode
 from functools import wraps
-from models.activitylog import ActivityLog
-from .activity_log_service import log_user_activity
 import uuid
-from utils.notification_service import check_notification, create_notification, get_notification_targets
 
+###################################### Blueprint For User #############################################
 user_bp = Blueprint('user_bp', __name__, static_folder='../static')
-################################## globally defined role_model_map ##################################
+
+###################################### globally defined role_model_map ################################
 def get_model_by_role(role):
     ROLE_MODEL_MAP = {
         "Admin": Admin,
@@ -26,8 +29,7 @@ def get_model_by_role(role):
     }
     return ROLE_MODEL_MAP.get(role)
 
-# Sessions permanent with a timeput
-################################## Helper function to create a user based on role ##################################
+################################## Helper function to create a user based on role #####################
 def create_user(data, role, creator_role):
     from models import db  
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
@@ -69,6 +71,7 @@ def create_user(data, role, creator_role):
         db.session.rollback()
         return None
 
+###################################### Decorator for role-based access control ########################
 def role_required(required_roles):
     """
     Decorator to enforce access control based on the user role.
@@ -90,7 +93,7 @@ def role_required(required_roles):
 
     return wrapper
 
-################################## Route for signup ##################################
+###################################### Route for signup ###############################################
 @user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -108,8 +111,8 @@ def signup():
 
     return render_template("admin/signup.html")
 
-################################## Route for Login ##################################
 
+###################################### Route for Login ##################################
 from werkzeug.security import check_password_hash, generate_password_hash
 import bcrypt
 

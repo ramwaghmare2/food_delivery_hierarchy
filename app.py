@@ -1,26 +1,28 @@
-import sys
-import os
-import time
-from datetime import datetime
-import pytz
+###################################### Importing Required Libraries ###################################
 from flask import Flask, session, flash, redirect, url_for
+from models.royalty import RoyaltyWallet
 from flask_socketio import SocketIO
+from utils.services import today_sale
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 from models import db
-from utils.services import today_sale
-from models.royalty import RoyaltyWallet
-import schedule
 import threading
+import schedule
+import time
+import pytz
+import sys
+import os
 
-# Apply the mock_zoneinfo module before anything else
+###################################### Mocking zoneinfo ###############################################
 sys.modules['zoneinfo'] = __import__('mock_zoneinfo')
 
-# Declare global variables
+###################################### Global Variables ###############################################
 socketio = SocketIO(cors_allowed_origins="*", ping_interval=25, ping_timeout=10)
 bcrypt = Bcrypt()
 shared_session_store = {}
 
+###################################### Function to Create App #########################################
 def create_app():
     app = Flask(__name__, static_url_path='/static', static_folder='static')
     app.config.from_object('config.Config')

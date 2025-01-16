@@ -1,11 +1,14 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash
 from models import db, Notification
 from utils.services import get_image, get_user_query
 from utils.notification_service import check_notification
 from datetime import datetime, timedelta
 
+###################################### Blueprint For Notification #####################################
 notification_bp = Blueprint('notification', __name__)
 
+###################################### Route for Notifications ########################################
 @notification_bp.route('/notifications', methods=['GET'])
 def get_notifications():
     from models import Notification
@@ -48,7 +51,7 @@ def get_notifications():
                            yesterday=yesterday
                            )
 
-
+###################################### Route for Mark as Read ########################################
 @notification_bp.route('/mark-as-read/<int:id>', methods=['GET'])
 def mark_as_read(id):
     role = session.get('role')
@@ -69,7 +72,7 @@ def mark_as_read(id):
     #     return jsonify({'message': 'Notification marked as read.'})
     # return jsonify({'error': 'Notification not found or unauthorized.'}), 404
     
-
+###################################### Route for Delete Notifications #################################
 @notification_bp.route('/notifications/delete', methods=['POST'])
 def delete_notifications():
     user_id = request.json.get('user_id')

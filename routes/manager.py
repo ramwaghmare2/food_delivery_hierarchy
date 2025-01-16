@@ -1,17 +1,19 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session
 from models import SuperDistributor, Distributor, Kitchen, Order, Sales, OrderItem, FoodItem
 from utils.services import get_model_counts ,allowed_file ,get_image, get_user_query
+from utils.notification_service import create_notification, check_notification
+from utils.notification_service import check_notification
 from werkzeug.security import generate_password_hash
 from models.manager import db, Manager
-from utils.notification_service import check_notification
-from utils.notification_service import create_notification, check_notification
 from extensions import bcrypt
 from base64 import b64encode
 import logging
 
+###################################### Blueprint For Manager ##########################################
 manager_bp = Blueprint('manager', __name__,template_folder='../templates/manager', static_folder='../static')
 
-# Route to Add a new manager
+###################################### Route for Add Manager ##########################################
 @manager_bp.route('/add', methods=['GET', 'POST'])
 def add_manager():
 
@@ -74,7 +76,7 @@ def add_manager():
                            encoded_image=image_data,
                            notification_check=len(notification_check))
 
-
+###################################### Route for Get Managers #########################################
 @manager_bp.route('/managers', methods=['GET', 'POST'])
 def get_managers():
     role = session.get('role')
@@ -133,7 +135,7 @@ def get_managers():
             encoded_image=image_data
         )
 
-# Route for edit the manager
+###################################### Route for Edit Manager #########################################
 @manager_bp.route('/edit/<int:manager_id>', methods=['GET', 'POST'])
 def edit_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
@@ -208,7 +210,7 @@ def edit_manager(manager_id):
                             notification_check=len(notification_check))
 
 
-# Route for delete the manager
+###################################### Route for Delete Manager #######################################
 @manager_bp.route('/delete/<int:manager_id>', methods=['GET'])
 def delete_manager(manager_id):
     manager = Manager.query.get_or_404(manager_id)
@@ -235,7 +237,7 @@ def delete_manager(manager_id):
     return redirect(url_for('manager.get_managers'))
 
 
-# Route for delete the manager
+###################################### Route for Lock/Unlock Manager ##################################
 @manager_bp.route('/lock/<int:manager_id>', methods=['GET'])
 def lock_manager(manager_id):
     role = session.get('role')
@@ -273,7 +275,7 @@ def lock_manager(manager_id):
     return redirect(url_for('manager.get_managers'))
 
 
-# Route for profile of the manager
+###################################### Route for Manager Profile ######################################
 @manager_bp.route('/manager/<int:manager_id>', methods=['GET'])
 def get_manager_profile(manager_id):
     try:
@@ -286,7 +288,7 @@ def get_manager_profile(manager_id):
         flash(f"Error retrieving manager profile: {str(e)}", "danger")
         return redirect(url_for('manager.get_managers'))
 
-
+###################################### Route for Manager Dashboard ####################################
 @manager_bp.route('/', methods=['GET', 'POST'])
 def manager_home():
     # Fetch session data

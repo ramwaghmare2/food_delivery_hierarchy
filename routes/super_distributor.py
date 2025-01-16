@@ -1,18 +1,18 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, render_template, request, url_for, redirect, flash, session
 from models import Manager, SuperDistributor, Distributor, Kitchen, Sales, Order
-from werkzeug.security import generate_password_hash
 from utils.notification_service import create_notification, check_notification
-from models import db
-import bcrypt
-from utils.services import get_model_counts ,allowed_file, get_image, get_user_query
+from utils.services import allowed_file, get_image, get_user_query
+from werkzeug.security import generate_password_hash
 from base64 import b64encode
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from models import db
+import bcrypt
 
-
+###################################### Blueprint For Super Distributor ################################
 super_distributor_bp = Blueprint('super_distributor', __name__, template_folder='../templates/super_distributor', static_folder='../static')
 
-################################## Route for Super Distributor Dashboard ##################################
+################################## Route for Super Distributor Dashboard ##############################
 @super_distributor_bp.route('/super-distributor', methods=['GET'])
 def super_distributor():
     role = session.get('role')
@@ -89,7 +89,7 @@ def super_distributor():
                            notification_check=len(notification_check))
 
 
-################################## Route for Get All Super Distributor's ##################################
+###################################### Route for Get All Super Distributor's ##########################
 @super_distributor_bp.route('/all-super-distributor', methods=['GET'])
 def all_super_distributor():
     role = session.get('role')
@@ -136,7 +136,7 @@ def all_super_distributor():
         notification_check=len(notification_check)
     )
     
-################################## Route for Ass Distributor ##################################
+###################################### Route for Ass Distributor ######################################
 @super_distributor_bp.route('/add-distributor', methods=['GET', 'POST'])
 def add_distributor():
     role = session.get('role')
@@ -202,7 +202,7 @@ def add_distributor():
         flash(f'Error: {e}','danger')
         return redirect(url_for('super_distributor.add_distributor'))
 
-################################## Add Super Distributor ##################################
+###################################### Add Super Distributor ##########################################
 @super_distributor_bp.route('/add-super-distributor', methods=['GET', 'POST'])
 def add_super_distributor():
     
@@ -267,7 +267,7 @@ def add_super_distributor():
         return redirect(url_for('super_distributor.add_distributor'))
 
 
-################################## Function for edit the super_distributor ##################################
+###################################### Function for edit the super_distributor ########################
 @super_distributor_bp.route('/edit/<int:sd_id>', methods=['GET', 'POST'])
 def edit_super_distributor(sd_id):
     role = session.get('role')
@@ -334,7 +334,7 @@ def edit_super_distributor(sd_id):
                            notification_check=len(notification_check))
 
 
-################################## Function for delete the super distributor ##################################
+###################################### Function for delete the super distributor ######################
 @super_distributor_bp.route('/delete/<int:sd_id>', methods=['GET', 'POST'])
 def delete_super_distributor(sd_id):
     user_id = session.get('user_id')
@@ -361,7 +361,7 @@ def delete_super_distributor(sd_id):
     return redirect(url_for('super_distributor.all_super_distributor'))
 
 
-# Route for delete the super distributor
+###################################### Route for Lock Super Distributor ###############################
 @super_distributor_bp.route('/lock/<int:sd_id>', methods=['GET'])
 def lock_sd(sd_id):
     user_id = session.get('user_id')
@@ -398,7 +398,7 @@ def lock_sd(sd_id):
 
     return redirect(url_for('super_distributor.all_super_distributor'))
 
-
+###################################### Route for Super Distributor Orders #############################
 @super_distributor_bp.route('/sd-orders', methods=['GET'])
 def super_distributors_orders():
     try:
@@ -456,7 +456,7 @@ def super_distributors_orders():
         if role == 'SuperDistributor':
             return redirect(url_for('super_distributor.super_distributor'))
         
-
+###################################### Route for Super Distributor Details ############################
 @super_distributor_bp.route('/view-details/<int:user_id>', methods=['GET'])
 def view_details(user_id):
     id = session.get('user_id')

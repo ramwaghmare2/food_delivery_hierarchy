@@ -1,18 +1,19 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, jsonify, session, redirect, render_template, flash, current_app, url_for
-from models import db, Kitchen, Distributor, FoodItem, Order, Sales
-from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
-from utils.services import allowed_file
-import bcrypt
 from utils.notification_service import check_notification, create_notification
-import json
+from werkzeug.security import check_password_hash, generate_password_hash
 from utils.services import get_model_counts , get_image, get_user_query
-from sqlalchemy import func
+from models import db, Kitchen, Distributor, FoodItem, Order, Sales
 from datetime import datetime, timedelta
+from utils.services import allowed_file
+from sqlalchemy import func
+import bcrypt
+import json
 
+###################################### Blueprint For Kitchen ##########################################
 kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 
-################################## Route to add a new Kitchen ##################################
+################################## Route to add a new Kitchen #########################################
 @kitchen_bp.route('/kitchens', methods=['GET','POST'])
 def create_kitchen():
     user_id = session.get('user_id')
@@ -84,7 +85,7 @@ def create_kitchen():
     )
 
 
-################################## Route to Get a list of all Kitchens ##################################
+###################################### Route to Get a list of all Kitchens ############################
 @kitchen_bp.route('/all-kitchens', methods=['GET'])
 def get_kitchens():
     role = session.get('role')
@@ -100,7 +101,7 @@ def get_kitchens():
                            **counts,
                            encoded_image=image_data)
 
-################################## Route for edit the super_distributor ##################################
+###################################### Route for edit the super_distributor ###########################
 @kitchen_bp.route('/edit/<int:kitchen_id>', methods=['GET', 'POST'])
 def edit_kitchen(kitchen_id):
     kitchen = Kitchen.query.get_or_404(kitchen_id)
@@ -168,7 +169,7 @@ def edit_kitchen(kitchen_id):
                            encoded_image=image_data,
                            notification_check=len(notification_check))
 
-################################## Route for delete the kitchen ##################################
+###################################### Route for delete the kitchen ###################################
 @kitchen_bp.route('/delete/<int:kitchen_id>', methods=['GET', 'POST'])
 def delete_kitchen(kitchen_id):
     user_id = session.get('user_id')
@@ -196,7 +197,7 @@ def delete_kitchen(kitchen_id):
     return redirect(url_for('distributor.distrubutor_all_kitchens'))
 
 
-# Route for delete the kitchen
+###################################### Route for Lock/Unlock the kitchen ##############################
 @kitchen_bp.route('/lock/<int:kitchen_id>', methods=['GET'])
 def lock_kitchen(kitchen_id):
     user_id = session.get('user_id')
@@ -233,7 +234,7 @@ def lock_kitchen(kitchen_id):
     return redirect(url_for('distributor.distrubutor_all_kitchens'))
 
 
-################################## Route for Display Kitchen Dashboard ##################################
+###################################### Route for Display Kitchen Dashboard ############################
 @kitchen_bp.route("/kitchen_home", methods=['GET', 'POST'])
 def kitchen_home():
     user_name = session.get('user_name', 'User')

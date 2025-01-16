@@ -1,9 +1,10 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 import pytz
 
-# Cuisine model
+###################################### Cuisine Model ##################################################
 class Cuisine(db.Model):
     __tablename__ = 'cuisines'
     
@@ -14,9 +15,10 @@ class Cuisine(db.Model):
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     image = db.Column(LONGBLOB,nullable=True)
 
-    # Relationship to FoodItem
+    ###################################### Relationship with FoodItem and Sales Model #################
     food_items = db.relationship('FoodItem', backref='cuisine', lazy=True)
     sales = db.relationship('Sales', backref='cuisine', lazy=True)
 
+    ###################################### Cuisine Model Constructor ##################################
     def __repr__(self):
         return f'<Cuisine {self.name}>'

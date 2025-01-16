@@ -1,12 +1,14 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, jsonify, render_template ,flash ,redirect,url_for,session
-from models import db, FoodItem ,Cuisine
-from utils.services import allowed_file, get_image, get_user_query
-from base64 import b64encode
 from utils.notification_service import check_notification, create_notification
+from utils.services import allowed_file, get_image, get_user_query
+from models import db, FoodItem ,Cuisine
+from base64 import b64encode
 
+###################################### Blueprint For Food Item ########################################
 food_item_bp = Blueprint('food_item', __name__)
 
-################################## Route for Add Food Item ##################################
+###################################### Route for Add Food Item ########################################
 @food_item_bp.route('/add_food_item', methods=['GET', 'POST'])
 def add_food_item():
     user_id = session.get('user_id')
@@ -64,7 +66,7 @@ def add_food_item():
                            notification_check=len(notification_check))
 
 
-################################## Create a New FoodItem ##################################
+###################################### Create a New FoodItem ##########################################
 @food_item_bp.route('/food_items/<int:kitchen_id>', methods=['GET'])
 def get_food_items_by_kitchen(kitchen_id):
     user_id=session.get('user_id')
@@ -90,7 +92,7 @@ def get_food_items_by_kitchen(kitchen_id):
                            role=role,
                            notification_check=len(notification_check))
 
-################################## Update a FoodItem by ID ##################################
+###################################### Update a FoodItem by ID ########################################
 @food_item_bp.route('/food_items/edit/<int:id>', methods=['GET', 'POST'])
 def edit_food_item(id):
     # Retrieve the food item by ID
@@ -138,7 +140,7 @@ def edit_food_item(id):
                            encoded_image=image_data,
                            user_name=user.name)
 
-################################## Delete a FoodItem by ID ##################################
+###################################### Delete a FoodItem by ID ########################################
 @food_item_bp.route('/food_items/delete/<int:item_id>', methods=['GET'])
 def delete_food_item(item_id):
     item = FoodItem.query.get_or_404(item_id)

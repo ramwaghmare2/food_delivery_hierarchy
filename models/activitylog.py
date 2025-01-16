@@ -1,7 +1,9 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime
 from pytz import timezone as pytz_timezone
 
+###################################### Activity Log Model #############################################
 def kolkata_time(): # Use pytz for timezone-aware datetime 
     dt = datetime.now(pytz_timezone('Asia/Kolkata')) # Convert the datetime object to a naive datetime (without timezone) 
     naive_dt = dt.replace(tzinfo=None) 

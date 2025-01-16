@@ -1,28 +1,21 @@
-from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
-from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_socketio import emit
-from utils.services import allowed_file, get_image, get_user_query
-from sqlalchemy.exc import IntegrityError
-from utils.helpers import handle_error 
-from datetime import datetime, timedelta, timezone
+###################################### Importing Required Libraries ###################################
+from models import db, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
+from flask import Blueprint, request, session, render_template
+from utils.services import get_image, get_user_query
+from datetime import datetime, timedelta
 from utils.notification_service import check_notification
-from functools import wraps
 from collections import defaultdict
 from models.order import OrderItem
-from extensions import bcrypt
-from base64 import b64encode
-from functools import wraps
 from sqlalchemy import func ,desc
-from app import socketio
 from .user_routes import role_required
 from sqlalchemy import and_
 from utils.services import ManagerSales
 
-
+###################################### Admin Blueprint #######################################################
 admin_bp = Blueprint('admin_bp', __name__, static_folder='../static')
 
-################################## Route for displaying admin dashboard ##################################
+
+###################################### Route for displaying admin dashboard ##################################
 @admin_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_home():
@@ -122,7 +115,7 @@ def admin_home():
 
 
 
-################################## Sales Data Visualization ##################################
+###################################### Sales Data Visualization #######################################
 sales_bp = Blueprint('sales', __name__)
 @sales_bp.route('/sales_report', methods=['GET'])
 def sales_report():
@@ -263,7 +256,7 @@ def sales_report():
         sales_by_date_dict=dict(sales_by_date_dict),
         sales_by_item_data=sales_by_item_data  # Pass the sales_by_item_data
     )
-################################## Orders data visualization API ##################################
+###################################### Orders data visualization API ##################################
 orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
 @orders_bp.route('/list', methods=['GET'])
 def order_list():
@@ -327,7 +320,7 @@ def order_list():
                            )
 
 
-################################## View Details ##################################
+###################################### View Details ###################################################
 @admin_bp.route('/view-details/<int:user_id>', methods=['GET'])
 def view_details(user_id):
     id = session.get('user_id')

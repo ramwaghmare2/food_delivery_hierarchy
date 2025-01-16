@@ -1,9 +1,10 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, session
-from datetime import datetime, timedelta, timezone
-from models.activitylog import ActivityLog
 
+###################################### Blueprint for User Activity Tracking ###########################
 user_bp = Blueprint('user_bp', __name__, static_folder='../static')
-###################################### Middleware for Tracking Other Actions ##################################
+
+###################################### Middleware for Tracking Login ##################################
 @user_bp.before_request
 def track_user_actions():
     user_id = session.get('user_id')
@@ -21,7 +22,7 @@ def track_user_actions():
         )
 
 
-####################################### Logging Helper Function ################################################
+####################################### Logging Helper Function #######################################
 def log_user_activity(user_id, session_id, action, details, ip_address, browser_info, role):
     from models import db, ActivityLog  # Assuming SQLAlchemy models
     log_entry = ActivityLog(
@@ -36,14 +37,14 @@ def log_user_activity(user_id, session_id, action, details, ip_address, browser_
     db.session.add(log_entry)
     db.session.commit()
 
-####################################### Summary After Logout ################################################
+####################################### Summary After Logout ##########################################
 def generate_session_summary(user_id, session_id, timestamp):
     from models import ActivityLog
     logs = ActivityLog.query.filter_by(user_id=user_id, session_id=session_id).all()
     summary = [{"action_type": log.action_type, "timestamp": log.timestamp, "details": log.details} for log in logs]
     return summary
 
-######################################### Log Encryption (for Sensitive Data) #######################################
+######################################### Log Encryption (for Sensitive Data) #########################
 from cryptography.fernet import Fernet
 
 # Generate a key (do this once and securely store it)

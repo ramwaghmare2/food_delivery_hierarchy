@@ -1,9 +1,11 @@
+###################################### Importing Required Libraries ###################################
 from models import db, Notification
 from models import Admin, Manager, SuperDistributor, Distributor, Kitchen
 from datetime import datetime
 from app import socketio
 from flask import current_app
 
+###################################### Notification Service ###########################################
 def get_notification_targets(creator_role, target_role=None):
 
     # Define role hierarchy
@@ -38,7 +40,7 @@ def get_notification_targets(creator_role, target_role=None):
     # Flatten list of tuples into a simple list of IDs
     return [t[0] for t in targets]
 
-
+###################################### Create Notification ############################################
 def create_notification(user_id, role, notification_type, description):
     notification = Notification(
         user_id=user_id,
@@ -64,7 +66,7 @@ def create_notification(user_id, role, notification_type, description):
 
     return notification
 
-
+###################################### Check Notification #############################################
 def check_notification(role, user_id):
 
     if role == 'Admin':

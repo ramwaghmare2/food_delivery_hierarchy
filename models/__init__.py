@@ -1,8 +1,10 @@
+###################################### Importing Required Libraries ###################################
 from flask_sqlalchemy import SQLAlchemy
 
+###################################### Database Configuration #########################################
 db = SQLAlchemy()
 
-# Import individual models
+###################################### Imporing Models ################################################
 from .admin import Admin
 from .customer import Customer
 from .distributor import Distributor

@@ -1,18 +1,18 @@
-from models import db
+###################################### Importing Required Libraries ###################################
+from flask import request, jsonify, Blueprint, render_template, redirect, url_for, session, flash
+from utils.services import get_image, get_user_query, today_sale
+from utils.notification_service import check_notification
+from models.royalty import RoyaltySettings, RoyaltyWallet
+from routes.user_routes import role_required
 from datetime import datetime
 from functools import wraps
-from routes.user_routes import role_required
-from utils.notification_service import check_notification
-from utils.services import get_image, get_user_query, today_sale
-from flask import request, jsonify, Blueprint, render_template, redirect, url_for, session, flash
-from models.royalty import RoyaltySettings, RoyaltyWallet
+from models import db
 
-
-
+###################################### Blueprint For Royalty ######################################
 royalty_bp = Blueprint('royalty', __name__, static_folder='../static')
 
 
-################################## Add Royalty Percentage (Admin-Only) ##################################
+###################################### Route for Add Royalty ######################################
 @royalty_bp.route('/add-royalty', methods=['GET', 'POST'])
 @role_required('Admin')
 def add_royalty():

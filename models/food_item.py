@@ -1,8 +1,10 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 from sqlalchemy.dialects.mysql import LONGBLOB
 import pytz
 
+###################################### FoodItem Model #################################################
 class FoodItem(db.Model):
     __tablename__ = 'food_items'
     
@@ -18,13 +20,15 @@ class FoodItem(db.Model):
     image = db.Column(LONGBLOB, nullable=True)
     status = db.Column(db.Enum('activated', 'deactivated'), default='activated', server_default='activated')
 
-    # Relationships
+    ###################################### Relationship with OrderItem and Sales Model ################
     order_items = db.relationship('OrderItem', back_populates='food_item', lazy='dynamic')
     sales = db.relationship('Sales', backref='food_items', lazy=True)
    
+    ###################################### FoodItem Model Constructor #################################
     def __repr__(self):
         return f'<FoodItem {self.item_name}>'
     
+    ###################################### Validate Price #############################################
     @staticmethod
     def validate_price(price):
         return price >= 0
