@@ -7501,6 +7501,8 @@ textarea.form-control-lg {
 
 .order-1 {
   order: 1 !important;
+  margin-left: -27px;
+  font-size: 1.3rem;
 }
 
 .order-2 {
@@ -11522,7 +11524,7 @@ transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .nav-link:hover {
-    background-color: #007bff;
+    background-color: rgba(0, 128, 255, 0.5);
     transform: translateX(5px);
     color: white;
 }
@@ -11867,3 +11869,24 @@ body {
   object-fit: cover;  /* Ensures the image covers the circle without distortion */
 }
 
+/* Code for Footer to fix at bottom and apply scrollbar*/
+.sb-sidenav {
+  position: relative;
+  height: 100vh; /* Full height of the viewport */
+  display: flex;
+  flex-direction: column;
+}
+
+.sb-sidenav-footer {
+  padding: 0.75rem;
+  position: fixed;
+  bottom: 0;
+  width: 100%; /* Ensures it spans the full width of the sidebar */
+  background-color: #f8f9fa; /* Optional: Background color for the footer */
+  z-index: 1000; /* Ensures it stays above other content if needed */
+}
+
+.sb-sidenav {
+    flex: 1; /* Ensures this section takes up remaining space */
+    padding-bottom: 4.3rem; /* Adjust this value to match the height of the footer */
+}
