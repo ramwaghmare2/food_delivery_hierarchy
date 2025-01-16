@@ -1,3 +1,4 @@
+###################################### Routes #########################################################
 from .admin import admin_bp
 from .customer import customer_bp
 from .distributor import distributor_bp
@@ -14,6 +15,7 @@ from .wallet import wallet_bp
 from .royalty import royalty_bp
 from .notification_routes import notification_bp
 
+###################################### Function to Register Blueprints ################################
 def create_app_routes(app):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(customer_bp, url_prefix='/customer')
@@ -24,8 +26,8 @@ def create_app_routes(app):
     app.register_blueprint(cuisine_bp, url_prefix='/cuisine')
     app.register_blueprint(order_bp, url_prefix='/order')
     app.register_blueprint(food_item_bp, url_prefix='/fooditem')
-    app.register_blueprint(sales_bp, url_prefix='/admin/sales')  # Updated prefix
-    app.register_blueprint(orders_bp, url_prefix='/admin/orders')  # Updated prefix
+    app.register_blueprint(sales_bp, url_prefix='/admin/sales')  
+    app.register_blueprint(orders_bp, url_prefix='/admin/orders')  
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(wallet_bp, url_prefix='/wallet')

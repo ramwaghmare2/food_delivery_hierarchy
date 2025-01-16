@@ -1,9 +1,11 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from extensions import bcrypt
 from sqlalchemy.dialects.mysql import LONGBLOB
 from datetime import datetime, timezone
 import pytz
 
+###################################### Kitchen Model ##################################################
 class Kitchen(db.Model):
     __tablename__ = 'kitchens'
     
@@ -25,21 +27,24 @@ class Kitchen(db.Model):
     online_status = db.Column(db.Boolean, nullable=True, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     
+    ###################################### Relationship with FoodItem and Sales Model #################
     food_items = db.relationship('FoodItem', backref='kitchen', lazy=True)
     sales = db.relationship('Sales', backref='kitchen', lazy=True)
 
 
-    # Method to hash password
+    ###################################### Function for setting password ##############################
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
     
-    # Method to check password
+    ###################################### Function for checking password #############################
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
 
+    ###################################### Kitchen Model Constructor ##################################
     def __repr__(self):
         return f'<kitchens {self.name}>'
     
+    ###################################### Validate Pin Code ##########################################
     @staticmethod
     def validate_pin_code(pin_code):
         return len(pin_code) == 6 and pin_code.isdigit()

@@ -1,21 +1,18 @@
-from models import db, Admin, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
-from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, flash, current_app
-from flask_socketio import emit
-from utils.services import allowed_file, get_image, get_user_query, ROLE_MODEL_MAP
-from sqlalchemy.exc import IntegrityError
+###################################### Importing Required Libraries ###################################
+from models import db, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, FoodItem
+from flask import Blueprint, request, session, render_template
+from utils.services import get_image, get_user_query, ROLE_MODEL_MAP
 from utils.notification_service import check_notification
-from utils.helpers import handle_error 
 from datetime import datetime, timedelta, timezone
-from collections import defaultdict
 from models.order import OrderItem
-from functools import wraps
-from sqlalchemy import func
-from app import socketio
 from .admin import role_required
-import logging
+from flask_socketio import emit
+from sqlalchemy import func
 
+###################################### Blueprint Configuration ########################################
 dashboard_bp = Blueprint('dashboard', __name__, static_folder='../static')
-################################## Route for displaying admin dashboard ##################################
+
+###################################### Route for displaying admin dashboard ###########################
 @dashboard_bp.route('/admin', methods=['GET'])
 @role_required('Admin')
 def admin_dashboard():
@@ -28,11 +25,13 @@ def admin_dashboard():
     # Initialize counts, totals, and sales data
     total_sales_amount, total_orders_count, quantity_sold = 0, 0, 0
     sales_data = []
+    notification_check = []
+    #sales_distribution = []
     sales_by_item = {"labels": [], "values": []}
     quantity_sold_over_time = {"labels": [], "values": []}
     top_item_names, top_item_quantities = [], []
     distribution_labels, distribution_values = [], []
-    performance_dates, total_revenues, monthly_sales = [], [], []
+    performance_dates, total_revenues = [], []
     months, total_sales, kitchen_names, order_counts = [], [], [], []
     barChartData = {"labels": ["January", "February", "March", "April"], "values": [10, 20, 15, 30]}
 
@@ -111,13 +110,13 @@ def admin_dashboard():
 
         # Chart 5: Sales Distribution by Item
         sales_distribution = db.session.query(
-            FoodItem.item_name,
-            func.sum(OrderItem.price).label('total_sales')
-        ).join(OrderItem, FoodItem.id == OrderItem.item_id)\
-        .group_by(FoodItem.item_name).all()
+            Order.order_status,
+            func.count(Order.order_id).label('status_count')
+        ).group_by(Order.order_status).all()
 
-        distribution_labels = [item[0] for item in sales_distribution]
-        distribution_values = [float(item[1]) for item in sales_distribution]
+        # Prepare data for the pie chart
+        distribution_labels = [status[0] for status in sales_distribution]  
+        distribution_values = [int(status[1]) for status in sales_distribution]
 
         # Chart 6: Daily Sales Performance
         daily_sales_performance = db.session.query(
@@ -154,12 +153,13 @@ def admin_dashboard():
         sales_by_item=sales_by_item,
         top_selling_items = top_selling_items,
         quantity_sold_over_time=quantity_sold_over_time,
+        #status_distribution=status_distribution,
         #top_selling_items={"labels": top_item_names, "values": top_item_quantities},
         sales_distribution={"labels": distribution_labels, "values": distribution_values},
         daily_sales_performance={"labels": performance_dates, "values": total_revenues}
     )
 
-
+###################################### Route for displaying manager dashboard #########################
 @dashboard_bp.route('/manager', methods=['GET'])
 @role_required('Manager')
 def manager_dashboard():
@@ -414,7 +414,7 @@ def manager_dashboard():
         }
     )
 
-
+###################################### Route for displaying distributor dashboard #####################
 @dashboard_bp.route('/super_distributor', methods=['GET'])
 @role_required('SuperDistributor')  
 def super_distributor_dashboard():
@@ -454,9 +454,7 @@ def super_distributor_dashboard():
             .filter(Order.kitchen_id.in_(kitchen_ids))     # Filter by kitchen_id from kitchens_ids
             .scalar() or 0                                  # Default to 0 if no result
         )
-        
-        #db.session.query(func.sum(Order.total_amount)).filter(Order.kitchen_id.in_(kitchen_ids)).scalar() or 0
-        
+
 
         sales = Sales.query.filter(Sales.kitchen_id.in_([kitchen.id for kitchen in kitchens])).all()
         # total_orders_count = len(sales)  # Total number of orders (sales records)
@@ -626,6 +624,7 @@ def super_distributor_dashboard():
                            notification_check=len(notification_check))
 
 
+###################################### Route for displaying distributor dashboard #####################
 @dashboard_bp.route('/distributor', methods=['GET'])
 @role_required('Distributor')  
 def distributor_dashboard():
@@ -805,6 +804,7 @@ def distributor_dashboard():
                            notification_check=len(notification_check)
                            )
 
+###################################### Route for displaying kitchen dashboard #########################
 from collections import Counter
 @dashboard_bp.route('/kitchen', methods=['GET'])
 @role_required('Kitchen')  

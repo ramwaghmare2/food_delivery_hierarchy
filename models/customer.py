@@ -1,6 +1,9 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 import pytz
+
+###################################### Customer Model #################################################
 class Customer(db.Model):
     __tablename__ = 'customers'
     
@@ -14,6 +17,7 @@ class Customer(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     
+    ###################################### Customer Model Constructor #################################
     def __repr__(self):
         return f'<Customer {self.name}>'
     

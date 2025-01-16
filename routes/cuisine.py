@@ -1,11 +1,13 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, request, jsonify ,render_template,flash,redirect,url_for,session
 from models import db, Cuisine
 from utils.notification_service import check_notification, create_notification
 from utils.services import get_image, get_user_query
 
+###################################### Blueprint For Cuisine ##########################################
 cuisine_bp = Blueprint('cuisine', __name__ , static_folder='../static')
 
-################################## Route for Add Cuisine's ##################################
+###################################### Route for Add Cuisine's ########################################
 @cuisine_bp.route('/cuisine', methods=['GET', 'POST'])
 def add_cuisine():
     role = session.get('role')
@@ -53,7 +55,7 @@ def add_cuisine():
                            encoded_image=image_data,
                            notification_check=len(notification_check))
 
-################################## Route for Delete Cuisine ##################################
+###################################### Route for Delete Cuisine #######################################
 @cuisine_bp.route('/cuisine/delete/<int:id>', methods=['POST','GET'])
 def delete_cuisine(id):
     user_id = session.get('user_id')

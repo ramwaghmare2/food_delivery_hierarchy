@@ -1,7 +1,9 @@
+###################################### Importing Required Libraries ###################################
 from . import db
 from datetime import datetime, timezone
 import pytz
 
+###################################### Order Model ####################################################
 class Order(db.Model):
     __tablename__ = 'orders'
 
@@ -13,16 +15,18 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Kolkata')))
 
-    # Relationships
+    ############################ Relationship with Sales, OrderItem, Customer and Kitchen Model #######
     sales = db.relationship('Sales', backref='orders', lazy=True)
     customer = db.relationship('Customer', backref='orders')
     kitchen = db.relationship('Kitchen', backref='orders')
     order_items = db.relationship('OrderItem', backref='order', lazy=True)  # Bidirectional link with OrderItem
     # Many-to-Many via OrderItem
 
+    ###################################### Order Model Constructor ####################################
     def __repr__(self):
         return f'<Order {self.order_id}>'
 
+###################################### OrderItem Model ################################################
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
 
@@ -32,8 +36,9 @@ class OrderItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
 
-    # Relationships
+    ###################################### Relationship with FoodItem Model ###########################
     food_item = db.relationship('FoodItem', back_populates='order_items')  # Bidirectional link with FoodItem
     
+    ###################################### OrderItem Model Constructor ################################
     def __repr__(self):
         return f'<OrderItem {self.order_item_id}>'

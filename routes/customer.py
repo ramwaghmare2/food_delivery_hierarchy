@@ -1,15 +1,15 @@
+###################################### Importing Required Libraries ###################################
 from flask import Blueprint, jsonify, request, render_template, redirect ,flash ,url_for, session
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Customer, db, FoodItem
-from utils.helpers import format_response, handle_error
+from utils.helpers import handle_error
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
-from utils.services import get_image
 from base64 import b64encode
 
+###################################### Blueprint For Customer ######################################### 
 customer_bp = Blueprint('customer', __name__,template_folder='../templates/customer', static_folder='../templates/customer/static')
 
-
+###################################### Route for Customer Dashboard ###################################
 @customer_bp.route('/', methods=['GET'])
 def customer_dashboard():
 
@@ -20,6 +20,8 @@ def customer_dashboard():
             item.image = f"data:image/jpeg;base64,{item.image}"
     return render_template('index.html', food_items=food_items)
 
+
+###################################### Route for Customer Registration ################################
 @customer_bp.route('/register', methods=['GET', 'POST'])
 def register_user():
     if request.method == 'GET':
@@ -48,6 +50,7 @@ def register_user():
         return render_template('register.html')
 
 
+###################################### Route for Customer Login #######################################
 @customer_bp.route('/login', methods=['GET', 'POST'])
 def login_user():
     if request.method == 'GET':
@@ -72,10 +75,10 @@ def login_user():
         return redirect(url_for('customer.customer_dashboard'))
     except Exception as e:
         return handle_error(e)
-        
 
+
+###################################### Route for Customer Profile #####################################
 @customer_bp.route('/profile', methods=['GET'])
-#@jwt_required()
 def profile():
     try:
         #user_id = get_jwt_identity()
@@ -88,12 +91,14 @@ def profile():
     except Exception as e:
         return handle_error(e)
 
+###################################### Route for Customer Logout ######################################
 @customer_bp.route('/logout', methods=['GET'])
 def logout_user():
     session.pop('user_id', None)
     flash('Logout Successful')
     return render_template('login.html')
 
+###################################### Route for Customer Delete Account ##############################
 @customer_bp.route('/delete', methods=['GET', 'POST'])
 @jwt_required()
 def delete_account():
@@ -119,7 +124,7 @@ def delete_account():
         return handle_error(e)
     
     
-
+###################################### Route for Customer Forgot Passowrd #############################
 @customer_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'GET':
