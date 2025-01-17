@@ -149,8 +149,8 @@ def view_all_wallets():
                     "amounts": [entry.royalty_amount for entry in daily_wallet]
                 }"""    
     wallet_data = {
-                "labels": [entry.updated_at.strftime('%Y-%m-%d') for entry in daily_wallet[3:]],
-                "values": [entry.royalty_amount for entry in daily_wallet[3:]]
+                "labels": [entry.updated_at.strftime('%Y-%m-%d') for entry in daily_wallet[-7:]],
+                "values": [entry.royalty_amount for entry in daily_wallet[-7:]]
             }
 
     print(wallet_data)

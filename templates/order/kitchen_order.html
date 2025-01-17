@@ -8,6 +8,9 @@
     {% include 'kitchen/kitchen_header.html' %}
 {% endif %}
 
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
 <div id="layoutSidenav_content">
     <main>
         <div class="container px-4">
@@ -137,8 +140,12 @@
                             <div class="d-flex float-right" id="pagination-controls"></div>
                     </div>
                     {% else %}
-                    <div class="alert alert-info text-center">
-                        You have no orders yet.
+                    <div class="alert text-center">
+                        <p class="fs-3 text-center">
+                            <img src="{{ url_for('static', filename='images/order.gif') }}" alt="No Data Available" style="width: 100px; height: 100px;">
+                            <br>
+                            No Orders !
+                        </p>
                     </div>
                     {% endif %}
                 </div>

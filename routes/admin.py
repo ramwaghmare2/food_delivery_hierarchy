@@ -123,6 +123,7 @@ def sales_report():
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
+    notification_check = check_notification(role, user_id)
     role = session.get('role')
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
@@ -241,21 +242,23 @@ def sales_report():
     sales = list(sales_by_date_dict.values()) if sales_by_date_dict else [0]
    
     return render_template(
-        'admin/sales_report.html',
-        total_sales_amount=total_sales_amount,
-        total_orders_count=total_orders_count,
-        quantity_sold=quantity_sold,
-        filter_param=filter_param,  # Pass filter to the template
-        sales_data=sales_data,
-        dates=dates,
-        sales=sales,
-        role=role,
-        user_name=user.name,
-        encoded_image=encoded_image,
-        sales_by_date=sales_by_date,
-        sales_by_date_dict=dict(sales_by_date_dict),
-        sales_by_item_data=sales_by_item_data  # Pass the sales_by_item_data
-    )
+                        'admin/sales_report.html',
+                        total_sales_amount=total_sales_amount,
+                        total_orders_count=total_orders_count,
+                        quantity_sold=quantity_sold,
+                        filter_param=filter_param,  # Pass filter to the template
+                        sales_data=sales_data,
+                        dates=dates,
+                        sales=sales,
+                        role=role,
+                        user_name=user.name,
+                        encoded_image=encoded_image,
+                        sales_by_date=sales_by_date,
+                        sales_by_date_dict=dict(sales_by_date_dict),
+                        sales_by_item_data=sales_by_item_data,  # Pass the sales_by_item_data
+                        notification_check=len(notification_check)
+                        )
+
 ###################################### Orders data visualization API ##################################
 orders_bp = Blueprint('orders', __name__, url_prefix='/sales')
 @orders_bp.route('/list', methods=['GET'])
@@ -264,6 +267,7 @@ def order_list():
     user_id = session.get('user_id')
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
+    notification_check = check_notification(role, user_id)
     search_query = request.args.get('search', '', type=str)
     filter_by = request.args.get('filter_by', 'all')
     order_status = request.args.get('status', '', type=str)
@@ -317,6 +321,7 @@ def order_list():
                            user_name=user.name,
                            role=role,
                            encoded_image=encoded_image,
+                           notification_check=len(notification_check)
                            )
 
 
@@ -327,6 +332,8 @@ def view_details(user_id):
     role = session.get('role')
     user_name = get_user_query(role, id)
     encoded_image = get_image(role, id)
+    notification_check = check_notification(role, user_id)
+
 
     # Fetch the user (manager)
     user = Manager.query.filter_by(id=user_id).first()
@@ -411,4 +418,5 @@ def view_details(user_id):
                            super_distributors=super_distributor_data,
                            distributors=distributor_data,
                            kitchens=kitchen_data,
+                           notification_check=len(notification_check)
                            )
