@@ -1,7 +1,13 @@
 {% if role == 'Admin' %}
     {% include 'admin/admin_header.html' %}
-{% else %}
+{% elif role == 'Manager' %}
     {% include 'manager/manager_header.html' %}
+{% elif role == "SuperDistributor" %}
+    {% include 'super_distributor/sd_header.html'%}
+{% elif role == "Distributor" %}
+    {% include 'distributor/d_header.html'%}
+{% elif role == "Kitchen" %}
+    {% include 'kitchen/kitchen_header.html'%}
 {% endif %}
 
 <link href="{{ url_for('static', filename='/css/sales_report.css') }}" rel="stylesheet" />
@@ -40,7 +46,7 @@
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="font-weight-bold">Sales Data Table</h6>
                     <!-- Filter Dropdown -->
-                    <form id="filter-form" method="GET" action="/admin/sales/sales_report" class="form-inline">
+                    <form id="filter-form" method="GET" action="/sales/sales_report" class="form-inline">
                         <select class="form-control mr-2" name="filter" id="date-filter">
                             <option value="all" {% if filter_param=='all' %}selected{% endif %}>All</option>
                             <option value="today" {% if filter_param=='today' %}selected{% endif %}>Today</option>
@@ -101,87 +107,6 @@
         </div>
     </main>
     <br>
-    <script src="{{ url_for('static', filename='sales_report.js') }}"></script>
  
 {% include 'admin/admin_footer.html' %}
 </div>
-<script>
-window.onload = function() {
-    // Data for Bar Chart (Sales by Date)
-    var salesByDateData = {
-        labels: {{ dates|tojson }},
-        datasets: [{
-            label: 'Total Sales',
-            data: {{ sales|tojson }},
-            backgroundColor: 'rgba(0, 76, 153, 0.8)',
-            borderColor: 'rgba(0, 76, 153, 1)',
-            borderWidth: 1
-        }]
-    };
- 
-    // Bar Chart for Sales by Date
-    var ctxBar = document.getElementById('salesByDateChart').getContext('2d');
-    new Chart(ctxBar, {
-        type: 'bar',
-        data: salesByDateData,
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Sales by Date'
-                }
-            }
-        }
-    });
- 
-    // Data for Line Chart (Sales by Item)
-    var salesByItemData = {
-        labels: {{ sales_by_item_data|map(attribute='item_name')|list|tojson }},
-        datasets: [{
-            label: 'Sales by Item',
-            data: {{ sales_by_item_data|map(attribute='total_sales')|list|tojson }},
-            fill: false,
-            borderColor: 'rgba(51, 153, 255, 1)',
-            tension: 0.1
-        }]
-    };
- 
-    // Line Chart for Sales by Item
-    var ctxLine = document.getElementById('salesByItemChart').getContext('2d');
-    new Chart(ctxLine, {
-        type: 'line',
-        data: salesByItemData,
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Sales by Item (Line Chart)'
-                }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Item'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Total Sales'
-                    },
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-};
-
-</script>

@@ -3,6 +3,9 @@ from models import db, Sales, Order, OrderItem, FoodItem, Manager, Distributor, 
 from sqlalchemy import func, and_
 from base64 import b64encode
 from datetime import datetime, time
+from collections import defaultdict
+from sqlalchemy import func, desc
+from flask import session
 
 ###################################### Get Model Counts ###############################################
 def get_model_counts():
@@ -83,7 +86,7 @@ def today_sale(user_id):
     return today_total_sales
 
 ###################################### Class For Manager Sales ########################################
-class ManagerSales():
+class SalesReport():
     def cpunt_func(self, user_id):
         total_sales_amount = (
             db.session.query(db.func.sum(Order.total_amount))  
@@ -133,4 +136,4 @@ class ManagerSales():
             .all()
         )
         return total_sales_amount, total_orders_count, quantity_sold, sales_data
-MS = ManagerSales()
+MS = SalesReport()

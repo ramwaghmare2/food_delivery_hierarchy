@@ -102,7 +102,7 @@ def signup():
         if data['password'] != data['confirmPassword']:
             return jsonify({"error": "Passwords do not match"}), 400
          
-        user = create_user(data, role)
+        user = create_user(data, role, creator_role='Admin')  # Provide the creator_role argument
         if user:
             return render_template('admin/login.html')
         else:
@@ -111,11 +111,7 @@ def signup():
 
     return render_template("admin/signup.html")
 
-
 ###################################### Route for Login ##################################
-from werkzeug.security import check_password_hash, generate_password_hash
-import bcrypt
-
 @user_bp.route('/login', methods=['GET', 'POST'])
 def login():
     try:
@@ -218,7 +214,6 @@ def login():
         flash(f"{handle_error(e)}.", 'danger')
         return redirect(url_for('user_bp.login'))
 
-
 ################################## Logout Route  ##################################
 @user_bp.route('/logout')
 def logout():
@@ -255,7 +250,7 @@ def logout():
                     {'user_id': user.id, 
                      'status': 'offline', 
                      'role': role,
-                     'laste_seen': user.last_seen.isoformat()
+                     'last_seen': user.last_seen.isoformat()
                      },
                     to='*/' 
                 )
@@ -293,8 +288,6 @@ def get_profile():
     if user.image:
         encoded_image = b64encode(user.image).decode('utf-8')
 
-
-
     return render_template('admin/user_profile.html', 
                            user=user, 
                            role=role, 
@@ -326,7 +319,6 @@ def edit_profile():
     
     user = model.query.filter_by(id=user_id).first()
     
-
     image_data= get_image(role, user_id)
 
     if isinstance(role, bytes):
@@ -373,7 +365,7 @@ def edit_profile():
         except Exception as e:
             db.session.rollback()
             flash(f"Error updating {role}: {str(e)}", "danger")
-            return redirect(url_for('user_bp.edit_profile'))
+            return redirect(url_for('admin_bp.edit_profile'))
 
     return render_template('admin/edit_profile.html', 
                            user=user, 
