@@ -245,10 +245,13 @@ def sales_report():
 
     return render_template(
         'admin/sales_report.html',
+        role=role,
+        user_id=user_id,
+        user_name=user.name,
         total_sales_amount=total_sales_amount or 0,
         total_orders_count=total_orders_count or 0,
         quantity_sold=quantity_sold or 0,
         user=user,
         encoded_image=encoded_image,
-        filter_param=filter_param
+        filter_param=filter_param   
     )
