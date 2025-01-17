@@ -319,32 +319,37 @@ def manager_home():
         kitchen_count = len(all_kitchens)
 
         total_sales_amount = (
-            db.session.query(db.func.sum(Order.total_amount))  
-            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
-            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
-            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
-            .filter(SuperDistributor.manager_id == user_id)  
-            .scalar() or 0 
+            db.session.query(db.func.sum(Order.total_amount))
+            .join(Sales, Order.order_id == Sales.order_id)  # Join Sales model to filter orders
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .filter(SuperDistributor.manager_id == user_id)
+            .scalar() or 0
         )
         print("manager_total_sales_amount: ", total_sales_amount)
+
         total_orders_count = (
-            db.session.query(db.func.count(Order.order_id))  
-            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
-            .join(Distributor, Kitchen.distributor_id == Distributor.id) 
-            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id) 
-            .filter(SuperDistributor.manager_id == user_id)  
-            .scalar() or 0  
+            db.session.query(db.func.count(Order.order_id))
+            .join(Sales, Order.order_id == Sales.order_id)  # Join Sales model to filter orders
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .filter(SuperDistributor.manager_id == user_id)
+            .scalar() or 0
         )
 
         quantity_sold = (
             db.session.query(db.func.sum(OrderItem.quantity))
-            .join(Order, OrderItem.order_id == Order.order_id)  
-            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
-            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
-            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
-            .filter(SuperDistributor.manager_id == user_id)  
-            .scalar() or 0  
+            .join(Order, OrderItem.order_id == Order.order_id)
+            .join(Sales, Order.order_id == Sales.order_id)  # Join Sales model to filter orders
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .filter(SuperDistributor.manager_id == user_id)
+            .scalar() or 0
         )
+
 
         sales_data = (
             db.session.query(
