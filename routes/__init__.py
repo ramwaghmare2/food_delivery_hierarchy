@@ -8,12 +8,13 @@ from .super_distributor import super_distributor_bp
 from .cuisine import cuisine_bp
 from .order import order_bp
 from .food_item import food_item_bp
-from .admin import sales_bp, orders_bp
 from .dashboard import dashboard_bp
 from .user_routes import user_bp
 from .wallet import wallet_bp
 from .royalty import royalty_bp
 from .notification_routes import notification_bp
+from .sales_report import sales_bp
+from .orders_report import orders_bp
 
 ###################################### Function to Register Blueprints ################################
 def create_app_routes(app):
@@ -26,7 +27,7 @@ def create_app_routes(app):
     app.register_blueprint(cuisine_bp, url_prefix='/cuisine')
     app.register_blueprint(order_bp, url_prefix='/order')
     app.register_blueprint(food_item_bp, url_prefix='/fooditem')
-    app.register_blueprint(sales_bp, url_prefix='/admin/sales')  
+    app.register_blueprint(sales_bp, url_prefix='/sales')  
     app.register_blueprint(orders_bp, url_prefix='/admin/orders')  
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(user_bp, url_prefix='/user')

@@ -326,7 +326,7 @@ def manager_home():
             .filter(SuperDistributor.manager_id == user_id)  
             .scalar() or 0 
         )
-
+        print("manager_total_sales_amount: ", total_sales_amount)
         total_orders_count = (
             db.session.query(db.func.count(Order.order_id))  
             .join(Kitchen, Order.kitchen_id == Kitchen.id)  
@@ -369,23 +369,6 @@ def manager_home():
 
         notification_check = check_notification(role, user_id)
 
-        monthly_sales = (
-            db.session.query(
-                db.func.date_format(Sales.datetime, '%Y-%m').label('month'),
-                db.func.sum(Order.total_amount).label('total_sales'),
-            )
-            .join(Order, Sales.order_id == Order.order_id)
-            .join(Kitchen, Order.kitchen_id == Kitchen.id)
-            .filter(Kitchen.distributor_id == user_id)
-            .group_by(db.func.date_format(Sales.datetime, '%Y-%m'))
-            .order_by(db.func.date_format(Sales.datetime, '%Y-%m'))
-            .all()
-        )
-        print("monthly_sales: ", monthly_sales)
-
-        months = [month for month, _ in monthly_sales]
-        total_sales = [float(total) for _, total in monthly_sales]
-
     except Exception as e:
         logging.error(f"Error fetching data: {e}")
 
@@ -407,3 +390,7 @@ def manager_home():
         total_sales=total_sales,
         barChartData={"labels": months, "values": total_sales},
     )
+
+###################################### Route for Manager Sales Report #################################
+
+

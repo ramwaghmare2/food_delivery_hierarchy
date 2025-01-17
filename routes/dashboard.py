@@ -24,6 +24,7 @@ def admin_dashboard():
 
     # Initialize counts, totals, and sales data
     total_sales_amount, total_orders_count, quantity_sold = 0, 0, 0
+    manager_total_sales_amount = 0
     sales_data = []
     notification_check = []
     #sales_distribution = []
@@ -41,7 +42,16 @@ def admin_dashboard():
         total_sales_amount = db.session.query(func.sum(Order.total_amount)).scalar() or 0
         total_orders_count = OrderItem.query.count()
         quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
-
+        
+        manager_total_sales_amount = (
+            db.session.query(db.func.sum(Order.total_amount))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id)  
+            .scalar() or 0 
+        )
+        print("manager_total_sales_amount: ", manager_total_sales_amount)
         # Sales data
         sales_data = db.session.query(
             Sales.sale_id,
@@ -952,3 +962,25 @@ def kitchen_dashboard():
                            order_data =order_data,
                            notification_check=len(notification_check)
                     )
+
+def cpunt_func(self, user_id):
+    role = session.get('role')
+    user_id = session.get('user_id')
+    user = get_user_query(role, user_id)
+    admin_total_sales_amount = 0
+    manager_total_sales_amount = 0
+    try:
+        admin_total_sales_amount = db.session.query(func.sum(Order.total_amount)).scalar() or 0
+        print("admin_total_sales_amount: ", admin_total_sales_amount)
+        
+        manager_total_sales_amount = (
+            db.session.query(db.func.sum(Order.total_amount))  
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)  
+            .filter(SuperDistributor.manager_id == user_id)  
+            .scalar() or 0 
+        )
+        print("manager_total_sales_amount: ", manager_total_sales_amount)
+    except Exception as e:
+        print(f"Error fetching data: {e}")
