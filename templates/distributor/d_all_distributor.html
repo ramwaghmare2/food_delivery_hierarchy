@@ -42,6 +42,7 @@
         </div>
         <!-- Manager Cards -->
         <div class="row">
+            {% if all_distributors %}
             {% for distributor in all_distributors %}
                 <div class="col-md-4 mb-4">
                     <div class="card manager-card">
@@ -109,6 +110,15 @@
                     </div>
                 </div>
             {% endfor %}
+            {% else %}
+            <div class="alert text-center">
+                <p class="fs-3 text-center">
+                    <img src="{{ url_for('static', filename='images/forklift.gif') }}" alt="No Distributor" style="width: 100px; height: 100px;">
+                    <br>
+                    No Distributor !
+                </p>
+            </div>
+            {% endif %}
         </div>
         
         <style>

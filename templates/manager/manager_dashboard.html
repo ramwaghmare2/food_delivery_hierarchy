@@ -1,8 +1,6 @@
 {% include 'manager/manager_header.html' %}
 <link rel="stylesheet" href="/static/css/dashboard.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 
 <div id="layoutSidenav_content">
 <main>
@@ -24,305 +22,315 @@
                 <p>{{ quantity_sold }}</p>
             </div>
         </div>
-            <section class="charts-section">
-                <div class="chart-container" style="position: relative;">
-                    <canvas id="totalSalesChart"></canvas>
-                </div>
-    
-                <div class="chart-container">
-                    <canvas id="salesByItemChart"></canvas>
-                </div>
-    
-                <div class="chart-container">
-                    <canvas id="salesOverTimeChart"></canvas>
-                </div>
-    
-                <div class="chart-container">
-                    <canvas id="topSellingItemsChart"></canvas>
-                </div>
-    
-                <div class="chart-container">
-                    <canvas id="dailySalesPerformanceChart"></canvas>
-                </div>
-    
-                <div class="chart-container">
-                    <canvas id="salesDistributionChart"></canvas>
-                </div>
-            </section>
-        </div>
+        <section class="charts-section">
+            <div class="chart-container">
+                <canvas id="totalSalesChart"></canvas>
+            </div>
 
-<script>
-    // Chart for Total Sales
-    var totalSalesData = {
-        labels: {{ total_sales_data['labels']|default([])|tojson }},
-        datasets: [{
-            label: 'Total Sales',
-            data: {{ total_sales_data['values']|tojson }},
-            backgroundColor: [ 
-                        'rgba(0, 51, 102, 0.9)',
-                            'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
-                    'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
-                    'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
-                    'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
-                     // Bright Blue (Optional)
-                    'rgba(0, 204, 255, 0.7)'   // Cyan (Optional)
+            <div class="chart-container">
+                <canvas id="salesByItemChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="salesOverTimeChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="topSellingItemsChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="dailySalesPerformanceChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="salesDistributionChart"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Chart for Total Sales
+        var totalSalesData = {
+            labels: {{ total_sales_data['labels']|default([])|tojson }},
+            datasets: [{
+                label: 'Total Sales',
+                data: {{ total_sales_data['values']|tojson }},
+                backgroundColor: [
+                    'rgba(0, 51, 102, 0.9)',
+                    'rgba(0, 128, 255, 0.8)',
+                    'rgba(0, 76, 153, 0.8)',
+                    'rgba(0, 102, 204, 0.8)',
+                    'rgba(51, 153, 255, 0.7)',
+                    'rgba(0, 204, 255, 0.7)'
                 ],
                 borderColor: [
-                'rgba(0, 51, 102, 1)',
-                    'rgba(0, 128, 255, 1)',    // Deep Navy Blue
-                    'rgba(0, 76, 153, 1)',    // Medium Blue
-                    'rgba(0, 102, 204, 1)',   // Sky Blue
-                    'rgba(51, 153, 255, 1)',  // Light Blue
-                       // Bright Blue
-                    'rgba(0, 204, 255, 1)'    // Cyan
+                    'rgba(0, 51, 102, 1)',
+                    'rgba(0, 128, 255, 1)',
+                    'rgba(0, 76, 153, 1)',
+                    'rgba(0, 102, 204, 1)',
+                    'rgba(51, 153, 255, 1)',
+                    'rgba(0, 204, 255, 1)'
                 ],
-            borderWidth: 1
-        }]
-    };
+                borderWidth: 1
+            }]
+        };
 
-    var totalSalesConfig = {
-        type: 'bar',
-        data: totalSalesData,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            return '$' + tooltipItem.raw.toFixed(2);
+        var totalSalesConfig = {
+            type: 'bar',
+            data: totalSalesData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return '₹' + tooltipItem.raw.toFixed(2);
+                            }
                         }
                     }
                 }
             }
-        }
-    };
+        };
 
-    // Chart for Sales by Item
-    var salesByItemData = {
-        labels: {{ sales_by_item['labels']|default([])|tojson }},
-        datasets: [{
-            label: 'Sales by Item',
-            data: {{ sales_by_item['values']|default([])|tojson }},
-            backgroundColor: [
-                        'rgba(0, 51, 102, 0.9)',
-                            'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
-                            'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
-                            'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
-                            'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
-                            // Bright Blue (Optional)
-                            'rgba(0, 204, 255, 0.7)' 
-                    ],
-            borderWidth: 1
-        }]
-    };
+        // Chart for Sales by Item
+        var salesByItemData = {
+            labels: {{ sales_by_item['labels']|default([])|tojson }},
+            datasets: [{
+                label: 'Sales by Item',
+                data: {{ sales_by_item['values']|default([])|tojson }},
+                backgroundColor: [
+                    'rgba(0, 51, 102, 0.9)',
+                    'rgba(0, 128, 255, 0.8)',
+                    'rgba(0, 76, 153, 0.8)',
+                    'rgba(0, 102, 204, 0.8)',
+                    'rgba(51, 153, 255, 0.7)',
+                    'rgba(0, 204, 255, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        };
 
-    var salesByItemConfig = {
-        type: 'pie',
-        data: salesByItemData,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
+        var salesByItemConfig = {
+            type: 'pie',
+            data: salesByItemData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
                 }
             }
-        }
-    };
+        };
 
+        // Chart for Quantity Sold Over Time
+        var salesOverTimeData = {
+            labels: {{ sales_over_time['labels'] | tojson }},
+            datasets: [{
+                label: 'Total Sales',
+                data: {{ sales_over_time['values'] | tojson }},
+                borderColor: 'rgba(0, 102, 204, 0.8)',
+                backgroundColor: 'rgba(0, 102, 204, 1)',
+                fill: false,
+                tension: 0.1
+            }]
+        };
 
-    // Chart for Quantity Sold Over Time
-    var salesOverTimeData = {
-        labels: {{ sales_over_time['labels'] | tojson }},  // Pass the labels (dates)
-        datasets: [{
-            label: 'Total Sales',
-            data: {{ sales_over_time['values'] | tojson }},  // Pass the values (total sales)
-            borderColor: 'rgba(0, 102, 204, 0.8)',
-            backgroundColor: 'rgba(0, 102, 204, 1)',
-            fill: false,
-            tension: 0.1
-        }]
-    };
-
-    // Configuration for the Chart
-    var config = {
-        type: 'line',  // You can change to 'bar' or 'horizontalBar' if you prefer a different chart type
-        data: salesOverTimeData,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
+        var salesOverTimeConfig = {
+            type: 'line',
+            data: salesOverTimeData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                 },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                },
-            },
-            scales: {
-                x: {
-                    type: 'category',
-                    title: {
-                        display: true,
-                        text: 'Date'
+                scales: {
+                    x: {
+                        type: 'category',
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Total Sales'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // Chart for Top-Selling Items
+        var topSellingItemsData = {
+            labels: {{ top_selling_items['labels']|default([])|tojson }},
+            datasets: [{
+                label: 'Top Selling Items',
+                data: {{ top_selling_items['values']|default([])|tojson }},
+                backgroundColor: 'rgba(51, 153, 255, 0.7)',
+                borderColor: 'rgba(51, 153, 255, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        var topSellingItemsConfig = {
+            type: 'bar',
+            data: topSellingItemsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.raw + ' items';
+                            }
+                        }
                     }
                 },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Total Sales'
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Food Items'
+                        }
                     },
-                    beginAtZero: true
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Quantity Sold'
+                        },
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    };
+        };
 
-    // Create the chart
-    var salesOverTimeChart = new Chart(
-        document.getElementById('salesOverTimeChart'),
-        config
-    );
+        // Chart for Daily Sales Performance
+        var dailySalesPerformanceData = {
+            labels: {{ daily_sales_performance['labels']|default([])|tojson }},
+            datasets: [{
+                label: 'Daily Sales Revenue',
+                data: {{ daily_sales_performance['values']|tojson }},
+                backgroundColor: 'rgba(0, 204, 255, 0.7)',
+                borderColor: 'rgba(0, 204, 255, 1)',
+                borderWidth: 1
+            }]
+        };
 
-    // Chart for Top-Selling Items
-    var topSellingItemsData = {
-        labels: {{ top_selling_items['labels']|default([])|tojson }},
-        datasets: [{
-            label: 'Top Selling Items',
-            data: {{ top_selling_items['values']|default([])|tojson }},
-            backgroundColor: 'rgba(51, 153, 255, 0.7)', // Orange color with transparency
-            borderColor: 'rgba(51, 153, 255, 1)',  // Solid border color for bars
-            borderWidth: 1
-        }]
-    };
-
-    // Configuration for Top Selling Items Chart (Bar Chart)
-    var topSellingItemsConfig = {
-        type: 'bar',  // Bar chart type
-        data: topSellingItemsData,
-        options: {
-            responsive: true,  // Make the chart responsive
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            return tooltipItem.raw + ' items';  // Show quantity in tooltip
+        var dailySalesPerformanceConfig = {
+            type: 'line',
+            data: dailySalesPerformanceData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return '₹' + tooltipItem.raw.toFixed(2);
+                            }
                         }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Food Items'
+            }
+        };
+
+        // Chart for Sales Distribution by Food Item
+        var salesDistributionData = {
+            labels: {{ sales_distribution['labels']|default([])|tojson }},
+            datasets: [{
+                label: 'Sales Distribution',
+                data: {{ sales_distribution['values']|default([])|tojson }},
+                backgroundColor: [
+                    'rgba(0, 51, 102, 0.9)',
+                    'rgba(0, 128, 255, 0.8)',
+                    'rgba(0, 76, 153, 0.8)',
+                    'rgba(0, 102, 204, 0.8)',
+                    'rgba(51, 153, 255, 0.7)',
+                    'rgba(0, 204, 255, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(0, 51, 102, 1)',
+                    'rgba(0, 128, 255, 1)',
+                    'rgba(0, 76, 153, 1)',
+                    'rgba(0, 102, 204, 1)',
+                    'rgba(51, 153, 255, 1)',
+                    'rgba(0, 204, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        var salesDistributionConfig = {
+            type: 'polarArea',
+            data: salesDistributionData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
                     }
                 },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantity Sold'
+                indexAxis: 'y', // Makes the bar chart horizontal
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Sales Quantity'
+                        }
                     },
-                    beginAtZero: true
-                }
-            }
-        }
-    };
-
-    // Create the chart
-    var topSellingItemsChart = new Chart(
-        document.getElementById('topSellingItemsChart'),  // Reference to the canvas element
-        topSellingItemsConfig  // Configuration
-    );
-
-    // Chart for Daily Sales Performance (Line or Bar chart)
-var dailySalesPerformanceData = {
-    labels: {{ daily_sales_performance['labels']|default([])|tojson }},
-    datasets: [{
-        label: 'Daily Sales Revenue',
-        data: {{ daily_sales_performance['values']|tojson }},
-        backgroundColor:  'rgba(0, 204, 255, 0.7)', 
-        borderColor:  'rgba(0, 204, 255, 1)', 
-        borderWidth: 1
-    }]
-};
-
-var dailySalesPerformanceConfig = {
-    type: 'line',  // Change to 'bar' if you prefer a bar chart
-    data: dailySalesPerformanceData,
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top',
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(tooltipItem) {
-                        return '$' + tooltipItem.raw.toFixed(2);
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Food Items'
+                        }
                     }
                 }
             }
-        }
-    }
-};
+        };
 
-var dailySalesPerformanceChart = new Chart(document.getElementById('dailySalesPerformanceChart'), dailySalesPerformanceConfig);
 
-// Chart for Sales Distribution by Food Item (Pie or Doughnut chart)
-var salesDistributionData = {
-    labels: {{ sales_distribution['labels']|default([])|tojson }},
-    datasets: [{
-        label: 'Sales Distribution',
-        data: {{ sales_distribution['values']|default([])|tojson }},
-        backgroundColor: [
-                        'rgba(0, 51, 102, 0.9)',
-                            'rgba(0, 128, 255, 0.8)',  // Deep Navy Blue (Completed)
-                            'rgba(0, 76, 153, 0.8)',  // Medium Blue (Cancelled)
-                            'rgba(0, 102, 204, 0.8)', // Sky Blue (Pending)
-                            'rgba(51, 153, 255, 0.7)', // Light Blue (Processing)
-                            // Bright Blue (Optional)
-                            'rgba(0, 204, 255, 0.7)' 
-                    ],
-        borderColor:[
-                        'rgba(0, 51, 102, 1)',
-                            'rgba(0, 128, 255, 1)',  // Deep Navy Blue (Completed)
-                            'rgba(0, 76, 153, 1)',  // Medium Blue (Cancelled)
-                            'rgba(0, 102, 204, 1)', // Sky Blue (Pending)
-                            'rgba(51, 153, 255, 1)', // Light Blue (Processing)
-                            // Bright Blue (Optional)
-                            'rgba(0, 204, 255, 1)' 
-                    ],
-        borderWidth: 1
-    }]
-};
+        // Initialize the charts after the page loads
+        window.onload = function() {
+            new Chart(document.getElementById('totalSalesChart'), totalSalesConfig);
+            new Chart(document.getElementById('salesByItemChart'), salesByItemConfig);
+            new Chart(document.getElementById('salesOverTimeChart'), salesOverTimeConfig);
+            new Chart(document.getElementById('topSellingItemsChart'), topSellingItemsConfig);
+            new Chart(document.getElementById('dailySalesPerformanceChart'), dailySalesPerformanceConfig);
+            new Chart(document.getElementById('salesDistributionChart'), salesDistributionConfig);
+        };
 
-var salesDistributionConfig = {
-    type: 'doughnut',  // Change to 'pie' if you prefer a pie chart
-    data: salesDistributionData,
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top',
-            }
-        }
-    }
-};
+    </script>
 
-var salesDistributionChart = new Chart(document.getElementById('salesDistributionChart'), salesDistributionConfig);
-
-    // Initialize charts
-    window.onload = function() {
-        new Chart(document.getElementById('totalSalesChart'), totalSalesConfig);
-        new Chart(document.getElementById('salesByItemChart'), salesByItemConfig);
-        new Chart(document.getElementById('quantitySoldChart'), quantitySoldConfig);
-        new Chart(document.getElementById('topSellingItemsChart'), topSellingItemsConfig);
-        new Chart(document.getElementById('dailySalesPerformanceChart'), dailySalesPerformanceConfig);
-    };
-</script>
 </main>    
 {% include 'admin/admin_footer.html' %}
 </div>
+
+<style>
+    /* Chart Container CSS */
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 300px;  /* Adjust height as needed */
+        margin: 10px;
+    }
+
+    canvas {
+        width: 100% !important; /* Ensure the canvas stretches to full width */
+        height: 100% !important; /* Ensure the canvas has the correct height */
+    }
+</style>
