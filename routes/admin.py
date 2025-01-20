@@ -56,9 +56,26 @@ def admin_home():
         kitchen_count = len(Kitchen.query.all())
 
         # Aggregate totals
-        total_sales_amount = db.session.query(func.sum(Order.total_amount)).scalar() or 0
-        total_orders_count = Order.query.count()
-        quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
+                # Total sales amount from Orders where order_id is in Sales
+        total_sales_amount = (
+            db.session.query(func.sum(Order.total_amount))
+            .join(Sales, Sales.order_id == Order.order_id)
+            .scalar() or 0
+        )
+
+        # Total orders count where order_id is in Sales
+        total_orders_count = (
+            db.session.query(func.count(Order.order_id))
+            .scalar() or 0
+        )
+
+        # Total quantity sold from OrderItems where order_id is in Sales
+        quantity_sold = (
+            db.session.query(func.sum(OrderItem.quantity))
+            .join(Order, OrderItem.order_id == Order.order_id)
+            .join(Sales, Sales.order_id == Order.order_id)
+            .scalar() or 0
+        )
 
         # Sales data
         sales_data = db.session.query(

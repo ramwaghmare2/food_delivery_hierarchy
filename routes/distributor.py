@@ -88,11 +88,13 @@ def distributor_home():
         order_count = len(orders)
 
         # Total price of all orders related to the active kitchens
-        total_price = db.session.query(func.sum(Order.total_amount))\
-        .filter(Order.kitchen_id.in_(kitchen_ids))\
-        .filter(Order.order_status == 'Completed')\
-        .scalar()
-        total_price = float(total_price) if total_price else 0  # Convert to float
+        total_price = (
+            db.session.query(func.sum(Order.total_amount))
+            .join(Sales, Order.order_id == Sales.order_id)  # Join with Sales model
+            .filter(Order.kitchen_id.in_(kitchen_ids))  # Filter by kitchen_ids
+            .scalar()
+        )
+        total_price = float(total_price) if total_price else 0 # Convert to float
 
         # Prepare data for bar chart
         kitchen_order_count = {kitchen.name: 0 for kitchen in kitchens}

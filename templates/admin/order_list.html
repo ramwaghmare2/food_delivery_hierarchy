@@ -54,21 +54,25 @@
                     <h6 class="font-weight-bold">ORDER LIST</h6>
                     <!-- Filter Dropdown -->
                     <form id="filter-form" method="GET" action="{{ url_for('orders.order_list') }}" class="form-inline">
-                        <select name="filter_by" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
+                        <select id="filter-by" name="filter_by" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
                             <option value="all" {% if request.args.get('filter_by') == 'all' %}selected{% endif %}>All</option>
                             <option value="user_id" {% if request.args.get('filter_by') == 'user_id' %}selected{% endif %}>User ID</option>
                             <option value="order_id" {% if request.args.get('filter_by') == 'order_id' %}selected{% endif %}>Order ID</option>
                             <option value="kitchen_id" {% if request.args.get('filter_by') == 'kitchen_id' %}selected{% endif %}>Kitchen ID</option>
                         </select>
+                    
+                        <!-- Input field for the ID filter -->
+                        <input type="text" id="filter-value" name="search" placeholder="Enter ID" 
+       style="display: none; padding: 10px; font-size: 1.1rem; border-radius: 3px; margin-right: 5px; width: 160px;">
 
                         <select name="status" style="padding: 10px; font-size: 1.1rem; border-radius: 5px; margin-right: 10px;">
-                            <option value="" {% if not request.args.get('status') %}selected{% endif %}>Any Status</option>
+                            <option value="" {% if not request.args.get('status') %}selected{% endif %}>All</option>
                             <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
                             <option value="processing" {% if request.args.get('status') == 'processing' %}selected{% endif %}>Processing</option>
                             <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
                             <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
                         </select>
-
+                    
                         <button type="submit" class="btn" style="background-color: #003366; color:#ffffff">Apply Filter</button>
                     </form>
                 </div>
@@ -114,3 +118,24 @@
     <script src="{{ url_for('static', filename='sales_report.js') }}"></script>
 {% include 'admin/admin_footer.html' %}
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterBySelect = document.getElementById('filter-by');
+        const filterValueInput = document.getElementById('filter-value');
+
+        // Show or hide the input field based on the selected filter
+        filterBySelect.addEventListener('change', function() {
+            const selectedOption = filterBySelect.value;
+            if (['user_id', 'order_id', 'kitchen_id'].includes(selectedOption)) {
+                filterValueInput.style.display = 'inline-block';
+                filterValueInput.placeholder = `Enter ${selectedOption.replace('_', ' ').toUpperCase()}`;
+            } else {
+                filterValueInput.style.display = 'none';
+                filterValueInput.value = ''; // Clear the input when it's hidden
+            }
+        });
+
+        // Trigger change event on page load to set the correct initial state
+        filterBySelect.dispatchEvent(new Event('change'));
+    });
+</script>

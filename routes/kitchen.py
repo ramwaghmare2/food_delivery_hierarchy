@@ -14,11 +14,11 @@ import json
 kitchen_bp = Blueprint('kitchen', __name__, static_folder='../static')
 
 ################################## Route to add a new Kitchen #########################################
-@kitchen_bp.route('/kitchens', methods=['GET','POST'])
+@kitchen_bp.route('/kitchens', methods=['GET', 'POST'])
 def create_kitchen():
     user_id = session.get('user_id')
     role = session.get('role')
-    image_data= get_image(role, user_id) 
+    image_data = get_image(role, user_id)
     user_name = session.get('user_name')
     distributors = Distributor.query.filter_by(status='activated').all()
     data = request.form
@@ -27,14 +27,14 @@ def create_kitchen():
 
     user = get_user_query(role, user_id)
     if request.method == 'POST':
-        if role=='Distributor':
+        if role == 'Distributor':
             distributor_id = session.get('user_id')
         else:
             distributor_id = request.form.get('distributor')
-            
+
         existing_kitchen = Kitchen.query.filter_by(email=data.get('email')).first()
         if existing_kitchen:
-            flash("A kitchen with this email already exists. Please use a different email.",'danger')
+            flash("A kitchen with this email already exists. Please use a different email.", 'danger')
             return render_template(
                 'kitchen/add_kitchen.html',
                 role=role,
@@ -44,8 +44,12 @@ def create_kitchen():
             )
 
         hashed_password = generate_password_hash(data.get('password'))
+        
+        # Initialize image_binary to None, to handle cases where no image is uploaded
+        image_binary = None
+
+        # Handle image upload if a new image is provided
         image = request.files.get('image')
-        # Handle image update if a new image is uploaded
         if image and allowed_file(image.filename):
             # Convert the image to binary data
             image_binary = image.read()
@@ -63,16 +67,16 @@ def create_kitchen():
             address=data.get('address'),
             distributor_id=distributor_id
         )
-        
+
         db.session.add(new_kitchen)
         db.session.commit()
 
-        create_notification(user_id=new_kitchen.id, 
-                                role='Kitchen', 
-                                notification_type='Add', 
-                                description=f'{user.name}, the {role}, has Successfully Added {new_kitchen.name}, the Kitchen.')
+        create_notification(user_id=new_kitchen.id,
+                            role='Kitchen',
+                            notification_type='Add',
+                            description=f'{user.name}, the {role}, has Successfully Added {new_kitchen.name}, the Kitchen.')
 
-        flash('Kitchen Added Successfully.','success')
+        flash('Kitchen Added Successfully.', 'success')
         return redirect(url_for('kitchen.create_kitchen'))
 
     return render_template(

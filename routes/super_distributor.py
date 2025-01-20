@@ -44,9 +44,14 @@ def super_distributor():
         orders = Order.query.filter(Order.kitchen_id.in_(kitchen_ids)).all()
         total_orders_count = len(orders)
 
-        total_sales_amount = db.session.query(func.sum(Order.total_amount)).filter(
-            Order.kitchen_id.in_(kitchen_ids)
-        ).scalar() or 0
+        total_sales_amount = (
+            db.session.query(db.func.sum(Order.total_amount))
+            .join(Sales, Order.order_id == Sales.order_id)  # Join with Sales model
+            .join(Kitchen, Order.kitchen_id == Kitchen.id)  # Join with Kitchen
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)  # Join with Distributor
+            .filter(Distributor.super_distributor == user_id)  # Filter by user_id in Distributor as super_distributor
+            .scalar() or 0  # Return 0 if no result
+        )
 
         sales = Sales.query.filter(Sales.kitchen_id.in_([kitchen.id for kitchen in kitchens])).all()
         # total_orders_count = len(sales)  # Total number of orders (sales records)

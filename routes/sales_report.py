@@ -1,5 +1,5 @@
 ###################################### Importing Required Libraries ###################################
-from models import db, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem
+from models import db, Manager, SuperDistributor, Distributor, Kitchen, Sales, Order, Customer, FoodItem, FoodItem 
 from flask import Blueprint, request, session, render_template
 from utils.services import get_image, get_user_query
 from datetime import datetime, timedelta
@@ -163,7 +163,7 @@ def sales_report():
     user_id = session.get('user_id')  # Optional: Use current_user.id for Flask-Login
     user = get_user_query(role, user_id)
     encoded_image = get_image(role, user_id)
-    
+
     # Filter parameter for date range
     filter_param = request.args.get('filter', 'today')  # Default to 'today'
     today = datetime.today()
@@ -191,64 +191,109 @@ def sales_report():
     else:
         return jsonify({"error": "Invalid filter parameter"}), 400
 
-    print(f"Filter Param: {filter_param}, Start Time: {start_time}, End Time: {end_time}")
-
-    # Base query with aggregations
-    query = db.session.query(
+    # Base query with aggregations, filtering by Sales model
+    summary_query = db.session.query(
         func.count(func.distinct(Order.order_id)).label("total_orders_count"),
         func.coalesce(func.sum(OrderItem.quantity), 0).label("quantity_sold"),
         func.coalesce(func.sum(Order.total_amount), 0).label("total_sales_amount")
-    ).join(OrderItem, Order.order_id == OrderItem.order_id)
+    ).join(Sales, Order.order_id == Sales.order_id) \
+     .join(OrderItem, Order.order_id == OrderItem.order_id)
+
+    # Detailed sales data query
+    sales_data_query = db.session.query(
+        Sales.sale_id.label("sale_id"),
+        Order.created_at.label("sale_date"),
+        FoodItem.item_name.label("item_name"),
+        OrderItem.price,
+        OrderItem.quantity
+    ).join(Order, Sales.order_id == Order.order_id) \
+     .join(OrderItem, Order.order_id == OrderItem.order_id) \
+     .join(FoodItem, OrderItem.item_id == FoodItem.id)
 
     # Apply date range filter
     if start_time and end_time:
-        query = query.filter(Order.created_at.between(start_time, end_time))
+        summary_query = summary_query.filter(Order.created_at.between(start_time, end_time))
+        sales_data_query = sales_data_query.filter(Order.created_at.between(start_time, end_time))
 
     # Role-based filtering
     if role == 'Admin':
-        # Admin sees all orders
-        pass
+        pass  # Admin sees all orders
     elif role == 'Manager':
-        query = (
-            query.join(Kitchen, Order.kitchen_id == Kitchen.id)
+        summary_query = (
+            summary_query.join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
+            .filter(SuperDistributor.manager_id == user_id)
+        )
+        sales_data_query = (
+            sales_data_query.join(Kitchen, Order.kitchen_id == Kitchen.id)
             .join(Distributor, Kitchen.distributor_id == Distributor.id)
             .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id)
             .filter(SuperDistributor.manager_id == user_id)
         )
     elif role == 'SuperDistributor':
-        query = (
-            query.join(Kitchen, Order.kitchen_id == Kitchen.id)
+        summary_query = (
+            summary_query.join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .join(Distributor, Kitchen.distributor_id == Distributor.id)
+            .filter(Distributor.super_distributor == user_id)
+        )
+        sales_data_query = (
+            sales_data_query.join(Kitchen, Order.kitchen_id == Kitchen.id)
             .join(Distributor, Kitchen.distributor_id == Distributor.id)
             .filter(Distributor.super_distributor == user_id)
         )
     elif role == 'Distributor':
-        query = (
-            query.join(Kitchen, Order.kitchen_id == Kitchen.id)
+        summary_query = (
+            summary_query.join(Kitchen, Order.kitchen_id == Kitchen.id)
+            .filter(Kitchen.distributor_id == user_id)
+        )
+        sales_data_query = (
+            sales_data_query.join(Kitchen, Order.kitchen_id == Kitchen.id)
             .filter(Kitchen.distributor_id == user_id)
         )
     elif role == 'Kitchen':
-        query = query.filter(Order.kitchen_id == user_id)
+        summary_query = summary_query.filter(Order.kitchen_id == user_id)
+        sales_data_query = sales_data_query.filter(Order.kitchen_id == user_id)
 
-    # Execute the query
+    # Execute the queries
     try:
-        data = query.one_or_none()  # Fetch a single row
+        summary_data = summary_query.one_or_none()  # Fetch a single row
+        sales_data = sales_data_query.all()  # Fetch all rows for sales data
     except Exception as e:
         print(f"Error during query execution: {e}")
-        data = (0, 0, 0)
+        summary_data = (0, 0, 0)
+        sales_data = []
 
-    # Unpack the results
-    total_orders_count, quantity_sold, total_sales_amount = data or (0, 0, 0)
+    # Unpack the summary results
+    total_orders_count, quantity_sold, total_sales_amount = summary_data or (0, 0, 0)
 
-    print("Total Orders Count: ", total_orders_count)
-    print("Quantity Sold: ", quantity_sold)
-    print("Total Sales Amount: ", total_sales_amount)
+    # Prepare data for charts
+    sales_by_date = defaultdict(float)
+    sales_by_item = defaultdict(float)
 
+    for sale in sales_data:
+        sale_date = sale.sale_date.strftime('%Y-%m-%d')
+        sale_amount = float(sale.price) * sale.quantity  # Convert Decimal to float
+        sales_by_date[sale_date] += sale_amount
+        sales_by_item[sale.item_name] += sale_amount
+
+    # Convert defaultdicts to lists of dictionaries for easy JSON conversion
+    sales_by_date_list = [{'date': date, 'total_sales': total} for date, total in sales_by_date.items()]
+    sales_by_item_list = [{'item_name': item, 'total_sales': total} for item, total in sales_by_item.items()]
+
+    # Return JSON data for JavaScript
     return render_template(
         'admin/sales_report.html',
+        role=role,
+        user_id=user_id,
+        user_name=user.name,
         total_sales_amount=total_sales_amount or 0,
         total_orders_count=total_orders_count or 0,
         quantity_sold=quantity_sold or 0,
         user=user,
         encoded_image=encoded_image,
-        filter_param=filter_param
+        filter_param=filter_param,
+        sales_by_date_data=sales_by_date_list,  # Pass sales by date data
+        sales_by_item_data=sales_by_item_list,  # Pass sales by item data
+        sales_data=sales_data
     )

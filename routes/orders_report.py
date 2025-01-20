@@ -27,8 +27,20 @@ def order_list():
     query = Order.query
     exception_message = None
 
+    # Apply role-based filtering
+    if role == 'Admin':
+        # Admin sees all orders, filter by user_id if provided
+        query = query
+    elif role == 'Manager':
+        # Manager sees orders under their own supervision (e.g., based on manager_id and kitchen hierarchy)
+        query = query.join(Kitchen, Order.kitchen_id == Kitchen.id) \
+                     .join(Distributor, Kitchen.distributor_id == Distributor.id) \
+                     .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id) \
+                     .filter(SuperDistributor.manager_id == user_id)
+
+    # Apply search filters
     if search_query:
-        if search_query.isdigit():  
+        if search_query.isdigit():
             if filter_by == 'user_id':
                 query = query.filter(Order.user_id == int(search_query))
                 exception_message = f"No Orders available for User ID {search_query}"
@@ -38,30 +50,35 @@ def order_list():
             elif filter_by == 'kitchen_id':
                 query = query.filter(Order.kitchen_id == int(search_query))
                 exception_message = f"No Orders available for Kitchen ID {search_query}"
-            else:  
+            else:
                 query = Order.query
         else:
-            query = query.join(Customer).filter(Customer.name.ilike(f'%{search_query}'))
+            query = query.join(Customer, Order.user_id == Customer.user_id) \
+                         .filter(Customer.name.ilike(f'%{search_query}%'))
             exception_message = f"No orders available for customer matching '{search_query}'"
 
+    # Apply status filter
     if order_status:
         if order_status in ['pending', 'processing', 'cancelled', 'completed']:
             query = query.filter(Order.order_status == order_status)
             exception_message = f"No orders available with status '{order_status}'"
         else:
             exception_message = f"Invalid status filter: '{order_status}'"
+
+    # Order by created_at
     query = query.order_by(Order.created_at.desc())
     orders = query.all()  # Fetch all records instead of paginated results
+    
+    # Debugging: Check the query generated
+    print(query)  # Prints the SQL query for debugging
 
+    # Calculate order statistics
     total_order_count = Order.query.count()
     total_quantity_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
     total_completed_orders = Order.query.filter(Order.order_status == 'completed').count()
     total_cancelled_orders = Order.query.filter(Order.order_status == 'cancelled').count()
     total_pending_orders = Order.query.filter(Order.order_status == 'pending').count()
 
-    if not orders:
-        return render_template('admin/order_list.html', orders=None, exception_message=exception_message)
-    
     return render_template('admin/order_list.html', 
                            orders=orders, 
                            exception_message=None,
@@ -72,5 +89,4 @@ def order_list():
                            total_pending_orders=total_pending_orders,
                            user_name=user.name,
                            role=role,
-                           encoded_image=encoded_image,
-                           )
+                           encoded_image=encoded_image)
