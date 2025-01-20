@@ -1,8 +1,13 @@
 #  Hierarchy Management System (FOOD_DELIVERY_HIERARCHY)
 
+
 This project is a web-based Hierarchy Management System developed using Flask, SQLAlchemy, and MySQL. It helps manage hierarchical structures such as organizations, departments, and teams with user management, roles, and authentication features.
 
 ## Features
+
+This project is a web-based Hierarchy Management System developed using Flask, SQLAlchemy, and MySQL. It helps manage hierarchical structures such as organizations, departments, and teams with user management, roles, and authentication features.  
+
+## Features 
 
 - User authentication (login, registration).
 - Admin functionality for managing users.
