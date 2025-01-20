@@ -5,16 +5,15 @@ This project is a web-based Hierarchy Management System developed using Flask, S
 ## Features
 
 - User authentication (login, registration).
-- Admin functionality for managing users, departments, and teams.
-- CRUD operations for managing hierarchical data (users, departments, teams).
-- Role-based access control (admin, manager, user).
+- Admin functionality for managing users.
+- CRUD operations for managing hierarchical data (users).
+- Role-based access control (admin, manager, super_distributor, distributor, kitchen).
 - RESTful API for interacting with the system.
 
 ## Technologies Used
 
 - Backend: Flask (Python web framework)
 - Database: MySQL with SQLAlchemy ORM
-- Authentication: JWT (JSON Web Tokens)
 - Password Hashing: bcrypt
 - Migrations: Flask-Migrate
 - Frontend: HTML, CSS ,JavaScript, Bootstrap (for simple frontend interface)
