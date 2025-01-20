@@ -30,18 +30,13 @@ def order_list():
     # Apply role-based filtering
     if role == 'Admin':
         # Admin sees all orders, filter by user_id if provided
-        if user_id:
-            query = query.filter(Order.user_id == user_id)
+        query = query
     elif role == 'Manager':
         # Manager sees orders under their own supervision (e.g., based on manager_id and kitchen hierarchy)
         query = query.join(Kitchen, Order.kitchen_id == Kitchen.id) \
                      .join(Distributor, Kitchen.distributor_id == Distributor.id) \
                      .join(SuperDistributor, Distributor.super_distributor == SuperDistributor.id) \
                      .filter(SuperDistributor.manager_id == user_id)
-
-        # Ensure we are still filtering orders by user_id if needed
-        if user_id:
-            query = query.filter(Order.user_id == user_id)
 
     # Apply search filters
     if search_query:
@@ -73,7 +68,7 @@ def order_list():
     # Order by created_at
     query = query.order_by(Order.created_at.desc())
     orders = query.all()  # Fetch all records instead of paginated results
-
+    
     # Debugging: Check the query generated
     print(query)  # Prints the SQL query for debugging
 

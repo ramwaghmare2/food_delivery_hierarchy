@@ -66,7 +66,6 @@ def admin_home():
         # Total orders count where order_id is in Sales
         total_orders_count = (
             db.session.query(func.count(Order.order_id))
-            .join(Sales, Sales.order_id == Order.order_id)
             .scalar() or 0
         )
 
